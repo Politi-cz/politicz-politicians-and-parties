@@ -5,7 +5,7 @@ namespace DotNetDemoProject.Data
 {
     public class DbInitializer
     {
-        public static void Initialize(PoliticiansPartiesDbContext context) { 
+        public static void Initialize(ApplicationDbContext context) { 
             context.Database.EnsureCreated();
 
             if (context.PoliticalParties.Any()) {

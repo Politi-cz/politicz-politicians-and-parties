@@ -1,13 +1,17 @@
 using DotNetDemoProject.Data;
 using Microsoft.EntityFrameworkCore;
 using politicz_politicians_and_parties.Data;
+using politicz_politicians_and_parties.Repositories;
+using politicz_politicians_and_parties.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Services.AddDbContext<PoliticiansPartiesDbContext>(options => {
+builder.Services.AddDbContext<ApplicationDbContext>(options => {
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
 });
+builder.Services.AddScoped<IPoliticianRepository, PoliticianRepository>();
+builder.Services.AddScoped<IPoliticianService, PoliticianService>();
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
 builder.Services.AddControllers();
@@ -31,7 +35,7 @@ using (var scope = app.Services.CreateScope())
 {
     try
     {
-        var context = scope.ServiceProvider.GetRequiredService<PoliticiansPartiesDbContext>();
+        var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         DbInitializer.Initialize(context);
     }
     catch (Exception)

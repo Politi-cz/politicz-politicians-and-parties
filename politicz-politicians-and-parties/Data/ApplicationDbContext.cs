@@ -3,9 +3,9 @@ using politicz_politicians_and_parties.Models;
 
 namespace politicz_politicians_and_parties.Data
 {
-    public class PoliticiansPartiesDbContext : DbContext
+    public class ApplicationDbContext : DbContext
     {
-        public PoliticiansPartiesDbContext(DbContextOptions options) : base(options)
+        public ApplicationDbContext(DbContextOptions options) : base(options)
         {
         }
 

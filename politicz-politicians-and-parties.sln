@@ -3,7 +3,13 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.4.33205.214
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "politicz-politicians-and-parties", "politicz-politicians-and-parties\politicz-politicians-and-parties.csproj", "{0591A3A1-297C-4969-9D0F-4F763C383180}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "politicz-politicians-and-parties", "politicz-politicians-and-parties\politicz-politicians-and-parties.csproj", "{0591A3A1-297C-4969-9D0F-4F763C383180}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{2DAF0BFB-E73E-4C2E-B53C-DBF9DDBD4349}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{DDE578CA-DFA7-486E-A079-72130F909D5F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Politicians.Api.Test.Unit", "Politicians.Api.Test.Unit2\Politicians.Api.Test.Unit.csproj", "{94732B3D-2ACB-4A8C-B0B9-AA5549DF571C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,9 +21,17 @@ Global
 		{0591A3A1-297C-4969-9D0F-4F763C383180}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0591A3A1-297C-4969-9D0F-4F763C383180}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0591A3A1-297C-4969-9D0F-4F763C383180}.Release|Any CPU.Build.0 = Release|Any CPU
+		{94732B3D-2ACB-4A8C-B0B9-AA5549DF571C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{94732B3D-2ACB-4A8C-B0B9-AA5549DF571C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{94732B3D-2ACB-4A8C-B0B9-AA5549DF571C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{94732B3D-2ACB-4A8C-B0B9-AA5549DF571C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{0591A3A1-297C-4969-9D0F-4F763C383180} = {2DAF0BFB-E73E-4C2E-B53C-DBF9DDBD4349}
+		{94732B3D-2ACB-4A8C-B0B9-AA5549DF571C} = {DDE578CA-DFA7-486E-A079-72130F909D5F}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {32A2B40E-08D2-4952-B5EC-23BC70A8C1B6}
