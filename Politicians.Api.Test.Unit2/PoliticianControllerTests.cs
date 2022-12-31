@@ -29,18 +29,18 @@ namespace Politicians.Api.Test.Unit
         public async Task GetPolitician_ReturnsOkAndObject_WhenPoliticianExists() {
             // TODO Change PoliticianDto and add Id attributeff
             // Arrange
-            var id = Guid.NewGuid();
             var politician = new PoliticianDto
             {
+                Id = Guid.NewGuid(),
                 BirthDate = DateTime.Now,
                 FullName = "Petr Koller",
                 FacebookUrl = "https://facebook.com/testUser",
                 TwitterUrl = "https://twitter.com/musk"
             };
-            _politicianService.GetPoliticianAsync(id).Returns(politician);
+            _politicianService.GetPoliticianAsync(politician.Id).Returns(politician);
 
             // Act
-            var result = (OkObjectResult)await _sut.GetPolitician(id);
+            var result = (OkObjectResult)await _sut.GetPolitician(politician.Id);
 
             // Assert
             // TODO Add constants instead of number

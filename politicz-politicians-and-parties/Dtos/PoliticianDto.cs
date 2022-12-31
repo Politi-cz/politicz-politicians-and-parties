@@ -2,6 +2,7 @@
 {
     public class PoliticianDto
     {
+        public Guid Id { get; set; }
         public string FullName { get; set; } = default!;
         public DateTime BirthDate { get; set; }
         public string? InstagramUrl { get; set; }

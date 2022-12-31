@@ -1,8 +1,13 @@
 using DotNetDemoProject.Data;
+using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using politicz_politicians_and_parties.Data;
+using politicz_politicians_and_parties.Extensions;
+using politicz_politicians_and_parties.Models;
 using politicz_politicians_and_parties.Repositories;
 using politicz_politicians_and_parties.Services;
+using System.Net;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -28,6 +33,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+app.ConfigureExceptionHandler();
 
 app.UseHttpsRedirection();
 

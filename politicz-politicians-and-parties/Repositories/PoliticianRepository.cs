@@ -15,6 +15,7 @@ namespace politicz_politicians_and_parties.Repositories
 
         public async Task<Politician?> GetPolitician(Guid id)
         {
+            throw new Exception("test");
             return await _db.Politicians.Where(x => x.FrontEndId.Equals(id)).FirstOrDefaultAsync();
         }
     }

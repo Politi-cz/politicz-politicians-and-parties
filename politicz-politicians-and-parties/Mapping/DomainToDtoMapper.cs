@@ -8,6 +8,7 @@ namespace politicz_politicians_and_parties.Mapping
         public static PoliticianDto ToPoliticianDto(this Politician politician) {
             return new PoliticianDto
             {
+                Id = politician.FrontEndId,
                 FullName = politician.FullName,
                 BirthDate = politician.BirthDate,
                 FacebookUrl = politician.FacebookUrl,
