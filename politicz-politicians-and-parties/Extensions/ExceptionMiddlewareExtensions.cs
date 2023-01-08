@@ -24,6 +24,7 @@ namespace politicz_politicians_and_parties.Extensions
                             StatusCode = context.Response.StatusCode,
                             Message = "Internal Server Error."
                         }.ToString());
+
                     }
                 });
             });

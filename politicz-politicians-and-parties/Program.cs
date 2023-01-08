@@ -1,23 +1,21 @@
-using DotNetDemoProject.Data;
 using Microsoft.AspNetCore.Diagnostics;
-using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using politicz_politicians_and_parties.Data;
+using politicz_politicians_and_parties.Database;
 using politicz_politicians_and_parties.Extensions;
 using politicz_politicians_and_parties.Models;
 using politicz_politicians_and_parties.Repositories;
 using politicz_politicians_and_parties.Services;
+using System.Data;
 using System.Net;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Services.AddDbContext<ApplicationDbContext>(options => {
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
-});
+builder.Services.AddSingleton<IDbConnectionFactory>(new SqlServerConnectionFactory(builder.Configuration));
+builder.Services.AddSingleton<DatabaseInitializer>();
 builder.Services.AddScoped<IPoliticianRepository, PoliticianRepository>();
 builder.Services.AddScoped<IPoliticianService, PoliticianService>();
-builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
@@ -33,27 +31,19 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+else { 
+    app.ConfigureExceptionHandler();
+}
 
-app.ConfigureExceptionHandler();
 
 app.UseHttpsRedirection();
-
-using (var scope = app.Services.CreateScope())
-{
-    try
-    {
-        var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-        DbInitializer.Initialize(context);
-    }
-    catch (Exception)
-    {
-        throw;
-    }
-}
 
 
 app.UseAuthorization();
 
 app.MapControllers();
+
+var databaseInitializer = app.Services.GetRequiredService<DatabaseInitializer>();
+await databaseInitializer.InitializeAsync(builder.Configuration.GetValue<string>("Database"));
 
 app.Run();

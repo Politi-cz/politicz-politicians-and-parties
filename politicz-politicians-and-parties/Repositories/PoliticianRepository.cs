@@ -1,22 +1,23 @@
-﻿using Microsoft.EntityFrameworkCore;
-using politicz_politicians_and_parties.Data;
+﻿using Dapper;
+using politicz_politicians_and_parties.Database;
 using politicz_politicians_and_parties.Models;
 
 namespace politicz_politicians_and_parties.Repositories
 {
     public class PoliticianRepository : IPoliticianRepository
     {
-        private readonly ApplicationDbContext _db;
+        private readonly IDbConnectionFactory _connectionFactory;
 
-        public PoliticianRepository(ApplicationDbContext db)
+        public PoliticianRepository(IDbConnectionFactory connectionFactory)
         {
-            _db = db;
+            _connectionFactory = connectionFactory;
         }
 
         public async Task<Politician?> GetPolitician(Guid id)
         {
-            throw new Exception("test");
-            return await _db.Politicians.Where(x => x.FrontEndId.Equals(id)).FirstOrDefaultAsync();
+            using var connection = await _connectionFactory.CreateConnectionAsync();
+
+            return await connection.QuerySingleOrDefaultAsync<Politician>("SELECT * FROM Politicians WHERE FrontEndId = @FrontEndId", new { FrontEndId = id });
         }
     }
 }
