@@ -3,18 +3,29 @@ using System.Data;
 
 namespace politicz_politicians_and_parties.Database
 {
+    public struct ConnectionStrings {
+        public ConnectionStrings(string masterConnection, string sqlConnection)
+        {
+            MasterConnection = masterConnection;
+            SqlConnection = sqlConnection;
+        }
+
+        public string MasterConnection { get; }
+        public string SqlConnection { get; }
+    }
+
     public class SqlServerConnectionFactory : IDbConnectionFactory
     {
-        private readonly IConfiguration _configuration;
+        private readonly ConnectionStrings _connectionStrings;
 
-        public SqlServerConnectionFactory(IConfiguration configuration)
+        public SqlServerConnectionFactory(ConnectionStrings connectionStrings)
         {
-            _configuration= configuration;
+            _connectionStrings= connectionStrings;
         }
 
         public async Task<IDbConnection> CreateConnectionAsync()
         {
-            var connection = new SqlConnection(_configuration.GetConnectionString("DefaultConnection"));
+            var connection = new SqlConnection(_connectionStrings.SqlConnection);
             await connection.OpenAsync();
 
             return connection;
@@ -22,7 +33,7 @@ namespace politicz_politicians_and_parties.Database
 
         public async Task<IDbConnection> CreateMasterConnectionAsync()
         {
-            var connection = new SqlConnection(_configuration.GetConnectionString("MasterConnection"));
+            var connection = new SqlConnection(_connectionStrings.MasterConnection);
             await connection.OpenAsync();
 
             return connection;

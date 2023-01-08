@@ -12,7 +12,8 @@ using System.Net;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Services.AddSingleton<IDbConnectionFactory>(new SqlServerConnectionFactory(builder.Configuration));
+builder.Services.AddSingleton<IDbConnectionFactory>(new SqlServerConnectionFactory(
+    new ConnectionStrings(builder.Configuration.GetConnectionString("MasterConnection"), builder.Configuration.GetConnectionString("DefaultConnection"))));
 builder.Services.AddSingleton<DatabaseInitializer>();
 builder.Services.AddScoped<IPoliticianRepository, PoliticianRepository>();
 builder.Services.AddScoped<IPoliticianService, PoliticianService>();
