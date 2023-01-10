@@ -4,7 +4,8 @@ using politicz_politicians_and_parties.Services;
 
 namespace politicz_politicians_and_parties.Controllers
 {
-    [Route("politician")]
+    // TODO ADD DOCUMENTATION
+    [Route("api/politicians")]
     [ApiController]
     public class PoliticianController : ControllerBase
     {

@@ -21,8 +21,8 @@ namespace politicz_politicians_and_parties.Database
             var records = connection.Query(query, parameters);
             if (!records.Any()) {
                 await connection.ExecuteAsync($"CREATE DATABASE [{dbName}]");
+                // TODO ADD FLUENT MIGRATOR
                 await connection.ExecuteAsync($@"USE [{dbName}]
-
 /****** Object:  Table [dbo].[PoliticalParties]    Script Date: 08.01.2023 10:13:27 ******/
 SET ANSI_NULLS ON
 
