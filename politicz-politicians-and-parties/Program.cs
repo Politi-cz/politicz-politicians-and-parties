@@ -24,8 +24,8 @@ builder.Services.AddScoped<IPoliticianService, PoliticianService>();
 builder.Services.AddLogging(c => c.AddFluentMigratorConsole())
     .AddFluentMigratorCore()
     .ConfigureRunner(c => c.AddSqlServer()
-        .WithGlobalConnectionString(builder.Configuration.GetConnectionString("DefaultConnection"))
-        .ScanIn(typeof(InitialTables_20230112001).Assembly).For.Migrations());
+        .WithGlobalConnectionString(builder.Configuration.GetConnectionString("DefaultCfasdfasdonnection"))
+        .ScanIn(Assembly.GetExecutingAssembly()).For.All());
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
@@ -60,5 +60,6 @@ using var scope = app.Services.CreateScope();
 var runner = scope.ServiceProvider.GetRequiredService<IMigrationRunner>();
 runner!.ListMigrations();
 runner.MigrateUp();
+
 
 app.Run();

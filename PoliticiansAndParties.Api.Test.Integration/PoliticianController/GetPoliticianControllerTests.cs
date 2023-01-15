@@ -24,7 +24,7 @@ namespace PoliticiansAndParties.Api.Test.Integration.PoliticianController
             // TODO SHOULD BE CRREATED BY THE CONTROLLER, NOW USING SEEDED DATA FROM DB
             // N'a5e15559-ebba-426a-8a38-f56e3421903c', N'Tomio', CAST(N'1966-01-01T00:00:00.0000000' AS DateTime2)
             var expectedPolitician = new PoliticianDto {
-                Id = Guid.Parse("a5e15559-ebba-426a-8a38-f56e3421903c"),
+                Id = new Guid("a5e15559-ebba-426a-8a38-f56e3421903c"),
                 BirthDate = new DateTime(1966, 1, 1),
                 FullName = "Tomio"
             };
