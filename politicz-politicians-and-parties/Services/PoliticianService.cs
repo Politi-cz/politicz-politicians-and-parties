@@ -16,13 +16,8 @@ namespace politicz_politicians_and_parties.Services
 
         public async Task<PoliticianDto?> GetPoliticianAsync(Guid id)
         {
-            Politician? politician;
-            try { 
-                politician = await _politicianRepository.GetPolitician(id);
-            }catch(Exception)
-            {
-                throw;
-            }
+
+            var politician = await _politicianRepository.GetPoliticianAsync(id);
 
             return politician?.ToPoliticianDto();
         }

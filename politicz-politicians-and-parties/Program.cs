@@ -20,6 +20,8 @@ builder.Services.AddSingleton<IDbConnectionFactory>(new SqlServerConnectionFacto
 builder.Services.AddSingleton<DatabaseInitializer>();
 builder.Services.AddScoped<IPoliticianRepository, PoliticianRepository>();
 builder.Services.AddScoped<IPoliticianService, PoliticianService>();
+builder.Services.AddScoped<IPoliticalPartyRepository, PoliticalPartyRepository>();
+builder.Services.AddScoped<IPoliticalPartyService, PoliticalPartyService>();
 
 builder.Services.AddLogging(c => c.AddFluentMigratorConsole())
     .AddFluentMigratorCore()

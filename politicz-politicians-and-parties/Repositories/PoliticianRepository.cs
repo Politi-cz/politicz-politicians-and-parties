@@ -13,7 +13,7 @@ namespace politicz_politicians_and_parties.Repositories
             _connectionFactory = connectionFactory;
         }
 
-        public async Task<Politician?> GetPolitician(Guid id)
+        public async Task<Politician?> GetPoliticianAsync(Guid id)
         {
             using var connection = await _connectionFactory.CreateConnectionAsync();
 

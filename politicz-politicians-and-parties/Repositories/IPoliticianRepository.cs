@@ -4,6 +4,6 @@ namespace politicz_politicians_and_parties.Repositories
 {
     public interface IPoliticianRepository
     {
-        Task<Politician?> GetPolitician(Guid id);
+        Task<Politician?> GetPoliticianAsync(Guid frontEndId);
     }
 }
