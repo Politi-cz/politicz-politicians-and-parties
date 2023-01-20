@@ -12,26 +12,6 @@ namespace politicz_politicians_and_parties.Migrations
             Delete.Table("PoliticalParties");
         }
 
-        /*CREATE TABLE[dbo].[Politicians]
-        (
-
-    [Id][int] IDENTITY(1, 1) NOT NULL,
-    [FrontEndId] [uniqueidentifier]
-        NOT NULL,
-    [FullName] [nvarchar] (max) NOT NULL,
-	[BirthDate][datetime2] (7) NOT NULL,
-    [InstagramUrl] [nvarchar]
-        (max) NULL,
-    [TwitterUrl][nvarchar]
-        (max) NULL,
-    [FacebookUrl][nvarchar]
-        (max) NULL,
-    [PoliticalPartyId][int] NOT NULL,
-        ALTER TABLE[dbo].[Politicians] WITH CHECK ADD  CONSTRAINT [FK_Politicians_PoliticalParties_PoliticalPartyId] FOREIGN KEY([PoliticalPartyId])
-REFERENCES[dbo].[PoliticalParties]([Id])
-         
-         */
-
         public override void Up()
         {
             Create.Table("PoliticalParties")

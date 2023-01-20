@@ -42,29 +42,4 @@ namespace politicz_politicians_and_parties.Migrations
         }
     }
 
-    /*SET IDENTITY_INSERT[dbo].[PoliticalParties]
-    ON
-
-INSERT[dbo].[PoliticalParties]
-    ([Id], [FrontEndId], [Name], [ImageUrl]) VALUES(1, N'08e8fb6e-b166-4ec4-ae4e-6b3096f84e1b', N'SPD', N'')
-
-INSERT[dbo].[PoliticalParties]
-    ([Id], [FrontEndId], [Name], [ImageUrl]) VALUES(2, N'24ed715a-31cb-4fca-9726-533072b0c79d', N'ANO', N'')
-
-SET IDENTITY_INSERT[dbo].[PoliticalParties]
-    OFF
-SET IDENTITY_INSERT[dbo].[Politicians]
-    ON
-
-INSERT[dbo].[Politicians] ([Id], [FrontEndId], [FullName], [BirthDate], [InstagramUrl], [TwitterUrl], [FacebookUrl], [PoliticalPartyId]) VALUES(1, N'a5e15559-ebba-426a-8a38-f56e3421903c', N'Tomio', CAST(N'1966-01-01T00:00:00.0000000' AS DateTime2), NULL, NULL, NULL, 1)
-
-INSERT[dbo].[Politicians] ([Id], [FrontEndId], [FullName], [BirthDate], [InstagramUrl], [TwitterUrl], [FacebookUrl], [PoliticalPartyId]) VALUES(2, N'734dfb56-5870-4487-aae2-12b207f0bcd2', N'TOnda', CAST(N'1988-01-01T00:00:00.0000000' AS DateTime2), NULL, NULL, NULL, 1)
-
-INSERT[dbo].[Politicians] ([Id], [FrontEndId], [FullName], [BirthDate], [InstagramUrl], [TwitterUrl], [FacebookUrl], [PoliticalPartyId]) VALUES(3, N'8cf61bec-bd1d-4227-aa9e-76338e2fea2c', N'Karel', CAST(N'1996-01-01T00:00:00.0000000' AS DateTime2), NULL, NULL, NULL, 1)
-
-INSERT[dbo].[Politicians] ([Id], [FrontEndId], [FullName], [BirthDate], [InstagramUrl], [TwitterUrl], [FacebookUrl], [PoliticalPartyId]) VALUES(4, N'996b175f-2cff-40a5-b568-0fbc74328a66', N'Pavel', CAST(N'2000-01-01T00:00:00.0000000' AS DateTime2), NULL, NULL, NULL, 1)
-
-INSERT[dbo].[Politicians] ([Id], [FrontEndId], [FullName], [BirthDate], [InstagramUrl], [TwitterUrl], [FacebookUrl], [PoliticalPartyId]) VALUES(5, N'4756c20d-826f-4c7c-89d0-3252e130546d', N'Andrej', CAST(N'1962-05-05T00:00:00.0000000' AS DateTime2), NULL, NULL, NULL, 2)
-
-INSERT[dbo].[Politicians] ([Id], [FrontEndId], [FullName], [BirthDate], [InstagramUrl], [TwitterUrl], [FacebookUrl], [PoliticalPartyId]) VALUES(6, N'65e86328-5f07-45b6-b5fe-4e6be3d98d2f', N'Karel', CAST(N'1977-04-05T00:00:00.0000000' AS DateTime2), NULL, NULL, NULL, 2)*/
 }

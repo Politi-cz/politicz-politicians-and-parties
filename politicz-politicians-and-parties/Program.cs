@@ -26,7 +26,7 @@ builder.Services.AddScoped<IPoliticalPartyService, PoliticalPartyService>();
 builder.Services.AddLogging(c => c.AddFluentMigratorConsole())
     .AddFluentMigratorCore()
     .ConfigureRunner(c => c.AddSqlServer()
-        .WithGlobalConnectionString(builder.Configuration.GetConnectionString("DefaultCfasdfasdonnection"))
+        .WithGlobalConnectionString(builder.Configuration.GetConnectionString("DefaultConnection"))
         .ScanIn(Assembly.GetExecutingAssembly()).For.All());
 
 builder.Services.AddControllers();

@@ -31,7 +31,7 @@ namespace PoliticiansAndParties.Api.Test.Integration.PoliticianController
 
 
             // Act
-            var response = await _client.GetAsync("api/politicians/" + expectedPolitician.Id.ToString());
+            var response = await _client.GetAsync("api/political-parties/politician/" + expectedPolitician.Id.ToString());
 
 
             // Assert
@@ -44,7 +44,7 @@ namespace PoliticiansAndParties.Api.Test.Integration.PoliticianController
         public async Task Get_ReturnsNotFound_WhenNoPoliticianExist()
         {
             // Act
-            var response = await _client.GetAsync("api/politicians/" + Guid.NewGuid());
+            var response = await _client.GetAsync("api/political-parties/politician/" + Guid.NewGuid());
 
 
             // Assert

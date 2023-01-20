@@ -4,15 +4,17 @@ using politicz_politicians_and_parties.Services;
 
 namespace politicz_politicians_and_parties.Controllers
 {
-    [Route("api/politicalParties")]
+    [Route("api/political-parties")]
     [ApiController]
     public class PoliticalPartyController : ControllerBase
     {
         private readonly IPoliticalPartyService _politicalPartyService;
+        private readonly IPoliticianService _politicianService;
 
-        public PoliticalPartyController(IPoliticalPartyService politicalPartyService)
+        public PoliticalPartyController(IPoliticalPartyService politicalPartyService, IPoliticianService politicianService)
         {
             _politicalPartyService = politicalPartyService;
+            _politicianService = politicianService;
         }
 
         [HttpGet("{id:guid}")]
@@ -33,6 +35,19 @@ namespace politicz_politicians_and_parties.Controllers
             var politicalPartiesSideNav = await _politicalPartyService.GetPoliticalPartiesAsync();
 
             return Ok(politicalPartiesSideNav);
+        }
+
+        [HttpGet("politician/{id:guid}")]
+        public async Task<IActionResult> GetPolitician([FromRoute] Guid id)
+        {
+            var politicianDto = await _politicianService.GetPoliticianAsync(id);
+
+            if (politicianDto is null)
+            {
+                return NotFound();
+            }
+
+            return Ok(politicianDto);
         }
     }
 }

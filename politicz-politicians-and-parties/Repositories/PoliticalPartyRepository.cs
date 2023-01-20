@@ -26,14 +26,16 @@ namespace politicz_politicians_and_parties.Repositories
             using var connection = await _connectionFactory.CreateConnectionAsync();
 
             var sql = @"SELECT pp.Id, pp.FrontEndId, [Name], [ImageUrl], p.Id, p.FrontEndId, BirthDate, FullName, InstagramUrl, TwitterUrl, FacebookUrl, PoliticalPartyId
-                        FROM PoliticalParties pp INNER JOIN Politicians p ON pp.Id = p.PoliticalPartyId
+                        FROM PoliticalParties pp LEFT JOIN Politicians p ON pp.Id = p.PoliticalPartyId
                         WHERE pp.FrontEndId = @FrontEndId ";
 
             // I know that where will be at most 1 political party thanks to WHERE clause so I can collect politicians on the way and skip the grouping part of result that gets rid of duplicated
             var politicians = new List<Politician>();
             var politicalParties = await connection.QueryAsync<PoliticalParty, Politician, PoliticalParty>(sql, (politicalParty, politician) =>
             {
-                politicians.Add(politician);
+                if (politician is not null) { 
+                    politicians.Add(politician);
+                }
 
                 return politicalParty;
             },param: new { FrontEndId = frontEndId }, splitOn: "Id");
