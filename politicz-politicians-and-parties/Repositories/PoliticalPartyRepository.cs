@@ -46,7 +46,7 @@ namespace politicz_politicians_and_parties.Repositories
 
                 return politicalParty;
             }
-            // TODO figure out a bug when political party has no members (empty join, will have to use LEFT JOIN instead of INNER join)
+
             return null;
 
         }

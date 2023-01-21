@@ -6,6 +6,6 @@
         public Guid FrontEndId { get; set; } = default!;
         public string Name { get; set; } = string.Empty;
         public string ImageUrl { get; set; } = string.Empty;
-        public List<Politician> Politicians { get; set; } = new List<Politician>();
+        public IEnumerable<Politician> Politicians { get; set; } = Enumerable.Empty<Politician>();
     }
 }
