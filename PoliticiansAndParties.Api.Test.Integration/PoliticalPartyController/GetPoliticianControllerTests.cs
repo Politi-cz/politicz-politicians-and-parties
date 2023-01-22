@@ -7,7 +7,7 @@ using System.Net.Http.Json;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace PoliticiansAndParties.Api.Test.Integration.PoliticianController
+namespace PoliticiansAndParties.Api.Test.Integration.PoliticalPartyController
 {
     public class GetPoliticianControllerTests : IClassFixture<PoliticiansAndPartiesApiFactory>
     {
@@ -19,11 +19,13 @@ namespace PoliticiansAndParties.Api.Test.Integration.PoliticianController
         }
 
         [Fact]
-        public async Task Get_ReturnsPolitician_WhenPoliticianExists() {
+        public async Task Get_ReturnsPolitician_WhenPoliticianExists()
+        {
             // Arrange
             // TODO SHOULD BE CRREATED BY THE CONTROLLER, NOW USING SEEDED DATA FROM DB
             // N'a5e15559-ebba-426a-8a38-f56e3421903c', N'Tomio', CAST(N'1966-01-01T00:00:00.0000000' AS DateTime2)
-            var expectedPolitician = new PoliticianDto {
+            var expectedPolitician = new PoliticianDto
+            {
                 Id = new Guid("a5e15559-ebba-426a-8a38-f56e3421903c"),
                 BirthDate = new DateTime(1966, 1, 1),
                 FullName = "Tomio"

@@ -24,7 +24,7 @@ namespace Politicians.Api.Test.Unit
         }
 
         [Fact]
-        public async Task GetPoliticianAsync_ShouldReturnPoliticianDto_WhenPoliticianDtoExists() {
+        public async Task GetPoliticianAsync_ShouldReturnPoliticianDto_WhenPoliticianExists() {
             // Arrange
             var existingPolitician = new Politician {
                 Id = 1,

@@ -60,8 +60,9 @@ await databaseInitializer.InitializeAsync(builder.Configuration.GetValue<string>
 
 using var scope = app.Services.CreateScope();
 var runner = scope.ServiceProvider.GetRequiredService<IMigrationRunner>();
+
+// TODO: WHen endpoints for creating political parties/politicians exist, remove data seeding and edit tests according to that
 runner!.ListMigrations();
 runner.MigrateUp();
-
 
 app.Run();
