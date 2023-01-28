@@ -30,9 +30,19 @@ namespace politicz_politicians_and_parties.Migrations
                 .WithColumn("FacebookUrl").AsString(255).Nullable()
                 .WithColumn("PoliticalPartyId").AsInt32().NotNullable();
 
+            Create.Table("Tags")
+                .WithColumn("Id").AsInt32().NotNullable().PrimaryKey().Identity()
+                .WithColumn("Name").AsString(255).NotNullable().Unique();
+
+            Create.Table("PoliticalParties_Tags")
+                .WithColumn("PoliticalPartyId").AsInt32().NotNullable().PrimaryKey()
+                .WithColumn("TagId").AsInt32().NotNullable().PrimaryKey();
+
+
             Create.ForeignKey()
                 .FromTable("Politicians").ForeignColumn("PoliticalPartyId")
-                .ToTable("PoliticalParties").PrimaryColumn("Id");
+                .ToTable("PoliticalParties").PrimaryColumn("Id")
+                .OnDelete(System.Data.Rule.Cascade);
 
             Create.Index()
                 .OnTable("Politicians").OnColumn("PoliticalPartyId").Ascending().WithOptions().NonClustered();

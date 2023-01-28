@@ -23,7 +23,8 @@ namespace politicz_politicians_and_parties.Mapping
             {
                 Id = politicalParty.FrontEndId,
                 ImageUrl = politicalParty.ImageUrl,
-                Name = politicalParty.Name
+                Name = politicalParty.Name,
+                Tags= politicalParty.Tags,
             };
         }
 
@@ -33,7 +34,8 @@ namespace politicz_politicians_and_parties.Mapping
                 Id = politicalParty.FrontEndId,
                 ImageUrl = politicalParty.ImageUrl,
                 Name = politicalParty.Name,
-                Politicians = politicalParty.Politicians.Select(x => x.ToPoliticianDto())
+                Politicians = politicalParty.Politicians.Select(x => x.ToPoliticianDto()),
+                Tags = politicalParty.Tags
             };
         }
     }

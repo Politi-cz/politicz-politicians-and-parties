@@ -5,6 +5,7 @@ using politicz_politicians_and_parties.Mapping;
 using politicz_politicians_and_parties.Models;
 using politicz_politicians_and_parties.Repositories;
 using politicz_politicians_and_parties.Services;
+using politicz_politicians_and_parties.Validators;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,10 +18,11 @@ namespace Politicians.Api.Test.Unit
     {
         private readonly PoliticianService _sut;
         private readonly IPoliticianRepository _politicianRepository = Substitute.For<IPoliticianRepository>();
+        private readonly IPoliticalPartyRepository _politicalPartyRepository= Substitute.For<IPoliticalPartyRepository>();
 
         public PoliticianServiceTests()
         {
-            _sut = new PoliticianService(_politicianRepository);
+            _sut = new PoliticianService(_politicianRepository, _politicalPartyRepository, new PoliticianDtoValidator());
         }
 
         [Fact]

@@ -12,7 +12,5 @@ namespace politicz_politicians_and_parties.Models
         public string? TwitterUrl { get; set; }
         public string? FacebookUrl { get; set; }
         public int PoliticalPartyId { get; set; } = default!;
-        public PoliticalParty PoliticalParty { get; set; } = default!;
-
     }
 }

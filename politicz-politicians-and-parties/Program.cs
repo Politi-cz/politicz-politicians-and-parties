@@ -1,13 +1,16 @@
 using FluentMigrator.Runner;
+using FluentValidation;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using politicz_politicians_and_parties.Database;
+using politicz_politicians_and_parties.Dtos;
 using politicz_politicians_and_parties.Extensions;
 using politicz_politicians_and_parties.Migrations;
 using politicz_politicians_and_parties.Models;
 using politicz_politicians_and_parties.Repositories;
 using politicz_politicians_and_parties.Services;
+using politicz_politicians_and_parties.Validators;
 using System.Data;
 using System.Net;
 using System.Reflection;
@@ -22,6 +25,9 @@ builder.Services.AddScoped<IPoliticianRepository, PoliticianRepository>();
 builder.Services.AddScoped<IPoliticianService, PoliticianService>();
 builder.Services.AddScoped<IPoliticalPartyRepository, PoliticalPartyRepository>();
 builder.Services.AddScoped<IPoliticalPartyService, PoliticalPartyService>();
+
+// TODO Add all validations through an extension method RegisterValidators or something like that. 
+builder.Services.AddScoped<IValidator<PoliticianDto>, PoliticianDtoValidator>();
 
 builder.Services.AddLogging(c => c.AddFluentMigratorConsole())
     .AddFluentMigratorCore()
@@ -39,13 +45,12 @@ var app = builder.Build();
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
-    app.UseDeveloperExceptionPage();
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-else { 
-    app.ConfigureExceptionHandler();
-}
+
+app.ConfigureExceptionHandler();
+
 
 
 app.UseHttpsRedirection();

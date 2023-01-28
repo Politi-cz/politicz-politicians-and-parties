@@ -6,5 +6,6 @@ namespace politicz_politicians_and_parties.Services
     {
         Task<PoliticalPartyDto?> GetPoliticalPartyAsync(Guid id);
         Task<IEnumerable<PoliticalPartySideNavDto>> GetPoliticalPartiesAsync();
+        Task<bool> CreatePoliticalParty(PoliticalPartyCreateDto politicalParty);
     }
 }

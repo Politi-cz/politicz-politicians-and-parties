@@ -1,5 +1,8 @@
-﻿using Microsoft.AspNetCore.Diagnostics;
+﻿using FluentValidation;
+using Microsoft.AspNetCore.Diagnostics;
+using Microsoft.AspNetCore.Mvc;
 using politicz_politicians_and_parties.Models;
+using System;
 using System.Net;
 
 namespace politicz_politicians_and_parties.Extensions
@@ -19,11 +22,37 @@ namespace politicz_politicians_and_parties.Extensions
                     if (contextFeature != null)
                     {
                         /*logger.LogError($"Something went wrong: {contextFeature.Error}");*/
-                        await context.Response.WriteAsync(new ErrorDetails()
+
+                        if (contextFeature.Error is ValidationException)
                         {
-                            StatusCode = context.Response.StatusCode,
-                            Message = "Internal Server Error."
-                        }.ToString());
+                            // TODO Tidy up and add switch for another exceptions if needed
+                            var exception = (ValidationException)contextFeature.Error;
+                            context.Response.StatusCode = 400;
+
+                            var error = new ValidationProblemDetails
+                            {
+                                Type = "https://tools.ietf.org/html/rfc7231#section-6.5.1",
+                                Status = 400,
+                                Extensions =
+                                {
+                                    ["traceId"] = context.TraceIdentifier
+                                }
+                            };
+                            foreach (var validationFailure in exception.Errors)
+                            {
+                                error.Errors.Add(new KeyValuePair<string, string[]>(
+                                    validationFailure.PropertyName,
+                                    new[] { validationFailure.ErrorMessage }));
+                            }
+                            await context.Response.WriteAsJsonAsync(error);
+                        }
+                        else { 
+                            await context.Response.WriteAsync(new ErrorDetails()
+                            {
+                                StatusCode = context.Response.StatusCode,
+                                Message = "Internal Server Error."
+                            }.ToString());
+                        }
 
                     }
                 });
