@@ -36,10 +36,10 @@ namespace Politicians.Api.Test.Unit
                 PoliticalPartyId = 25,
             };
             var expectedPolitician = existingPolitician.ToPoliticianDto();
-            _politicianRepository.GetPoliticianAsync(existingPolitician.FrontEndId).Returns(existingPolitician);
+            _politicianRepository.GetAsync(existingPolitician.FrontEndId).Returns(existingPolitician);
 
             // Act
-            var result = await _sut.GetPoliticianAsync(existingPolitician.FrontEndId);
+            var result = await _sut.GetAsync(existingPolitician.FrontEndId);
 
             // Assert
             result.Should().BeEquivalentTo(expectedPolitician);
@@ -48,10 +48,10 @@ namespace Politicians.Api.Test.Unit
         [Fact]
         public async Task GetPoliticianAsync_ShouldReturnNull_WhenPoliticianDoesNotExist() { 
             // Arrange
-            _politicianRepository.GetPoliticianAsync(Arg.Any<Guid>()).ReturnsNull();
+            _politicianRepository.GetAsync(Arg.Any<Guid>()).ReturnsNull();
 
             // Act
-            var result = await _sut.GetPoliticianAsync(Arg.Any<Guid>());
+            var result = await _sut.GetAsync(Arg.Any<Guid>());
 
             // Assert
             result.Should().BeNull();

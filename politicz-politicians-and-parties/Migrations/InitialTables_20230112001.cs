@@ -8,8 +8,10 @@ namespace politicz_politicians_and_parties.Migrations
     {
         public override void Down()
         {
-            Delete.Table("Politicians");
             Delete.Table("PoliticalParties");
+            Delete.Table("Politicians");
+            Delete.Table("Tags");
+            Delete.Table("PoliticalParties_Tags");
         }
 
         public override void Up()
@@ -17,7 +19,7 @@ namespace politicz_politicians_and_parties.Migrations
             Create.Table("PoliticalParties")
                 .WithColumn("Id").AsInt32().NotNullable().PrimaryKey().Identity()
                 .WithColumn("FrontEndId").AsGuid().NotNullable().Unique()
-                .WithColumn("Name").AsString(255).NotNullable()
+                .WithColumn("Name").AsString(255).NotNullable().Unique()
                 .WithColumn("ImageUrl").AsString(255).NotNullable();
 
             Create.Table("Politicians")
@@ -45,7 +47,7 @@ namespace politicz_politicians_and_parties.Migrations
                 .OnDelete(System.Data.Rule.Cascade);
 
             Create.Index()
-                .OnTable("Politicians").OnColumn("PoliticalPartyId").Ascending().WithOptions().NonClustered();
+                .OnTable("Politicians").OnColumn("PoliticalPartyId").Ascending();
         }
     }
 }

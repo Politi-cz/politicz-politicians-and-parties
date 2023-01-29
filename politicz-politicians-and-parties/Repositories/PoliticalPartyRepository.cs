@@ -3,40 +3,50 @@ using FluentMigrator.Model;
 using politicz_politicians_and_parties.Database;
 using politicz_politicians_and_parties.Models;
 using System.Data;
+using Z.Dapper.Plus;
 
 namespace politicz_politicians_and_parties.Repositories
 {
     public class PoliticalPartyRepository : IPoliticalPartyRepository
     {
         private readonly IDbConnectionFactory _connectionFactory;
+        private readonly IPoliticianRepository _politicianRepository;
 
-        public PoliticalPartyRepository(IDbConnectionFactory connectionFactory)
+        public PoliticalPartyRepository(IDbConnectionFactory connectionFactory, IPoliticianRepository politicianRepository)
         {
             _connectionFactory = connectionFactory;
+            _politicianRepository= politicianRepository;
         }
 
-        public async Task<bool> CreatePoliticalParty(PoliticalParty politicalParty)
+        public async Task<bool> CreateAsync(PoliticalParty politicalParty)
         {
             using var connection = await _connectionFactory.CreateConnectionAsync();
+            using var transaction = connection.BeginTransaction();
 
-            // TODO Probably run in transaction, many operations done. Encapsulate in trycatch, if exception thrown abort transaction and rollback
             try
             {
-                politicalParty.Id = await connection.QuerySingleAsync<int>("INSERT INTO PoliticalParties (FrontEndId, Name, ImageUrl) OUTPUT INSERTED.Id VALUES(@FrontEndId, @Name, @ImageUrl)", politicalParty);
+                politicalParty.Id = await transaction.Connection.QuerySingleAsync<int>("INSERT INTO PoliticalParties (FrontEndId, Name, ImageUrl) OUTPUT INSERTED.Id VALUES(@FrontEndId, @Name, @ImageUrl)", politicalParty, transaction: transaction);
+                politicalParty.Politicians.ForEach(x => x.PoliticalPartyId= politicalParty.Id);
 
-                var tagIds = await CreateTags(politicalParty.Tags, connection);
+                await _politicianRepository.CreateAllAsync(politicalParty.Politicians, transaction);
 
-                await CreatePoliticalParty_TagsRecords(tagIds, politicalParty.Id, connection);
+                var tagIds = await CreateTags(politicalParty.Tags, transaction);
 
+                await CreatePoliticalParty_TagsRecords(tagIds, politicalParty.Id, transaction);
+
+                transaction.Commit();
                 return true;
             }
-            catch (Exception)
+            catch (Exception e)
             {
+                // TODO add proper logging
+                Console.WriteLine(e);
+                transaction.Rollback();
                 return false;
             }
         }
 
-        public async Task<IEnumerable<PoliticalParty>> GetPoliticalPartiesAsync()
+        public async Task<IEnumerable<PoliticalParty>> GetAllAsync()
         {
             using var connection = await _connectionFactory.CreateConnectionAsync();
 
@@ -64,7 +74,7 @@ namespace politicz_politicians_and_parties.Repositories
             return result;
         }
 
-        public async Task<PoliticalParty?> GetPoliticalPartyAsync(Guid frontEndId)
+        public async Task<PoliticalParty?> GetAsync(Guid frontEndId)
         {
             // TODO IT is only to get 1 political party, so instead of query use queryfirst
             using var connection = await _connectionFactory.CreateConnectionAsync();
@@ -95,7 +105,7 @@ namespace politicz_politicians_and_parties.Repositories
             return null;
 
         }
-        public async Task<int?> GetPoliticalPartyInternalIdAsync(Guid frontEndId)
+        public async Task<int?> GetInternalIdAsync(Guid frontEndId)
         {
             using var connection = await _connectionFactory.CreateConnectionAsync();
 
@@ -104,7 +114,18 @@ namespace politicz_politicians_and_parties.Repositories
             return await connection.QuerySingleOrDefaultAsync<int?>(sql, param: new { FrontEndId = frontEndId });
         }
 
-        private async Task<List<string>> LoadTags(int politicalPartyId, IDbConnection connection) {
+        public async Task<bool> ExistsByNameAsync(string partyName)
+        {
+            using var connection = await _connectionFactory.CreateConnectionAsync();
+
+            var sql = "SELECT COUNT(1) FROM PoliticalParties WHERE Name = @Name";
+
+            var result = await connection.ExecuteScalarAsync<int>(sql ,param: new { Name = partyName });
+
+            return result > 0;
+        }
+
+        private static async Task<List<string>> LoadTags(int politicalPartyId, IDbConnection connection) {
             var sql = "SELECT t.[Name] FROM Tags t INNER JOIN PoliticalParties_Tags pt ON pt.TagId = t.Id WHERE pt.PoliticalPartyId = @PoliticalPartyId";
 
             var tags = await connection.QueryAsync<string>(sql, param: new { PoliticalPartyId = politicalPartyId});
@@ -116,15 +137,15 @@ namespace politicz_politicians_and_parties.Repositories
             return tags.ToList();
         }
 
-        private async Task<IEnumerable<int>> CreateTags(IEnumerable<string> tags, IDbConnection connection) {
+        private static async Task<IEnumerable<int>> CreateTags(IEnumerable<string> tags, IDbTransaction transaction) {
             var tagIdList = new List<int>();
 
             foreach (var tag in tags) {
-                var tagId = await connection.QuerySingleOrDefaultAsync<int?>("SELECT Id FROM Tags WHERE Name = @Name", new { Name = tag });
+                var tagId = await transaction.Connection.QuerySingleOrDefaultAsync<int?>("SELECT Id FROM Tags WHERE Name = @Name", new { Name = tag }, transaction: transaction);
 
                 if (tagId is null)
                 {
-                    tagId = await connection.QuerySingleAsync<int>("INSERT INTO Tags (Name) OUTPUT INSERTED.Id VALUES (@Name)", new { Name = tag });
+                    tagId = await transaction.Connection.QuerySingleAsync<int>("INSERT INTO Tags (Name) OUTPUT INSERTED.Id VALUES (@Name)", new { Name = tag }, transaction: transaction);
                 }
 
                 tagIdList.Add((int)tagId);
@@ -133,11 +154,12 @@ namespace politicz_politicians_and_parties.Repositories
             return tagIdList;
         }
 
-        private async Task CreatePoliticalParty_TagsRecords(IEnumerable<int> tagIds, int politicalPartyId, IDbConnection connection) {
+        private static async Task CreatePoliticalParty_TagsRecords(IEnumerable<int> tagIds, int politicalPartyId, IDbTransaction transaction) {
             foreach (var tagId in tagIds) {
-                await connection.ExecuteAsync("INSERT INTO PoliticalParties_Tags (PoliticalPartyId, TagId) VALUES (@PoliticalPartyId, @TagId)", new { PoliticalPartyId = politicalPartyId, TagId = tagId });
+                await transaction.Connection.ExecuteAsync("INSERT INTO PoliticalParties_Tags (PoliticalPartyId, TagId) VALUES (@PoliticalPartyId, @TagId)", new { PoliticalPartyId = politicalPartyId, TagId = tagId }, transaction: transaction);
             }
         }
 
+        
     }
 }

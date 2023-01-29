@@ -6,7 +6,6 @@ namespace politicz_politicians_and_parties.Validators
     public class PoliticianDtoValidator : AbstractValidator<PoliticianDto>
     {
         public PoliticianDtoValidator() {
-            RuleFor(politician => politician.Id).NotEmpty();
             RuleFor(politician => politician.FullName).NotEmpty().MaximumLength(255);
             RuleFor(politician => politician.BirthDate).NotEmpty();
             RuleFor(politician => politician.TwitterUrl).Must(IsValidUrl).When(politician => politician.TwitterUrl is not null);

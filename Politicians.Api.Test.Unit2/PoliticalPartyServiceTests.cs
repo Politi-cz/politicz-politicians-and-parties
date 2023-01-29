@@ -48,10 +48,10 @@ namespace PoliticiansAndParties.Api.Test.Unit
 
             var expectedResult = politicalParty.ToPoliticalPartyDto();
 
-            _politicianPartyRepository.GetPoliticalPartyAsync(politicalParty.FrontEndId).Returns(politicalParty);
+            _politicianPartyRepository.GetAsync(politicalParty.FrontEndId).Returns(politicalParty);
 
             // Act
-            var result = await _sut.GetPoliticalPartyAsync(politicalParty.FrontEndId);
+            var result = await _sut.GetAsync(politicalParty.FrontEndId);
             // Assert
             result.Should().BeEquivalentTo(expectedResult);
         }
@@ -60,10 +60,10 @@ namespace PoliticiansAndParties.Api.Test.Unit
         public async Task GetPoliticalPartyAsync_ReturnsNull_WhenPartyDoesNotExist()
         {
             // Arrange
-            _politicianPartyRepository.GetPoliticalPartyAsync(Arg.Any<Guid>()).ReturnsNull();
+            _politicianPartyRepository.GetAsync(Arg.Any<Guid>()).ReturnsNull();
 
             // Act
-            var result = await _sut.GetPoliticalPartyAsync(Arg.Any<Guid>());
+            var result = await _sut.GetAsync(Arg.Any<Guid>());
             // Assert
             result.Should().BeNull();
         }
@@ -99,10 +99,10 @@ namespace PoliticiansAndParties.Api.Test.Unit
 
             IEnumerable<PoliticalPartySideNavDto> expectedResult = politicalParties.Select(x => x.ToPoliticalPartySideNavDto());
 
-            _politicianPartyRepository.GetPoliticalPartiesAsync().Returns(politicalParties);
+            _politicianPartyRepository.GetAllAsync().Returns(politicalParties);
 
             // Act
-            var result = await _sut.GetPoliticalPartiesAsync();
+            var result = await _sut.GetAllAsync();
             // Assert
             result.Should().BeEquivalentTo(expectedResult);
         }
@@ -111,10 +111,10 @@ namespace PoliticiansAndParties.Api.Test.Unit
         public async Task GetPoliticalPartiesAsync_ReturnsEmptyIEnumerable_WhenPartyDoesNotExist()
         {
             // Arrange
-            _politicianPartyRepository.GetPoliticalPartiesAsync().Returns(Enumerable.Empty<PoliticalParty>());
+            _politicianPartyRepository.GetAllAsync().Returns(Enumerable.Empty<PoliticalParty>());
             // Act
 
-            var result = await _sut.GetPoliticalPartiesAsync();
+            var result = await _sut.GetAllAsync();
 
             // Assert
             result.Should().BeEmpty();

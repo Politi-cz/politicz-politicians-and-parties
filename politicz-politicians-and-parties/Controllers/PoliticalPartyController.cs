@@ -22,8 +22,8 @@ namespace politicz_politicians_and_parties.Controllers
         [ProducesResponseType(201)]
         [ProducesResponseType(400)]
         [ProducesResponseType(500)]
-        public async Task<IActionResult> CreatePoliticalParty([FromBody] PoliticalPartyCreateDto politicalParty) { 
-            var created = await _politicalPartyService.CreatePoliticalParty(politicalParty);
+        public async Task<IActionResult> CreatePoliticalParty([FromBody] PoliticalPartyDto politicalParty) { 
+            var created = await _politicalPartyService.CreateAsync(politicalParty);
 
             if (created is false) {
                 return BadRequest();
@@ -37,7 +37,7 @@ namespace politicz_politicians_and_parties.Controllers
         [ProducesResponseType(404)]
         [ProducesResponseType(500)]
         public async Task<IActionResult> GetPoliticalParty([FromRoute] Guid id) { 
-            var politicalPartyDto = await _politicalPartyService.GetPoliticalPartyAsync(id);
+            var politicalPartyDto = await _politicalPartyService.GetAsync(id);
 
             if (politicalPartyDto is null)
             {
@@ -53,7 +53,7 @@ namespace politicz_politicians_and_parties.Controllers
         [ProducesResponseType(500)]
         public async Task<IActionResult> GetPoliticalParties()
         {
-            var politicalPartiesSideNav = await _politicalPartyService.GetPoliticalPartiesAsync();
+            var politicalPartiesSideNav = await _politicalPartyService.GetAllAsync();
 
             return Ok(politicalPartiesSideNav);
         }
@@ -64,7 +64,7 @@ namespace politicz_politicians_and_parties.Controllers
         [ProducesResponseType(500)]
         public async Task<IActionResult> GetPolitician([FromRoute] Guid id)
         {
-            var politicianDto = await _politicianService.GetPoliticianAsync(id);
+            var politicianDto = await _politicianService.GetAsync(id);
 
             if (politicianDto is null)
             {
@@ -76,7 +76,7 @@ namespace politicz_politicians_and_parties.Controllers
 
         [HttpPost("{partyId:guid}/politician")]
         public async Task<IActionResult> CreatePolitician([FromRoute] Guid partyId, [FromBody] PoliticianDto politicianDto) {
-            var created = await _politicianService.CreatePoliticianAsync(partyId, politicianDto);
+            var created = await _politicianService.CreateAsync(partyId, politicianDto);
 
             if (created is false) {
                 return NotFound();

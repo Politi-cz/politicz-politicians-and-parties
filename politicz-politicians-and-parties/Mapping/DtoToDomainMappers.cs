@@ -5,20 +5,21 @@ namespace politicz_politicians_and_parties.Mapping
 {
     public static class DtoToDomainMappers
     {
-        public static PoliticalParty ToPoliticalParty(this PoliticalPartyCreateDto politicalPartyCreateDto) {
+        public static PoliticalParty ToPoliticalParty(this PoliticalPartyDto politicalPartyCreateDto) {
             return new PoliticalParty
             {
-                FrontEndId = politicalPartyCreateDto.Id,
+                FrontEndId = Guid.NewGuid(),
                 Name = politicalPartyCreateDto.Name,
                 ImageUrl = politicalPartyCreateDto.ImageUrl,
                 Tags = politicalPartyCreateDto.Tags.ToList(),
+                Politicians = politicalPartyCreateDto.Politicians.Select(x => x.ToPolitician()).ToList(),
             };
         }
 
         public static Politician ToPolitician(this PoliticianDto politicianDto) {
             return new Politician
             {
-                FrontEndId = politicianDto.Id,
+                FrontEndId = Guid.NewGuid(),
                 BirthDate = politicianDto.BirthDate,
                 FacebookUrl = politicianDto.FacebookUrl,
                 InstagramUrl = politicianDto.InstagramUrl,

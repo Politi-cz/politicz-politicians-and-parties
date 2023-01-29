@@ -1,4 +1,5 @@
-﻿using politicz_politicians_and_parties.Dtos;
+﻿using FluentValidation;
+using politicz_politicians_and_parties.Dtos;
 using politicz_politicians_and_parties.Mapping;
 using politicz_politicians_and_parties.Repositories;
 
@@ -13,15 +14,20 @@ namespace politicz_politicians_and_parties.Services
             _politicalPartyRepository = politicalPartyRepository;
         }
 
-        public async Task<bool> CreatePoliticalParty(PoliticalPartyCreateDto politicalPartyDto)
+        public async Task<bool> CreateAsync(PoliticalPartyDto politicalPartyDto)
         {
             // Add fluent validator validation, figure out how to return validation errors to user
 
-            // Add database fetch to chech if political party id or name exists, update migration so the political party name is unique
-            politicalPartyDto.Id = Guid.NewGuid();
+            var partyExists = await _politicalPartyRepository.ExistsByNameAsync(politicalPartyDto.Name);
+
+            if (partyExists)
+            {
+                throw new ValidationException($"Political party with name {politicalPartyDto.Name} already exists");
+            }
+
             var politicalParty = politicalPartyDto.ToPoliticalParty();
         
-            var created = await _politicalPartyRepository.CreatePoliticalParty(politicalParty);
+            var created = await _politicalPartyRepository.CreateAsync(politicalParty);
             if (!created) { 
                 return false;
             }
@@ -29,17 +35,17 @@ namespace politicz_politicians_and_parties.Services
             return true;
         }
 
-        public async Task<IEnumerable<PoliticalPartySideNavDto>> GetPoliticalPartiesAsync()
+        public async Task<IEnumerable<PoliticalPartySideNavDto>> GetAllAsync()
         {
-            var politicalParties = await _politicalPartyRepository.GetPoliticalPartiesAsync();
+            var politicalParties = await _politicalPartyRepository.GetAllAsync();
             var politicalPartiesSideNav = politicalParties.Select(x => x.ToPoliticalPartySideNavDto());
 
             return politicalPartiesSideNav;
         }
 
-        public async Task<PoliticalPartyDto?> GetPoliticalPartyAsync(Guid id)
+        public async Task<PoliticalPartyDto?> GetAsync(Guid id)
         {
-            var politicalParty = await _politicalPartyRepository.GetPoliticalPartyAsync(id);
+            var politicalParty = await _politicalPartyRepository.GetAsync(id);
 
             return politicalParty?.ToPoliticalPartyDto();
         }

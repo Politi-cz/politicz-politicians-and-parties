@@ -4,8 +4,8 @@ namespace politicz_politicians_and_parties.Services
 {
     public interface IPoliticalPartyService
     {
-        Task<PoliticalPartyDto?> GetPoliticalPartyAsync(Guid id);
-        Task<IEnumerable<PoliticalPartySideNavDto>> GetPoliticalPartiesAsync();
-        Task<bool> CreatePoliticalParty(PoliticalPartyCreateDto politicalParty);
+        Task<PoliticalPartyDto?> GetAsync(Guid id);
+        Task<IEnumerable<PoliticalPartySideNavDto>> GetAllAsync();
+        Task<bool> CreateAsync(PoliticalPartyDto politicalParty);
     }
 }

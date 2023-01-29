@@ -19,15 +19,13 @@ namespace politicz_politicians_and_parties.Services
             _validator = validator;
         }
 
-        public async Task<bool> CreatePoliticianAsync(Guid partyId, PoliticianDto politicianDto)
+        public async Task<bool> CreateAsync(Guid partyId, PoliticianDto politicianDto)
         {
-            politicianDto.Id= Guid.NewGuid();
-
             _validator.ValidateAndThrow(politicianDto);
 
             var politician = politicianDto.ToPolitician();
 
-            var internalPartyId = await _politicalPartyRepository.GetPoliticalPartyInternalIdAsync(partyId);
+            var internalPartyId = await _politicalPartyRepository.GetInternalIdAsync(partyId);
 
             if (internalPartyId is null) {
                 throw new ValidationException($"Political Party with id {partyId} does not exist");
@@ -35,13 +33,13 @@ namespace politicz_politicians_and_parties.Services
 
             politician.PoliticalPartyId = (int)internalPartyId;
 
-            return await _politicianRepository.CreatePoliticianAsync(politician);
+            return await _politicianRepository.CreateOneAsync(politician);
         }
 
-        public async Task<PoliticianDto?> GetPoliticianAsync(Guid id)
+        public async Task<PoliticianDto?> GetAsync(Guid id)
         {
 
-            var politician = await _politicianRepository.GetPoliticianAsync(id);
+            var politician = await _politicianRepository.GetAsync(id);
 
             return politician?.ToPoliticianDto();
         }

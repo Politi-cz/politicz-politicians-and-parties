@@ -38,7 +38,7 @@ namespace Politicians.Api.Test.Unit
                 FacebookUrl = "https://facebook.com/testUser",
                 TwitterUrl = "https://twitter.com/musk"
             };
-            _politicianService.GetPoliticianAsync(politician.Id).Returns(politician);
+            _politicianService.GetAsync(politician.Id).Returns(politician);
 
             // Act
             var result = (OkObjectResult)await _sut.GetPolitician(politician.Id);
@@ -52,7 +52,7 @@ namespace Politicians.Api.Test.Unit
         public async Task GetPolitician_ReturnsNotFound_WhenPoliticianDoesNotExist()
         {
             // Arrange
-            _politicianService.GetPoliticianAsync(Arg.Any<Guid>()).ReturnsNull();
+            _politicianService.GetAsync(Arg.Any<Guid>()).ReturnsNull();
 
             // Act
             var result = (NotFoundResult)await _sut.GetPolitician(Arg.Any<Guid>());
@@ -86,7 +86,7 @@ namespace Politicians.Api.Test.Unit
                 }
             };
 
-            _politicalPartyService.GetPoliticalPartyAsync(politicalPartyDto.Id).Returns(politicalPartyDto);
+            _politicalPartyService.GetAsync(politicalPartyDto.Id).Returns(politicalPartyDto);
 
             // Act
 
@@ -100,7 +100,7 @@ namespace Politicians.Api.Test.Unit
         [Fact]
         public async Task GetPoliticalParty_ReturnsNotFound_WhenPartyDesNotExist() {
             // Arrange
-            _politicalPartyService.GetPoliticalPartyAsync(Arg.Any<Guid>()).ReturnsNull();
+            _politicalPartyService.GetAsync(Arg.Any<Guid>()).ReturnsNull();
 
             // Act
 
@@ -126,7 +126,7 @@ namespace Politicians.Api.Test.Unit
                 }
             };
 
-            _politicalPartyService.GetPoliticalPartiesAsync().Returns(politicalPartiesSideNav);
+            _politicalPartyService.GetAllAsync().Returns(politicalPartiesSideNav);
 
             // Act
             var result = (OkObjectResult)await _sut.GetPoliticalParties();
@@ -141,7 +141,7 @@ namespace Politicians.Api.Test.Unit
         public async Task GetPoliticalParties_ReturnsOkEmptyObject_WhenPartyDoesNotExist()
         {
             // Arrange
-            _politicalPartyService.GetPoliticalPartiesAsync().Returns(Enumerable.Empty<PoliticalPartySideNavDto>());
+            _politicalPartyService.GetAllAsync().Returns(Enumerable.Empty<PoliticalPartySideNavDto>());
 
             // Act
             var result = (OkObjectResult)await _sut.GetPoliticalParties();

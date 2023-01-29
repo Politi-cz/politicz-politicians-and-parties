@@ -4,9 +4,10 @@ namespace politicz_politicians_and_parties.Repositories
 {
     public interface IPoliticalPartyRepository
     {
-        Task<IEnumerable<PoliticalParty>> GetPoliticalPartiesAsync();
-        Task<PoliticalParty?> GetPoliticalPartyAsync(Guid frontEndId);
-        Task<int?> GetPoliticalPartyInternalIdAsync(Guid frontEndId);
-        Task<bool> CreatePoliticalParty(PoliticalParty politicalParty);
+        Task<IEnumerable<PoliticalParty>> GetAllAsync();
+        Task<PoliticalParty?> GetAsync(Guid frontEndId);
+        Task<int?> GetInternalIdAsync(Guid frontEndId);
+        Task<bool> CreateAsync(PoliticalParty politicalParty);
+        Task<bool> ExistsByNameAsync(string partyName);
     }
 }
