@@ -6,6 +6,7 @@ using politicz_politicians_and_parties.Mapping;
 using politicz_politicians_and_parties.Models;
 using politicz_politicians_and_parties.Repositories;
 using politicz_politicians_and_parties.Services;
+using politicz_politicians_and_parties.Validators;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,7 +22,7 @@ namespace PoliticiansAndParties.Api.Test.Unit
 
         public PoliticalPartyServiceTests()
         {
-            _sut = new PoliticalPartyService(_politicianPartyRepository);
+            _sut = new PoliticalPartyService(_politicianPartyRepository, new PoliticalPartyDtoValidator());
         }
 
         [Fact]

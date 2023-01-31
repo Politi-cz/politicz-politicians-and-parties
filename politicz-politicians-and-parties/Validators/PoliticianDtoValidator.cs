@@ -9,8 +9,8 @@ namespace politicz_politicians_and_parties.Validators
             RuleFor(politician => politician.FullName).NotEmpty().MaximumLength(255);
             RuleFor(politician => politician.BirthDate).NotEmpty();
             RuleFor(politician => politician.TwitterUrl).Must(IsValidUrl).When(politician => politician.TwitterUrl is not null);
-            RuleFor(politician => politician.FacebookUrl).Must(IsValidUrl).When(politician => politician.TwitterUrl is not null);
-            RuleFor(politician => politician.InstagramUrl).Must(IsValidUrl).When(politician => politician.TwitterUrl is not null);
+            RuleFor(politician => politician.FacebookUrl).Must(IsValidUrl).When(politician => politician.FacebookUrl is not null);
+            RuleFor(politician => politician.InstagramUrl).Must(IsValidUrl).When(politician => politician.InstagramUrl is not null);
         }
 
         bool IsValidUrl(string? url) {

@@ -9,8 +9,8 @@ namespace politicz_politicians_and_parties.Repositories
 {
     public class PoliticalPartyRepository : IPoliticalPartyRepository
     {
-        private readonly IDbConnectionFactory _connectionFactory;
-        private readonly IPoliticianRepository _politicianRepository;
+        readonly IDbConnectionFactory _connectionFactory;
+        readonly IPoliticianRepository _politicianRepository;
 
         public PoliticalPartyRepository(IDbConnectionFactory connectionFactory, IPoliticianRepository politicianRepository)
         {

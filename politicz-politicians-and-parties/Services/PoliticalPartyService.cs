@@ -7,16 +7,18 @@ namespace politicz_politicians_and_parties.Services
 {
     public class PoliticalPartyService : IPoliticalPartyService
     {
-        private readonly IPoliticalPartyRepository _politicalPartyRepository;
+        readonly IPoliticalPartyRepository _politicalPartyRepository;
+        readonly IValidator<PoliticalPartyDto> _validator;
 
-        public PoliticalPartyService(IPoliticalPartyRepository politicalPartyRepository)
+        public PoliticalPartyService(IPoliticalPartyRepository politicalPartyRepository, IValidator<PoliticalPartyDto> validator)
         {
             _politicalPartyRepository = politicalPartyRepository;
+            _validator = validator;
         }
 
         public async Task<bool> CreateAsync(PoliticalPartyDto politicalPartyDto)
         {
-            // Add fluent validator validation, figure out how to return validation errors to user
+            _validator.ValidateAndThrow(politicalPartyDto);
 
             var partyExists = await _politicalPartyRepository.ExistsByNameAsync(politicalPartyDto.Name);
 
@@ -24,6 +26,9 @@ namespace politicz_politicians_and_parties.Services
             {
                 throw new ValidationException($"Political party with name {politicalPartyDto.Name} already exists");
             }
+
+            politicalPartyDto.Id = Guid.NewGuid();
+            politicalPartyDto.Politicians.ForEach(x => x.Id = Guid.NewGuid());
 
             var politicalParty = politicalPartyDto.ToPoliticalParty();
         

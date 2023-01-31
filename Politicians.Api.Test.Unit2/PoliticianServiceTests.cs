@@ -1,6 +1,8 @@
 ﻿using FluentAssertions;
+using FluentValidation;
 using NSubstitute;
 using NSubstitute.ReturnsExtensions;
+using politicz_politicians_and_parties.Dtos;
 using politicz_politicians_and_parties.Mapping;
 using politicz_politicians_and_parties.Models;
 using politicz_politicians_and_parties.Repositories;
@@ -26,7 +28,7 @@ namespace Politicians.Api.Test.Unit
         }
 
         [Fact]
-        public async Task GetPoliticianAsync_ShouldReturnPoliticianDto_WhenPoliticianExists() {
+        public async Task GetAsync_ShouldReturnPoliticianDto_WhenPoliticianExists() {
             // Arrange
             var existingPolitician = new Politician {
                 Id = 1,
@@ -46,7 +48,7 @@ namespace Politicians.Api.Test.Unit
         }
 
         [Fact]
-        public async Task GetPoliticianAsync_ShouldReturnNull_WhenPoliticianDoesNotExist() { 
+        public async Task GetAsync_ShouldReturnNull_WhenPoliticianDoesNotExist() { 
             // Arrange
             _politicianRepository.GetAsync(Arg.Any<Guid>()).ReturnsNull();
 
@@ -56,5 +58,54 @@ namespace Politicians.Api.Test.Unit
             // Assert
             result.Should().BeNull();
         }
+
+        [Theory]
+        [MemberData(nameof(InvalidPoliticianData))]
+        public async Task CreateAsync_ShouldThrowValidationError_WhenInvalidPoliticianDto(PoliticianDto politicianDto) {
+            // Arrange
+            _politicianRepository.CreateOneAsync(politicianDto.ToPolitician()).Returns(true);
+            _politicalPartyRepository.GetInternalIdAsync(Arg.Any<Guid>()).Returns(10); 
+            // does not really matter
+
+            // Assert
+            Func<Task> act = () => _sut.CreateAsync(Guid.NewGuid(), politicianDto);
+
+            var exception = await Assert.ThrowsAsync<ValidationException>(act);
+        }
+
+        public static IEnumerable<object[]> InvalidPoliticianData =>
+          new List<object[]>
+          {
+                    new object[] {new PoliticianDto{ } },
+                    new object[] {new PoliticianDto {
+                        BirthDate= new DateTime(2000, 12,10),
+                        FullName = "", // Validation error
+                        FacebookUrl = "https://facebook.com/test",
+                        TwitterUrl = "https://twitter.com/test",
+                        InstagramUrl = "https://instagram.com/test"
+                    } },
+                    new object[] { new PoliticianDto{
+                        BirthDate= new DateTime(), // Error
+                        FullName = "Karel",
+                        FacebookUrl = "https://facebook.com/test",
+                        TwitterUrl = "https://twitter.com/test",
+                        InstagramUrl = "https://instagram.com/test"
+                    } },
+                    new object[] { new PoliticianDto{
+                        BirthDate= new DateTime(2000, 12,10),
+                        FullName = "Karel",
+                        FacebookUrl = "htt://facebook.com/test", // Invalid url
+                    } },
+                    new object[] { new PoliticianDto{
+                        BirthDate= new DateTime(2000, 12,10),
+                        FullName = "Karel",
+                        InstagramUrl= "fdsafasd", // Invalid url
+                    } },
+                    new object[] { new PoliticianDto{
+                        BirthDate= new DateTime(2000, 12,10),
+                        FullName = "Karel",
+                        TwitterUrl= "dsfsdsss", // Invalid url
+                    } }
+          };
     }
 }

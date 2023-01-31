@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using politicz_politicians_and_parties.Dtos;
+using politicz_politicians_and_parties.Models;
 using politicz_politicians_and_parties.Services;
 
 namespace politicz_politicians_and_parties.Controllers
@@ -19,21 +20,21 @@ namespace politicz_politicians_and_parties.Controllers
         }
 
         [HttpPost("create")]
-        [ProducesResponseType(201)]
-        [ProducesResponseType(400)]
+        [ProducesResponseType(201, Type = typeof(PoliticalPartyDto))]
+        [ProducesResponseType(400, Type = typeof(ErrorDetails))]
         [ProducesResponseType(500)]
         public async Task<IActionResult> CreatePoliticalParty([FromBody] PoliticalPartyDto politicalParty) { 
             var created = await _politicalPartyService.CreateAsync(politicalParty);
 
             if (created is false) {
-                return BadRequest();
+                return StatusCode(500);
             }
 
             return CreatedAtAction(nameof(GetPoliticalParty), new { id = politicalParty.Id }, politicalParty);
         }
 
         [HttpGet("{id:guid}")]
-        [ProducesResponseType(200)]
+        [ProducesResponseType(200, Type = typeof(PoliticalPartyDto))]
         [ProducesResponseType(404)]
         [ProducesResponseType(500)]
         public async Task<IActionResult> GetPoliticalParty([FromRoute] Guid id) { 
@@ -48,7 +49,7 @@ namespace politicz_politicians_and_parties.Controllers
         }
 
         [HttpGet]
-        [ProducesResponseType(200)]
+        [ProducesResponseType(200, Type = typeof(IEnumerable<PoliticalPartySideNavDto>))]
         [ProducesResponseType(404)]
         [ProducesResponseType(500)]
         public async Task<IActionResult> GetPoliticalParties()
@@ -59,7 +60,7 @@ namespace politicz_politicians_and_parties.Controllers
         }
 
         [HttpGet("politician/{id:guid}")]
-        [ProducesResponseType(200)]
+        [ProducesResponseType(200, Type = typeof(PoliticianDto))]
         [ProducesResponseType(404)]
         [ProducesResponseType(500)]
         public async Task<IActionResult> GetPolitician([FromRoute] Guid id)
@@ -75,6 +76,9 @@ namespace politicz_politicians_and_parties.Controllers
         }
 
         [HttpPost("{partyId:guid}/politician")]
+        [ProducesResponseType(201, Type = typeof(PoliticianDto))]
+        [ProducesResponseType(400, Type = typeof(ErrorDetails))]
+        [ProducesResponseType(500)]
         public async Task<IActionResult> CreatePolitician([FromRoute] Guid partyId, [FromBody] PoliticianDto politicianDto) {
             var created = await _politicianService.CreateAsync(partyId, politicianDto);
 

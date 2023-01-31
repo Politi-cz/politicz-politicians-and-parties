@@ -8,7 +8,7 @@ namespace politicz_politicians_and_parties.Mapping
         public static PoliticalParty ToPoliticalParty(this PoliticalPartyDto politicalPartyCreateDto) {
             return new PoliticalParty
             {
-                FrontEndId = Guid.NewGuid(),
+                FrontEndId = politicalPartyCreateDto.Id,
                 Name = politicalPartyCreateDto.Name,
                 ImageUrl = politicalPartyCreateDto.ImageUrl,
                 Tags = politicalPartyCreateDto.Tags.ToList(),
@@ -19,7 +19,7 @@ namespace politicz_politicians_and_parties.Mapping
         public static Politician ToPolitician(this PoliticianDto politicianDto) {
             return new Politician
             {
-                FrontEndId = Guid.NewGuid(),
+                FrontEndId = politicianDto.Id,
                 BirthDate = politicianDto.BirthDate,
                 FacebookUrl = politicianDto.FacebookUrl,
                 InstagramUrl = politicianDto.InstagramUrl,

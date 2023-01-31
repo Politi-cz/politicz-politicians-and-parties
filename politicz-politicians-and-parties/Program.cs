@@ -28,6 +28,7 @@ builder.Services.AddScoped<IPoliticalPartyService, PoliticalPartyService>();
 
 // TODO Add all validations through an extension method RegisterValidators or something like that. 
 builder.Services.AddScoped<IValidator<PoliticianDto>, PoliticianDtoValidator>();
+builder.Services.AddScoped<IValidator<PoliticalPartyDto>, PoliticalPartyDtoValidator>();
 
 builder.Services.AddLogging(c => c.AddFluentMigratorConsole())
     .AddFluentMigratorCore()

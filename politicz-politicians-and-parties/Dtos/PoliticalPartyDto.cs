@@ -7,6 +7,6 @@
         public string ImageUrl { get; set; } = default!;
         public IEnumerable<string> Tags { get; set; } = Enumerable.Empty<string>();
 
-        public IEnumerable<PoliticianDto> Politicians { get; set; } = Enumerable.Empty<PoliticianDto>();
+        public List<PoliticianDto> Politicians { get; set; } = new List<PoliticianDto>();
     }
 }

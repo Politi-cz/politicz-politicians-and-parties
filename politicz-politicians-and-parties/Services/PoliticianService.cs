@@ -8,10 +8,11 @@ namespace politicz_politicians_and_parties.Services
 {
     public class PoliticianService : IPoliticianService
     {
-        private readonly IPoliticianRepository _politicianRepository;
-        private readonly IPoliticalPartyRepository _politicalPartyRepository;
-        private readonly IValidator<PoliticianDto> _validator;
+        readonly IPoliticianRepository _politicianRepository;
+        readonly IPoliticalPartyRepository _politicalPartyRepository;
+        readonly IValidator<PoliticianDto> _validator;
 
+        const string partyDoesNotExistsMessage = "Political Party with id {0} does not exist";
         public PoliticianService(IPoliticianRepository politicianRepository, IPoliticalPartyRepository politicalPartyRepository, IValidator<PoliticianDto> validator)
         {
             _politicianRepository = politicianRepository;
@@ -23,12 +24,13 @@ namespace politicz_politicians_and_parties.Services
         {
             _validator.ValidateAndThrow(politicianDto);
 
+            politicianDto.Id = Guid.NewGuid();
             var politician = politicianDto.ToPolitician();
 
             var internalPartyId = await _politicalPartyRepository.GetInternalIdAsync(partyId);
 
             if (internalPartyId is null) {
-                throw new ValidationException($"Political Party with id {partyId} does not exist");
+                throw new ValidationException(string.Format(partyDoesNotExistsMessage, partyId));
             }
 
             politician.PoliticalPartyId = (int)internalPartyId;
