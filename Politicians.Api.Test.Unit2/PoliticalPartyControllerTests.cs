@@ -86,7 +86,7 @@ namespace Politicians.Api.Test.Unit
                 }
             };
 
-            _politicalPartyService.GetAsync(politicalPartyDto.Id).Returns(politicalPartyDto);
+            _politicalPartyService.GetOneAsync(politicalPartyDto.Id).Returns(politicalPartyDto);
 
             // Act
 
@@ -100,7 +100,7 @@ namespace Politicians.Api.Test.Unit
         [Fact]
         public async Task GetPoliticalParty_ReturnsNotFound_WhenPartyDesNotExist() {
             // Arrange
-            _politicalPartyService.GetAsync(Arg.Any<Guid>()).ReturnsNull();
+            _politicalPartyService.GetOneAsync(Arg.Any<Guid>()).ReturnsNull();
 
             // Act
 
@@ -150,5 +150,23 @@ namespace Politicians.Api.Test.Unit
             result.Value.Should().BeEquivalentTo(Enumerable.Empty<PoliticalPartySideNavDto>());
             result.StatusCode.Should().Be((int)HttpStatusCode.OK);
         }
+
+        //[Fact]
+        //public async Task CreatePoliticalParty_ShouldReturnPoliticalParty_WhenPoliticalPartyCreated() { }
+
+        //[Fact]
+        //public async Task CreatePoliticalParty_ShouldReturnInternalServerError_WhenPoliticalPartyNotCreated() { }
+
+        //[Fact]
+        //public async Task GetPolitician_ShouldReturnNotFound_WhenPoliticianDoesNotExist() { }
+
+        //[Fact]
+        //public async Task GetPolitician_ShouldReturnOkObject_WhenPoliticianExist() { }
+
+        //[Fact]
+        //public async Task CreatePolitician_ShouldReturnStatusCode500_WhenPoliticianNotCreated() { }
+
+        //[Fact]
+        //public async Task CreatePolitician_ShouldReturnPolitician_WhenPoliticianCreated() { }
     }
 }

@@ -32,12 +32,7 @@ namespace politicz_politicians_and_parties.Services
 
             var politicalParty = politicalPartyDto.ToPoliticalParty();
         
-            var created = await _politicalPartyRepository.CreateAsync(politicalParty);
-            if (!created) { 
-                return false;
-            }
-
-            return true;
+            return await _politicalPartyRepository.CreateAsync(politicalParty);
         }
 
         public async Task<IEnumerable<PoliticalPartySideNavDto>> GetAllAsync()
@@ -48,7 +43,7 @@ namespace politicz_politicians_and_parties.Services
             return politicalPartiesSideNav;
         }
 
-        public async Task<PoliticalPartyDto?> GetAsync(Guid id)
+        public async Task<PoliticalPartyDto?> GetOneAsync(Guid id)
         {
             var politicalParty = await _politicalPartyRepository.GetAsync(id);
 

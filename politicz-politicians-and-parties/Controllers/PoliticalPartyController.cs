@@ -38,7 +38,7 @@ namespace politicz_politicians_and_parties.Controllers
         [ProducesResponseType(404)]
         [ProducesResponseType(500)]
         public async Task<IActionResult> GetPoliticalParty([FromRoute] Guid id) { 
-            var politicalPartyDto = await _politicalPartyService.GetAsync(id);
+            var politicalPartyDto = await _politicalPartyService.GetOneAsync(id);
 
             if (politicalPartyDto is null)
             {
@@ -83,7 +83,7 @@ namespace politicz_politicians_and_parties.Controllers
             var created = await _politicianService.CreateAsync(partyId, politicianDto);
 
             if (created is false) {
-                return NotFound();
+                return StatusCode(500);
             }
 
             return CreatedAtAction(nameof(GetPolitician), new { id = politicianDto.Id }, politicianDto);

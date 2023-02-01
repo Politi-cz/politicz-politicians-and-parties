@@ -3,6 +3,7 @@ using politicz_politicians_and_parties.Dtos;
 using politicz_politicians_and_parties.Mapping;
 using politicz_politicians_and_parties.Models;
 using politicz_politicians_and_parties.Repositories;
+using System.IO;
 
 namespace politicz_politicians_and_parties.Services
 {
@@ -12,7 +13,6 @@ namespace politicz_politicians_and_parties.Services
         readonly IPoliticalPartyRepository _politicalPartyRepository;
         readonly IValidator<PoliticianDto> _validator;
 
-        const string partyDoesNotExistsMessage = "Political Party with id {0} does not exist";
         public PoliticianService(IPoliticianRepository politicianRepository, IPoliticalPartyRepository politicalPartyRepository, IValidator<PoliticianDto> validator)
         {
             _politicianRepository = politicianRepository;
@@ -30,7 +30,7 @@ namespace politicz_politicians_and_parties.Services
             var internalPartyId = await _politicalPartyRepository.GetInternalIdAsync(partyId);
 
             if (internalPartyId is null) {
-                throw new ValidationException(string.Format(partyDoesNotExistsMessage, partyId));
+                throw new ValidationException($"Political party with id {partyId} does not exist");
             }
 
             politician.PoliticalPartyId = (int)internalPartyId;

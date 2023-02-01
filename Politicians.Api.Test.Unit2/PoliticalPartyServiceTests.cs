@@ -26,7 +26,7 @@ namespace PoliticiansAndParties.Api.Test.Unit
         }
 
         [Fact]
-        public async Task GetPoliticalPartyAsync_ReturnsPoliticalPartyDto_WhenPartyExists()
+        public async Task GetOneAsync_ReturnsPoliticalPartyDto_WhenPartyExists()
         {
             // Arrange
             var politicalParty = new PoliticalParty
@@ -52,25 +52,25 @@ namespace PoliticiansAndParties.Api.Test.Unit
             _politicianPartyRepository.GetAsync(politicalParty.FrontEndId).Returns(politicalParty);
 
             // Act
-            var result = await _sut.GetAsync(politicalParty.FrontEndId);
+            var result = await _sut.GetOneAsync(politicalParty.FrontEndId);
             // Assert
             result.Should().BeEquivalentTo(expectedResult);
         }
 
         [Fact]
-        public async Task GetPoliticalPartyAsync_ReturnsNull_WhenPartyDoesNotExist()
+        public async Task GetOneAsync_ReturnsNull_WhenPartyDoesNotExist()
         {
             // Arrange
             _politicianPartyRepository.GetAsync(Arg.Any<Guid>()).ReturnsNull();
 
             // Act
-            var result = await _sut.GetAsync(Arg.Any<Guid>());
+            var result = await _sut.GetOneAsync(Arg.Any<Guid>());
             // Assert
             result.Should().BeNull();
         }
 
         [Fact]
-        public async Task GetPoliticalPartiesAsync_ReturnsEnumerableOfSideNavDto_WhenPartiesExist()
+        public async Task GetAllAsync_ReturnsEnumerableOfSideNavDto_WhenPartiesExist()
         {
             // Arrange
             var politicalParties = new List<PoliticalParty>(){ 
@@ -120,6 +120,27 @@ namespace PoliticiansAndParties.Api.Test.Unit
             // Assert
             result.Should().BeEmpty();
         }
+
+        //[Fact]
+        //public async Task CreateAsync_ShouldThrowValidationError_WhenInvalidPoliticianDto() { 
+            
+        //}
+
+        //[Fact]
+        //public async Task CreateAsync_ShouldThrowValidationException_WhenPoliticalPartyWithSameNameExists() { 
+        
+        //}
+
+        //[Fact]
+        //public async Task CreateAsync_ShouldReturnTrue_WhenPoliticalPartyCreated() { 
+
+        //}
+
+        //[Fact]
+        //public async Task CreateAsync_ShouldReturnFalse_WhenPoliticalPartyNotCreated() { 
+        //}
+
+
 
     }
 }
