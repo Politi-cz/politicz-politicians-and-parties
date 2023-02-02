@@ -26,13 +26,20 @@ namespace politicz_politicians_and_parties.Repositories
             try
             {
                 politicalParty.Id = await transaction.Connection.QuerySingleAsync<int>("INSERT INTO PoliticalParties (FrontEndId, Name, ImageUrl) OUTPUT INSERTED.Id VALUES(@FrontEndId, @Name, @ImageUrl)", politicalParty, transaction: transaction);
+
+                if (politicalParty.Tags is not null && politicalParty.Tags.Count > 0) {
+                    foreach (var tag in politicalParty.Tags) { 
+                        var tagId =  await CreateOrExistTag(tag, transaction);
+
+                        await transaction.Connection.ExecuteAsync("INSERT INTO PoliticalParties_Tags (PoliticalPartyId, TagId) VALUES (@PoliticalPartyId, @TagId)",
+                                  new { PoliticalPartyId = politicalParty.Id, TagId = tagId }, transaction: transaction);
+                    }
+                    
+                }
+
                 politicalParty.Politicians.ForEach(x => x.PoliticalPartyId= politicalParty.Id);
 
                 await _politicianRepository.CreateAllAsync(politicalParty.Politicians, transaction);
-
-                var tagIds = await CreateTags(politicalParty.Tags, transaction);
-
-                await CreatePoliticalParty_TagsRecords(tagIds, politicalParty.Id, transaction);
 
                 transaction.Commit();
                 return true;
@@ -54,56 +61,65 @@ namespace politicz_politicians_and_parties.Repositories
                         INNER JOIN PoliticalParties_Tags pt ON pp.Id = pt.PoliticalPartyId
                         INNER JOIN Tags t ON pt.TagId = t.Id");
 
-            var politicalParties = await connection.QueryAsync<PoliticalParty, string, PoliticalParty>(sql, (party, tagname) =>
+            var politicalPartyDictionary = new Dictionary<int, PoliticalParty>();
+
+            var politicalParties =  connection.Query<PoliticalParty, string, PoliticalParty>(sql, (party, tagname) =>
             {
-                party.Tags.Add(tagname);
-                return party;
-            }, splitOn: "Name");
+                PoliticalParty? politicalPartyEntry;
 
-            var result = politicalParties.GroupBy(x => x.Id).Select(g =>
-            {
-                var groupedParty = g.First();
-                groupedParty.Tags = g.Select(p => p.Tags.Single()).ToList();
-                return groupedParty;
-            });
+                if (!politicalPartyDictionary.TryGetValue(party.Id, out politicalPartyEntry))
+                {
+                    politicalPartyEntry = party;
+                    politicalPartyEntry.Tags = new List<string>();
+                    politicalPartyDictionary.Add(politicalPartyEntry.Id, politicalPartyEntry);
 
-            if (result is null) { 
-                return Enumerable.Empty<PoliticalParty>();
-            }
+                }
 
-            return result;
+                politicalPartyEntry.Tags.Add(tagname);
+
+
+                return politicalPartyEntry;
+            }, splitOn: "Name").Distinct().ToList();
+
+            return politicalParties;
         }
 
         public async Task<PoliticalParty?> GetAsync(Guid frontEndId)
         {
-            // TODO IT is only to get 1 political party, so instead of query use queryfirst
             using var connection = await _connectionFactory.CreateConnectionAsync();
 
             var sql = @"SELECT pp.Id, pp.FrontEndId, [Name], [ImageUrl], p.Id, p.FrontEndId, BirthDate, FullName, InstagramUrl, TwitterUrl, FacebookUrl, PoliticalPartyId
-                        FROM PoliticalParties pp LEFT JOIN Politicians p ON pp.Id = p.PoliticalPartyId
+                        FROM PoliticalParties pp INNER JOIN Politicians p ON pp.Id = p.PoliticalPartyId
                         WHERE pp.FrontEndId = @FrontEndId ";
 
-            // I know that where will be at most 1 political party thanks to WHERE clause so I can collect politicians on the way and skip the grouping part of result that gets rid of duplicated
-            var politicians = new List<Politician>();
-            var politicalParties = await connection.QueryAsync<PoliticalParty, Politician, PoliticalParty>(sql, (politicalParty, politician) =>
+            var politicalPartyDictionary = new Dictionary<int, PoliticalParty>();
+
+            // TODO maybe write a generic helper method for M:N dapper Relation
+            var politicalParties = connection.Query<PoliticalParty, Politician, PoliticalParty>(sql, (politicalParty, politician) =>
             {
-                if (politician is not null) { 
-                    politicians.Add(politician);
+                PoliticalParty? politicalPartyEntry;
+
+                if (!politicalPartyDictionary.TryGetValue(politicalParty.Id, out politicalPartyEntry))
+                {
+                    politicalPartyEntry = politicalParty;
+                    politicalPartyEntry.Politicians = new List<Politician>();
+                    politicalPartyDictionary.Add(politicalPartyEntry.Id, politicalPartyEntry);
+                
                 }
 
-                return politicalParty;
-            },param: new { FrontEndId = frontEndId }, splitOn: "Id");
+                politicalPartyEntry.Politicians.Add(politician);
 
-            if (politicalParties.Any()) {
-                var politicalParty = politicalParties.First();
-                politicalParty.Politicians = politicians;
+                return politicalPartyEntry;
+            },param: new { FrontEndId = frontEndId }, splitOn: "Id").Distinct().ToList();
+
+            // FrontEndId is specified in WHERE clausule so at most 1 result should exist if there is more than one throw exception
+            var politicalParty = politicalParties.SingleOrDefault();
+
+            if (politicalParty is not null) {
                 politicalParty.Tags = await LoadTags(politicalParty.Id, connection);
-
-                return politicalParty; 
             }
 
-            return null;
-
+            return politicalParties.SingleOrDefault();
         }
         public async Task<int?> GetInternalIdAsync(Guid frontEndId)
         {
@@ -137,21 +153,15 @@ namespace politicz_politicians_and_parties.Repositories
             return tags.ToList();
         }
 
-        private static async Task<IEnumerable<int>> CreateTags(IEnumerable<string> tags, IDbTransaction transaction) {
-            var tagIdList = new List<int>();
+        private static async Task<int> CreateOrExistTag(string tag, IDbTransaction transaction) {
+            var tagId = await transaction.Connection.QuerySingleOrDefaultAsync<int?>("SELECT Id FROM Tags WHERE Name = @Name", new { Name = tag}, transaction: transaction);
 
-            foreach (var tag in tags) {
-                var tagId = await transaction.Connection.QuerySingleOrDefaultAsync<int?>("SELECT Id FROM Tags WHERE Name = @Name", new { Name = tag }, transaction: transaction);
+            if (tagId is null)
+            {
+                tagId = await transaction.Connection.QuerySingleAsync<int>("INSERT INTO Tags (Name) OUTPUT INSERTED.Id VALUES (@Name)", new { Name = tag }, transaction: transaction);
+            }            
 
-                if (tagId is null)
-                {
-                    tagId = await transaction.Connection.QuerySingleAsync<int>("INSERT INTO Tags (Name) OUTPUT INSERTED.Id VALUES (@Name)", new { Name = tag }, transaction: transaction);
-                }
-
-                tagIdList.Add((int)tagId);
-            }
-
-            return tagIdList;
+            return (int)tagId;
         }
 
         private static async Task CreatePoliticalParty_TagsRecords(IEnumerable<int> tagIds, int politicalPartyId, IDbTransaction transaction) {

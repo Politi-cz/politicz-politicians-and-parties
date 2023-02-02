@@ -24,7 +24,7 @@ namespace politicz_politicians_and_parties.Mapping
                 Id = politicalParty.FrontEndId,
                 ImageUrl = politicalParty.ImageUrl,
                 Name = politicalParty.Name,
-                Tags= politicalParty.Tags,
+                Tags= politicalParty.Tags
             };
         }
 
