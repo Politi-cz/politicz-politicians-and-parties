@@ -1,18 +1,11 @@
 ﻿using FluentAssertions;
 using Microsoft.AspNetCore.Mvc;
 using NSubstitute;
-using NSubstitute.Exceptions;
 using NSubstitute.ReturnsExtensions;
 using politicz_politicians_and_parties.Controllers;
 using politicz_politicians_and_parties.Dtos;
-using politicz_politicians_and_parties.Repositories;
 using politicz_politicians_and_parties.Services;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Politicians.Api.Test.Unit
 {
@@ -28,7 +21,8 @@ namespace Politicians.Api.Test.Unit
         }
 
         [Fact]
-        public async Task GetPolitician_ReturnsOkAndObject_WhenPoliticianExists() {
+        public async Task GetPolitician_ReturnsOkAndObject_WhenPoliticianExists()
+        {
             // Arrange
             var politician = new PoliticianDto
             {
@@ -63,7 +57,8 @@ namespace Politicians.Api.Test.Unit
         }
 
         [Fact]
-        public async Task GetPoliticalParty_ReturnsOkObject_WhenPartyExists() {
+        public async Task GetPoliticalParty_ReturnsOkObject_WhenPartyExists()
+        {
             // Arrange
             var politicalPartyDto = new PoliticalPartyDto
             {
@@ -98,7 +93,8 @@ namespace Politicians.Api.Test.Unit
         }
 
         [Fact]
-        public async Task GetPoliticalParty_ReturnsNotFound_WhenPartyDesNotExist() {
+        public async Task GetPoliticalParty_ReturnsNotFound_WhenPartyDesNotExist()
+        {
             // Arrange
             _politicalPartyService.GetOneAsync(Arg.Any<Guid>()).ReturnsNull();
 
@@ -111,7 +107,8 @@ namespace Politicians.Api.Test.Unit
         }
 
         [Fact]
-        public async Task GetPoliticalParties_ReturnsOkObject_WhenPartyExists() {
+        public async Task GetPoliticalParties_ReturnsOkObject_WhenPartyExists()
+        {
             // Arrange
             IEnumerable<PoliticalPartySideNavDto> politicalPartiesSideNav = new List<PoliticalPartySideNavDto>() {
                 new PoliticalPartySideNavDto{
@@ -134,7 +131,7 @@ namespace Politicians.Api.Test.Unit
             // Assert
             result.Value.Should().BeEquivalentTo(politicalPartiesSideNav);
             result.StatusCode.Should().Be((int)HttpStatusCode.OK);
-            
+
         }
 
         [Fact]
@@ -151,22 +148,87 @@ namespace Politicians.Api.Test.Unit
             result.StatusCode.Should().Be((int)HttpStatusCode.OK);
         }
 
-        //[Fact]
-        //public async Task CreatePoliticalParty_ShouldReturnPoliticalParty_WhenPoliticalPartyCreated() { }
+        [Fact]
+        public async Task CreatePoliticalParty_ShouldReturnPoliticalParty_WhenPoliticalPartyCreated()
+        {
+            // Arrange
+            var politicalPartyDto = new PoliticalPartyDto
+            {
+                Id = Guid.NewGuid(),
+                Name = "New party",
+                ImageUrl = "https://imageurl.com",
+                Tags = new HashSet<string> { "Test party" },
+                Politicians = new List<PoliticianDto> {
+                    new PoliticianDto {
+                        BirthDate= DateTime.Now,
+                        FullName = "Testing politician",
+                    }
+                }
+            };
 
-        //[Fact]
-        //public async Task CreatePoliticalParty_ShouldReturnInternalServerError_WhenPoliticalPartyNotCreated() { }
+            var expectedParty = new PoliticalPartyDto();
 
-        //[Fact]
-        //public async Task GetPolitician_ShouldReturnNotFound_WhenPoliticianDoesNotExist() { }
+            _politicalPartyService.CreateAsync(Arg.Do<PoliticalPartyDto>(x => expectedParty = x)).Returns(true);
 
-        //[Fact]
-        //public async Task GetPolitician_ShouldReturnOkObject_WhenPoliticianExist() { }
+            // Act
+            var result = (CreatedAtActionResult)await _sut.CreatePoliticalParty(politicalPartyDto);
 
-        //[Fact]
-        //public async Task CreatePolitician_ShouldReturnStatusCode500_WhenPoliticianNotCreated() { }
+            // Assert
+            result.Value.As<PoliticalPartyDto>().Should().BeEquivalentTo(expectedParty);
+            result.StatusCode.Should().Be(201);
+            result.RouteValues!["id"].Should().Be(expectedParty.Id);
+        }
 
-        //[Fact]
-        //public async Task CreatePolitician_ShouldReturnPolitician_WhenPoliticianCreated() { }
+        [Fact]
+        public async Task CreatePoliticalParty_ShouldReturnInternalServerError_WhenPoliticalPartyNotCreated()
+        {
+            // Arrange
+            _politicalPartyService.CreateAsync(Arg.Any<PoliticalPartyDto>()).Returns(false);
+
+            // Act
+            var result = (StatusCodeResult)await _sut.CreatePoliticalParty(Arg.Any<PoliticalPartyDto>());
+
+            // Assert
+            result.StatusCode.Should().Be(500);
+        }
+
+
+        [Fact]
+        public async Task CreatePolitician_ShouldReturnInternalServerError_WhenPoliticianNotCreated()
+        {
+            // Arrange
+            _politicianService.CreateAsync(Arg.Any<Guid>(), Arg.Any<PoliticianDto>()).Returns(false);
+
+            // Act
+            var result = (StatusCodeResult)await _sut.CreatePolitician(Arg.Any<Guid>(), Arg.Any<PoliticianDto>());
+
+            // Assert
+            result.StatusCode.Should().Be(500);
+        }
+
+        [Fact]
+        public async Task CreatePolitician_ShouldReturnPolitician_WhenPoliticianCreated()
+        {
+            // Arrange
+            var politicianDto = new PoliticianDto
+            {
+                Id = Guid.NewGuid(),
+                BirthDate = DateTime.Now,
+                FullName = "Testing politician",
+            };
+
+            var partyId = Guid.NewGuid();
+            var expectedPoliticianDto = new PoliticianDto();
+
+            _politicianService.CreateAsync(partyId, Arg.Do<PoliticianDto>(x => expectedPoliticianDto = x)).Returns(true);
+
+            // Act
+            var result = (CreatedAtActionResult)await _sut.CreatePolitician(partyId, politicianDto);
+
+            // Assert
+            result.Value.As<PoliticianDto>().Should().BeEquivalentTo(expectedPoliticianDto);
+            result.StatusCode.Should().Be(201);
+            result.RouteValues!["id"].Should().Be(expectedPoliticianDto.Id);
+        }
     }
 }

@@ -1,12 +1,12 @@
 ﻿using politicz_politicians_and_parties.Dtos;
 using politicz_politicians_and_parties.Models;
-using System.Net.NetworkInformation;
 
 namespace politicz_politicians_and_parties.Mapping
 {
     public static class DomainToDtoMapper
     {
-        public static PoliticianDto ToPoliticianDto(this Politician politician) {
+        public static PoliticianDto ToPoliticianDto(this Politician politician)
+        {
             return new PoliticianDto
             {
                 Id = politician.FrontEndId,
@@ -18,17 +18,19 @@ namespace politicz_politicians_and_parties.Mapping
             };
         }
 
-        public static PoliticalPartySideNavDto ToPoliticalPartySideNavDto(this PoliticalParty politicalParty) {
+        public static PoliticalPartySideNavDto ToPoliticalPartySideNavDto(this PoliticalParty politicalParty)
+        {
             return new PoliticalPartySideNavDto
             {
                 Id = politicalParty.FrontEndId,
                 ImageUrl = politicalParty.ImageUrl,
                 Name = politicalParty.Name,
-                Tags= politicalParty.Tags
+                Tags = politicalParty.Tags
             };
         }
 
-        public static PoliticalPartyDto ToPoliticalPartyDto(this PoliticalParty politicalParty) {
+        public static PoliticalPartyDto ToPoliticalPartyDto(this PoliticalParty politicalParty)
+        {
             return new PoliticalPartyDto
             {
                 Id = politicalParty.FrontEndId,

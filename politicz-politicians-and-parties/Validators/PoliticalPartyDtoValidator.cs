@@ -8,7 +8,7 @@ namespace politicz_politicians_and_parties.Validators
         public PoliticalPartyDtoValidator()
         {
             RuleFor(p => p.Name).NotEmpty().MaximumLength(255);
-            RuleFor(p => p.ImageUrl).NotEmpty().MaximumLength(255);
+            RuleFor(p => p.ImageUrl).NotEmpty().Must(HelperValidatorMethods.IsValidUrl);
             RuleFor(p => p.Tags).NotEmpty();
             RuleForEach(p => p.Tags).NotEmpty();
             RuleFor(p => p.Politicians).NotEmpty();

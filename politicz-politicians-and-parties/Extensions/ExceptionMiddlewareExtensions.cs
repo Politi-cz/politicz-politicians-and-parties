@@ -1,8 +1,6 @@
 ﻿using FluentValidation;
 using Microsoft.AspNetCore.Diagnostics;
-using Microsoft.AspNetCore.Mvc;
 using politicz_politicians_and_parties.Models;
-using System;
 using System.Net;
 
 namespace politicz_politicians_and_parties.Extensions
@@ -19,9 +17,10 @@ namespace politicz_politicians_and_parties.Extensions
                     var contextFeature = context.Features.Get<IExceptionHandlerFeature>();
                     if (contextFeature != null)
                     {
+                        // Add proper logging
                         /*logger.LogError($"Something went wrong: {contextFeature.Error}");*/
-
-                        switch (contextFeature.Error) {
+                        switch (contextFeature.Error)
+                        {
                             case ValidationException validationException:
                                 var errorDetails = HandleValidationError(validationException);
                                 context.Response.StatusCode = (int)HttpStatusCode.BadRequest;
@@ -43,10 +42,11 @@ namespace politicz_politicians_and_parties.Extensions
             });
         }
 
-        private static ErrorDetails HandleValidationError(ValidationException exception) {
+        private static ErrorDetails HandleValidationError(ValidationException exception)
+        {
             var error = new ErrorDetails
             {
-                
+
                 StatusCode = (int)HttpStatusCode.BadRequest,
                 Message = "Validation error"
 

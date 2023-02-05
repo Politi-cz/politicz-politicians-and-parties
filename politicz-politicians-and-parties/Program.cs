@@ -1,18 +1,11 @@
 using FluentMigrator.Runner;
 using FluentValidation;
-using Microsoft.AspNetCore.Diagnostics;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using politicz_politicians_and_parties.Database;
 using politicz_politicians_and_parties.Dtos;
 using politicz_politicians_and_parties.Extensions;
-using politicz_politicians_and_parties.Migrations;
-using politicz_politicians_and_parties.Models;
 using politicz_politicians_and_parties.Repositories;
 using politicz_politicians_and_parties.Services;
 using politicz_politicians_and_parties.Validators;
-using System.Data;
-using System.Net;
 using System.Reflection;
 
 var builder = WebApplication.CreateBuilder(args);

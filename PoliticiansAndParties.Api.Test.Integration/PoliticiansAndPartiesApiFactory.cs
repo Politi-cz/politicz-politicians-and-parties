@@ -11,12 +11,7 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
 using politicz_politicians_and_parties;
 using politicz_politicians_and_parties.Database;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace PoliticiansAndParties.Api.Test.Integration
 {
@@ -39,10 +34,10 @@ namespace PoliticiansAndParties.Api.Test.Integration
         protected override void ConfigureWebHost(IWebHostBuilder builder)
         {
             // TODO: Figure out what to do with logging, (rewatch the course)
-            /*builder.ConfigureLogging(logging =>
+            builder.ConfigureLogging(logging =>
             {
                 logging.ClearProviders();
-            });*/
+            });
 
             var masterConnectionString = _dbContainer.ConnectionString;
             masterConnectionString += "TrustServerCertificate=True;";

@@ -2,7 +2,6 @@
 using politicz_politicians_and_parties.Database;
 using politicz_politicians_and_parties.Models;
 using System.Data;
-using Z.Dapper.Plus;
 
 namespace politicz_politicians_and_parties.Repositories
 {
@@ -26,7 +25,8 @@ namespace politicz_politicians_and_parties.Repositories
             return result > 0;
         }
 
-        public async Task<bool> CreateAllAsync(IEnumerable<Politician> politicians, IDbTransaction transaction) {
+        public async Task<bool> CreateAllAsync(IEnumerable<Politician> politicians, IDbTransaction transaction)
+        {
             var sql = @"INSERT INTO Politicians (FrontEndId, BirthDate, FullName, InstagramUrl, TwitterUrl, FacebookUrl, PoliticalPartyId)
                         VALUES (@FrontEndId, @BirthDate, @FullName, @InstagramUrl, @TwitterUrl, @FacebookUrl, @PoliticalPartyId)";
 

@@ -2,6 +2,7 @@
 using politicz_politicians_and_parties.Dtos;
 using politicz_politicians_and_parties.Mapping;
 using politicz_politicians_and_parties.Repositories;
+using politicz_politicians_and_parties.Validators;
 
 namespace politicz_politicians_and_parties.Services
 {
@@ -24,14 +25,15 @@ namespace politicz_politicians_and_parties.Services
 
             if (partyExists)
             {
-                throw new ValidationException($"Political party with name {politicalPartyDto.Name} already exists");
+                var msg = $"Political party with name {politicalPartyDto.Name} already exists";
+                throw new ValidationException(msg, HelperValidatorMethods.GenerateValidationError(nameof(politicalPartyDto.Name), msg));
             }
 
             politicalPartyDto.Id = Guid.NewGuid();
             politicalPartyDto.Politicians.ForEach(x => x.Id = Guid.NewGuid());
 
             var politicalParty = politicalPartyDto.ToPoliticalParty();
-        
+
             return await _politicalPartyRepository.CreateAsync(politicalParty);
         }
 

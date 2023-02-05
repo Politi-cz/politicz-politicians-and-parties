@@ -7,6 +7,6 @@
         public string Name { get; set; } = string.Empty;
         public string ImageUrl { get; set; } = string.Empty;
         public List<Politician> Politicians { get; set; } = new List<Politician>();
-        public List<string> Tags { get; set; } = new List<string>();
+        public HashSet<string> Tags { get; set; } = new HashSet<string>();
     }
 }

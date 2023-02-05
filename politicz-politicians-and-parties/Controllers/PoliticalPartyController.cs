@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using politicz_politicians_and_parties.Dtos;
 using politicz_politicians_and_parties.Models;
 using politicz_politicians_and_parties.Services;
@@ -23,10 +22,12 @@ namespace politicz_politicians_and_parties.Controllers
         [ProducesResponseType(201, Type = typeof(PoliticalPartyDto))]
         [ProducesResponseType(400, Type = typeof(ErrorDetails))]
         [ProducesResponseType(500)]
-        public async Task<IActionResult> CreatePoliticalParty([FromBody] PoliticalPartyDto politicalParty) { 
+        public async Task<IActionResult> CreatePoliticalParty([FromBody] PoliticalPartyDto politicalParty)
+        {
             var created = await _politicalPartyService.CreateAsync(politicalParty);
 
-            if (created is false) {
+            if (created is false)
+            {
                 return StatusCode(500);
             }
 
@@ -37,7 +38,8 @@ namespace politicz_politicians_and_parties.Controllers
         [ProducesResponseType(200, Type = typeof(PoliticalPartyDto))]
         [ProducesResponseType(404)]
         [ProducesResponseType(500)]
-        public async Task<IActionResult> GetPoliticalParty([FromRoute] Guid id) { 
+        public async Task<IActionResult> GetPoliticalParty([FromRoute] Guid id)
+        {
             var politicalPartyDto = await _politicalPartyService.GetOneAsync(id);
 
             if (politicalPartyDto is null)
@@ -50,7 +52,6 @@ namespace politicz_politicians_and_parties.Controllers
 
         [HttpGet]
         [ProducesResponseType(200, Type = typeof(IEnumerable<PoliticalPartySideNavDto>))]
-        [ProducesResponseType(404)]
         [ProducesResponseType(500)]
         public async Task<IActionResult> GetPoliticalParties()
         {
@@ -79,10 +80,12 @@ namespace politicz_politicians_and_parties.Controllers
         [ProducesResponseType(201, Type = typeof(PoliticianDto))]
         [ProducesResponseType(400, Type = typeof(ErrorDetails))]
         [ProducesResponseType(500)]
-        public async Task<IActionResult> CreatePolitician([FromRoute] Guid partyId, [FromBody] PoliticianDto politicianDto) {
+        public async Task<IActionResult> CreatePolitician([FromRoute] Guid partyId, [FromBody] PoliticianDto politicianDto)
+        {
             var created = await _politicianService.CreateAsync(partyId, politicianDto);
 
-            if (created is false) {
+            if (created is false)
+            {
                 return StatusCode(500);
             }
 

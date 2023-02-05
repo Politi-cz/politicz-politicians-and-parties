@@ -1,4 +1,5 @@
 ﻿using FluentAssertions;
+using FluentValidation;
 using NSubstitute;
 using NSubstitute.ReturnsExtensions;
 using politicz_politicians_and_parties.Dtos;
@@ -7,11 +8,6 @@ using politicz_politicians_and_parties.Models;
 using politicz_politicians_and_parties.Repositories;
 using politicz_politicians_and_parties.Services;
 using politicz_politicians_and_parties.Validators;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace PoliticiansAndParties.Api.Test.Unit
 {
@@ -73,7 +69,7 @@ namespace PoliticiansAndParties.Api.Test.Unit
         public async Task GetAllAsync_ReturnsEnumerableOfSideNavDto_WhenPartiesExist()
         {
             // Arrange
-            var politicalParties = new List<PoliticalParty>(){ 
+            var politicalParties = new List<PoliticalParty>(){
                 new PoliticalParty{
                     Id = 1,
                     FrontEndId = Guid.NewGuid(),
@@ -121,26 +117,177 @@ namespace PoliticiansAndParties.Api.Test.Unit
             result.Should().BeEmpty();
         }
 
-        //[Fact]
-        //public async Task CreateAsync_ShouldThrowValidationError_WhenInvalidPoliticianDto() { 
-            
-        //}
+        [Theory]
+        [MemberData(nameof(InvalidPoliticalPartyData))]
+        public async Task CreateAsync_ShouldThrowValidationError_WhenInvalidPoliticianDto(PoliticalPartyDto politicalPartyDto)
+        {
+            // Arrange
+            _politicianPartyRepository.ExistsByNameAsync(Arg.Any<string>()).Returns(false);
+            _politicianPartyRepository.CreateAsync(Arg.Any<PoliticalParty>()).Returns(false);
 
-        //[Fact]
-        //public async Task CreateAsync_ShouldThrowValidationException_WhenPoliticalPartyWithSameNameExists() { 
-        
-        //}
+            // Act
+            var act = async () => await _sut.CreateAsync(politicalPartyDto);
 
-        //[Fact]
-        //public async Task CreateAsync_ShouldReturnTrue_WhenPoliticalPartyCreated() { 
+            // Assert
+            await act.Should().ThrowAsync<ValidationException>();
+        }
 
-        //}
+        [Fact]
+        public async Task CreateAsync_ShouldThrowValidationException_WhenPoliticalPartyWithSameNameExists()
+        {
+            // Arrange
+            var politicalPartyDto = new PoliticalPartyDto
+            {
+                Name = "Existing party",
+                ImageUrl = "https://imageurl.com",
+                Tags = new HashSet<string> { "Test party" },
+                Politicians = new List<PoliticianDto> {
+                    new PoliticianDto {
+                        BirthDate= DateTime.Now,
+                        FullName = "Testing politician",
+                    }
+                }
+            };
 
-        //[Fact]
-        //public async Task CreateAsync_ShouldReturnFalse_WhenPoliticalPartyNotCreated() { 
-        //}
+            _politicianPartyRepository.ExistsByNameAsync(politicalPartyDto.Name).Returns(true);
+            _politicianPartyRepository.CreateAsync(Arg.Any<PoliticalParty>()).Returns(false);
+
+            // Act
+            var act = async () => await _sut.CreateAsync(politicalPartyDto);
+
+            // Assert
+            await act.Should().ThrowAsync<ValidationException>().WithMessage($"Political party with name {politicalPartyDto.Name} already exists");
+
+        }
+
+        [Fact]
+        public async Task CreateAsync_CreatePoliticalParty_WhenPoliticalPartyDtoValid()
+        {
+            // Arrange
+            var politicalPartyDto = new PoliticalPartyDto
+            {
+                Name = "New party",
+                ImageUrl = "https://imageurl.com",
+                Tags = new HashSet<string> { "Test party" },
+                Politicians = new List<PoliticianDto> {
+                    new PoliticianDto {
+                        BirthDate= DateTime.Now,
+                        FullName = "Testing politician",
+                    }
+                }
+            };
+            var politicalParty = politicalPartyDto.ToPoliticalParty();
+
+            _politicianPartyRepository.ExistsByNameAsync(politicalPartyDto.Name).Returns(false);
+            _politicianPartyRepository.CreateAsync(Arg.Do<PoliticalParty>(x => politicalParty = x)).Returns(true);
+
+            // Act
+            var result = await _sut.CreateAsync(politicalPartyDto);
+
+            // Assert
+            result.Should().BeTrue();
+            politicalPartyDto.Id.Should().Be(politicalParty.FrontEndId);
+        }
+
+        [Fact]
+        public async Task CreateAsync_ShouldNotCreateParty_WhenPoliticalPartyDtoInvalid()
+        {
+            // Arrange
+            var politicalPartyDto = new PoliticalPartyDto
+            {
+                Name = "New party",
+                ImageUrl = "https://imageurl.com",
+                Tags = new HashSet<string> { "Test party" },
+                Politicians = new List<PoliticianDto> {
+                    new PoliticianDto {
+                        BirthDate= DateTime.Now,
+                        FullName = "Testing politician",
+                    }
+                }
+            };
+
+            _politicianPartyRepository.ExistsByNameAsync(politicalPartyDto.Name).Returns(false);
+            _politicianPartyRepository.CreateAsync(Arg.Any<PoliticalParty>()).Returns(false);
+
+            // Act
+            var result = await _sut.CreateAsync(politicalPartyDto);
+
+            // Assert
+            result.Should().BeFalse();
+        }
 
 
+        public static IEnumerable<object[]> InvalidPoliticalPartyData =>
+          new List<object[]>
+          {
+                new object[] {
+                    new PoliticalPartyDto{} // Empry political party
+                },
+                new object[]{
+                    new PoliticalPartyDto{
+                        Name = "Party",
+                        ImageUrl = "https://testimageurl.com/",
+                        // Tags list empty
+                        Politicians = new List<PoliticianDto>{
+                            new PoliticianDto
+                            {
+                                    FullName= "Test",
+                                    BirthDate = DateTime.Now,
+                            }
+                        }
+                    }
+                },
+                new object[]{
+                    new PoliticalPartyDto{
+                        Name = "Party",
+                        ImageUrl = "https://testimageurl.com/",
+                        Tags = new HashSet<string> {"test"},
+                        // Politicians list empty
+                    }
+                },
+                new object[]{
+                    new PoliticalPartyDto{
+                        Name = "Party",
+                        ImageUrl = "https://testimageurl.com/",
+                        Tags = new HashSet<string> {"test"},
+                        Politicians = new List<PoliticianDto>{
+                            new PoliticianDto // Invalid politician dto
+                            {
+                                    BirthDate = DateTime.Now,
+                            }
+                        }
+                    }
+                },
+                new object[]{
+                    new PoliticalPartyDto{
+                        Name = "", // Empty party name
+                        ImageUrl = "https://testimageurl.com/",
+                        Tags = new HashSet<string> {"test"},
+                        Politicians = new List<PoliticianDto>{
+                            new PoliticianDto
+                            {
+                                    FullName= "Test",
+                                    BirthDate = DateTime.Now,
+                            }
+                        }
+                    }
+                },
+                new object[]{
+                    new PoliticalPartyDto{
+                        Name = "Test",
+                        // missing image url
+                        Tags = new HashSet<string> {"test"},
+                        Politicians = new List<PoliticianDto>{
+                            new PoliticianDto
+                            {
+                                    FullName= "Test",
+                                    BirthDate = DateTime.Now,
+                            }
+                        }
+                    }
+                }
+
+          };
 
     }
 }

@@ -1,5 +1,4 @@
 ﻿using FluentMigrator;
-using FluentMigrator.SqlServer;
 
 namespace politicz_politicians_and_parties.Migrations
 {
@@ -25,7 +24,7 @@ namespace politicz_politicians_and_parties.Migrations
             Create.Table("Politicians")
                 .WithColumn("Id").AsInt32().NotNullable().PrimaryKey().Identity()
                 .WithColumn("FrontEndId").AsGuid().NotNullable().Unique()
-                .WithColumn("BirthDate").AsDateTime().NotNullable()
+                .WithColumn("BirthDate").AsDateTime2().NotNullable()
                 .WithColumn("FullName").AsString(255).NotNullable()
                 .WithColumn("InstagramUrl").AsString(255).Nullable()
                 .WithColumn("TwitterUrl").AsString(255).Nullable()

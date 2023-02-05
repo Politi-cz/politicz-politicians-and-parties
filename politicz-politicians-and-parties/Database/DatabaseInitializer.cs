@@ -1,7 +1,4 @@
 ﻿using Dapper;
-using politicz_politicians_and_parties.Models;
-using System.Diagnostics.Metrics;
-using System;
 
 namespace politicz_politicians_and_parties.Database
 {
@@ -14,7 +11,8 @@ namespace politicz_politicians_and_parties.Database
             _connectionFactory = connectionFactory;
         }
 
-        public async Task InitializeAsync(string dbName) {
+        public async Task InitializeAsync(string dbName)
+        {
             var query = "SELECT * FROM sys.databases WHERE name = @name";
             var parameters = new DynamicParameters();
             parameters.Add("name", dbName);
@@ -22,11 +20,12 @@ namespace politicz_politicians_and_parties.Database
 
             using var connection = await _connectionFactory.CreateMasterConnectionAsync();
             var records = connection.Query(query, parameters);
-            if (!records.Any()) {
+            if (!records.Any())
+            {
                 await connection.ExecuteAsync($"CREATE DATABASE [{dbName}]");
             }
 
-               
+
         }
     }
 }

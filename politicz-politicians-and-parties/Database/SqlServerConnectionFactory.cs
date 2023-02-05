@@ -3,7 +3,8 @@ using System.Data;
 
 namespace politicz_politicians_and_parties.Database
 {
-    public struct ConnectionStrings {
+    public struct ConnectionStrings
+    {
         public ConnectionStrings(string masterConnection, string sqlConnection)
         {
             MasterConnection = masterConnection;
@@ -20,7 +21,7 @@ namespace politicz_politicians_and_parties.Database
 
         public SqlServerConnectionFactory(ConnectionStrings connectionStrings)
         {
-            _connectionStrings= connectionStrings;
+            _connectionStrings = connectionStrings;
         }
 
         public async Task<IDbConnection> CreateConnectionAsync()

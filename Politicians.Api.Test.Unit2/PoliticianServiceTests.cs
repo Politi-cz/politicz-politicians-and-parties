@@ -63,7 +63,7 @@ namespace Politicians.Api.Test.Unit
         [MemberData(nameof(InvalidPoliticianData))]
         public async Task CreateAsync_ShouldThrowValidationError_WhenInvalidPoliticianDto(PoliticianDto politicianDto) {
             // Arrange
-            _politicianRepository.CreateOneAsync(politicianDto.ToPolitician()).Returns(true);
+            _politicianRepository.CreateOneAsync(politicianDto.ToPolitician()).Returns(false);
             _politicalPartyRepository.GetInternalIdAsync(Arg.Any<Guid>()).Returns(10); 
             // does not really matter
 
@@ -95,7 +95,7 @@ namespace Politicians.Api.Test.Unit
         }
 
         [Fact]
-        public async Task CreateAsync_ShouldReturnTrue_WhenPoliticianCreated()
+        public async Task CreateAsync_ShouldCreatePolitician_WhenPoliticianDtoValid()
         {
             // Arrange
             var politicianDto = new PoliticianDto()
@@ -116,7 +116,7 @@ namespace Politicians.Api.Test.Unit
         }
 
         [Fact]
-        public async Task CreateAsync_ShouldReturnFalse_WhenPoliticianWasNotCreated()
+        public async Task CreateAsync_ShouldNotCreatePolitician_WhenPoliticianDtoInvalid()
         {
             // Arrange
             var politicianDto = new PoliticianDto()

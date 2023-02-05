@@ -1,6 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
-
-namespace politicz_politicians_and_parties.Models
+﻿namespace politicz_politicians_and_parties.Models
 {
     public class Politician
     {
