@@ -10,11 +10,13 @@ namespace politicz_politicians_and_parties.Services
     {
         readonly IPoliticalPartyRepository _politicalPartyRepository;
         readonly IValidator<PoliticalPartyDto> _validator;
+        readonly ILogger<PoliticalPartyService> _logger;
 
-        public PoliticalPartyService(IPoliticalPartyRepository politicalPartyRepository, IValidator<PoliticalPartyDto> validator)
+        public PoliticalPartyService(IPoliticalPartyRepository politicalPartyRepository, IValidator<PoliticalPartyDto> validator, ILogger<PoliticalPartyService> logger)
         {
             _politicalPartyRepository = politicalPartyRepository;
             _validator = validator;
+            _logger = logger;
         }
 
         public async Task<bool> CreateAsync(PoliticalPartyDto politicalPartyDto)
@@ -39,6 +41,7 @@ namespace politicz_politicians_and_parties.Services
 
         public async Task<IEnumerable<PoliticalPartySideNavDto>> GetAllAsync()
         {
+            _logger.LogError("Testing error log {name}", "test");
             var politicalParties = await _politicalPartyRepository.GetAllAsync();
             var politicalPartiesSideNav = politicalParties.Select(x => x.ToPoliticalPartySideNavDto());
 

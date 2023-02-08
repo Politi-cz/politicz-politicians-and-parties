@@ -1,5 +1,6 @@
 ﻿using FluentAssertions;
 using FluentValidation;
+using Microsoft.Extensions.Logging;
 using NSubstitute;
 using NSubstitute.ReturnsExtensions;
 using politicz_politicians_and_parties.Dtos;
@@ -15,10 +16,11 @@ namespace PoliticiansAndParties.Api.Test.Unit
     {
         private readonly PoliticalPartyService _sut;
         private readonly IPoliticalPartyRepository _politicianPartyRepository = Substitute.For<IPoliticalPartyRepository>();
+        private readonly ILogger<PoliticalPartyService> _logger = Substitute.For<Microsoft.Extensions.Logging.ILogger<PoliticalPartyService>>();
 
         public PoliticalPartyServiceTests()
         {
-            _sut = new PoliticalPartyService(_politicianPartyRepository, new PoliticalPartyDtoValidator());
+            _sut = new PoliticalPartyService(_politicianPartyRepository, new PoliticalPartyDtoValidator(), _logger);
         }
 
         [Fact]
@@ -102,6 +104,9 @@ namespace PoliticiansAndParties.Api.Test.Unit
             var result = await _sut.GetAllAsync();
             // Assert
             result.Should().BeEquivalentTo(expectedResult);
+
+            // FIX THIS BY CREATING LOG ADAPTER, THEN IT SHOULD WORK
+            // _logger.Received(1).Log(LogLevel.Error, "Testing error log {test}", Arg.Any<string>());
         }
 
         [Fact]

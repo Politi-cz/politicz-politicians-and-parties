@@ -6,9 +6,19 @@ using politicz_politicians_and_parties.Extensions;
 using politicz_politicians_and_parties.Repositories;
 using politicz_politicians_and_parties.Services;
 using politicz_politicians_and_parties.Validators;
+using Serilog;
+using Serilog.Events;
 using System.Reflection;
 
+
+// TODO: Change it to logger configuration in appsetings.json
+Log.Logger = new LoggerConfiguration()
+    .WriteTo.Console()
+    .MinimumLevel.Override("Microsoft.AspNetCore", LogEventLevel.Warning)
+    .CreateLogger();
+
 var builder = WebApplication.CreateBuilder(args);
+builder.Host.UseSerilog();
 
 // Add services to the container.
 builder.Services.AddSingleton<IDbConnectionFactory>(new SqlServerConnectionFactory(
@@ -29,13 +39,14 @@ builder.Services.AddLogging(c => c.AddFluentMigratorConsole())
         .WithGlobalConnectionString(builder.Configuration.GetConnectionString("DefaultConnection"))
         .ScanIn(Assembly.GetExecutingAssembly()).For.All());
 
+
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
-
+app.UseSerilogRequestLogging();
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
@@ -60,7 +71,6 @@ await databaseInitializer.InitializeAsync(builder.Configuration.GetValue<string>
 using var scope = app.Services.CreateScope();
 var runner = scope.ServiceProvider.GetRequiredService<IMigrationRunner>();
 
-// TODO: WHen endpoints for creating political parties/politicians exist, remove data seeding and edit tests according to that
 runner!.ListMigrations();
 runner.MigrateUp();
 

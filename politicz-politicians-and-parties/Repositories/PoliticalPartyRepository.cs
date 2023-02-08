@@ -1,4 +1,5 @@
 ﻿using Dapper;
+using Microsoft.Data.SqlClient;
 using politicz_politicians_and_parties.Database;
 using politicz_politicians_and_parties.Models;
 using System.Data;
@@ -44,7 +45,7 @@ namespace politicz_politicians_and_parties.Repositories
                 transaction.Commit();
                 return true;
             }
-            catch (Exception e)
+            catch (SqlException e)
             {
                 // TODO add proper logging of exception
                 transaction.Rollback();
@@ -119,7 +120,7 @@ namespace politicz_politicians_and_parties.Repositories
                 politicalParty.Tags = await LoadTags(politicalParty.Id, connection);
             }
 
-            return politicalParties.SingleOrDefault();
+            return politicalParty;
         }
         public async Task<int?> GetInternalIdAsync(Guid frontEndId)
         {
