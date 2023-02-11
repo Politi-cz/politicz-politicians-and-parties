@@ -1,6 +1,7 @@
 ﻿using Dapper;
 using Microsoft.Data.SqlClient;
 using politicz_politicians_and_parties.Database;
+using politicz_politicians_and_parties.Logging;
 using politicz_politicians_and_parties.Models;
 using System.Data;
 
@@ -10,11 +11,13 @@ namespace politicz_politicians_and_parties.Repositories
     {
         readonly IDbConnectionFactory _connectionFactory;
         readonly IPoliticianRepository _politicianRepository;
+        readonly ILoggerAdapter<PoliticalPartyRepository> _logger;
 
-        public PoliticalPartyRepository(IDbConnectionFactory connectionFactory, IPoliticianRepository politicianRepository)
+        public PoliticalPartyRepository(IDbConnectionFactory connectionFactory, IPoliticianRepository politicianRepository, ILoggerAdapter<PoliticalPartyRepository> logger)
         {
             _connectionFactory = connectionFactory;
             _politicianRepository = politicianRepository;
+            _logger = logger;
         }
 
         public async Task<bool> CreateAsync(PoliticalParty politicalParty)
@@ -47,7 +50,7 @@ namespace politicz_politicians_and_parties.Repositories
             }
             catch (SqlException e)
             {
-                // TODO add proper logging of exception
+                _logger.LogError(e, "Political party creation failed");
                 transaction.Rollback();
                 return false;
             }

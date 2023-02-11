@@ -7,7 +7,7 @@ namespace politicz_politicians_and_parties.Extensions
 {
     public static class ExceptionMiddlewareExtensions
     {
-        public static void ConfigureExceptionHandler(this IApplicationBuilder app/*, ILoggerManager logger*/)
+        public static void ConfigureExceptionHandler(this IApplicationBuilder app, Logging.ILoggerAdapter<object> logger)
         {
             app.UseExceptionHandler(appError =>
             {
@@ -17,15 +17,13 @@ namespace politicz_politicians_and_parties.Extensions
                     var contextFeature = context.Features.Get<IExceptionHandlerFeature>();
                     if (contextFeature != null)
                     {
-                        // Add proper logging
-                        /*logger.LogError($"Something went wrong: {contextFeature.Error}");*/
                         switch (contextFeature.Error)
                         {
                             case ValidationException validationException:
                                 var errorDetails = HandleValidationError(validationException);
                                 context.Response.StatusCode = (int)HttpStatusCode.BadRequest;
                                 await context.Response.WriteAsJsonAsync(errorDetails);
-
+                                logger.LogWarn("Validation error");
                                 break;
                             default:
                                 context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
@@ -34,6 +32,7 @@ namespace politicz_politicians_and_parties.Extensions
                                     StatusCode = context.Response.StatusCode,
                                     Message = "Internal Server Error."
                                 });
+                                logger.LogError(contextFeature.Error, "Unexpected error");
                                 break;
 
                         };

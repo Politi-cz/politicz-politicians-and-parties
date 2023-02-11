@@ -1,9 +1,9 @@
 ﻿using FluentAssertions;
 using FluentValidation;
-using Microsoft.Extensions.Logging;
 using NSubstitute;
 using NSubstitute.ReturnsExtensions;
 using politicz_politicians_and_parties.Dtos;
+using politicz_politicians_and_parties.Logging;
 using politicz_politicians_and_parties.Mapping;
 using politicz_politicians_and_parties.Models;
 using politicz_politicians_and_parties.Repositories;
@@ -16,7 +16,7 @@ namespace PoliticiansAndParties.Api.Test.Unit
     {
         private readonly PoliticalPartyService _sut;
         private readonly IPoliticalPartyRepository _politicianPartyRepository = Substitute.For<IPoliticalPartyRepository>();
-        private readonly ILogger<PoliticalPartyService> _logger = Substitute.For<Microsoft.Extensions.Logging.ILogger<PoliticalPartyService>>();
+        private readonly ILoggerAdapter<PoliticalPartyService> _logger = Substitute.For<ILoggerAdapter<PoliticalPartyService>>();
 
         public PoliticalPartyServiceTests()
         {
@@ -59,12 +59,14 @@ namespace PoliticiansAndParties.Api.Test.Unit
         public async Task GetOneAsync_ReturnsNull_WhenPartyDoesNotExist()
         {
             // Arrange
-            _politicianPartyRepository.GetAsync(Arg.Any<Guid>()).ReturnsNull();
+            var guid = Guid.NewGuid();
+            _politicianPartyRepository.GetAsync(guid).ReturnsNull();
 
             // Act
-            var result = await _sut.GetOneAsync(Arg.Any<Guid>());
+            var result = await _sut.GetOneAsync(guid);
             // Assert
             result.Should().BeNull();
+            _logger.Received(1).LogWarn(Arg.Is("Political party with id {id} not found"), Arg.Is(guid.ToString()));
         }
 
         [Fact]
@@ -104,9 +106,6 @@ namespace PoliticiansAndParties.Api.Test.Unit
             var result = await _sut.GetAllAsync();
             // Assert
             result.Should().BeEquivalentTo(expectedResult);
-
-            // FIX THIS BY CREATING LOG ADAPTER, THEN IT SHOULD WORK
-            // _logger.Received(1).Log(LogLevel.Error, "Testing error log {test}", Arg.Any<string>());
         }
 
         [Fact]
@@ -162,6 +161,7 @@ namespace PoliticiansAndParties.Api.Test.Unit
 
             // Assert
             await act.Should().ThrowAsync<ValidationException>().WithMessage($"Political party with name {politicalPartyDto.Name} already exists");
+            _logger.Received(1).LogWarn(Arg.Is($"Political party with name {politicalPartyDto.Name} already exists"));
 
         }
 
@@ -192,6 +192,7 @@ namespace PoliticiansAndParties.Api.Test.Unit
             // Assert
             result.Should().BeTrue();
             politicalPartyDto.Id.Should().Be(politicalParty.FrontEndId);
+            _logger.Received(1).LogInfo(Arg.Is("Political party with id {id} created"), Arg.Is(politicalParty.FrontEndId));
         }
 
         [Fact]
@@ -219,6 +220,7 @@ namespace PoliticiansAndParties.Api.Test.Unit
 
             // Assert
             result.Should().BeFalse();
+            _logger.Received(1).LogError(null, Arg.Is("Unable to create political party"));
         }
 
 

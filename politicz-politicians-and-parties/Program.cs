@@ -2,7 +2,8 @@ using FluentMigrator.Runner;
 using FluentValidation;
 using politicz_politicians_and_parties.Database;
 using politicz_politicians_and_parties.Dtos;
-using politicz_politicians_and_parties.Extensions;
+using politicz_politicians_and_parties.Logging;
+using politicz_politicians_and_parties.Middleware;
 using politicz_politicians_and_parties.Repositories;
 using politicz_politicians_and_parties.Services;
 using politicz_politicians_and_parties.Validators;
@@ -28,6 +29,7 @@ builder.Services.AddScoped<IPoliticianRepository, PoliticianRepository>();
 builder.Services.AddScoped<IPoliticianService, PoliticianService>();
 builder.Services.AddScoped<IPoliticalPartyRepository, PoliticalPartyRepository>();
 builder.Services.AddScoped<IPoliticalPartyService, PoliticalPartyService>();
+builder.Services.AddTransient(typeof(ILoggerAdapter<>), typeof(LoggerAdapter<>));
 
 // TODO Add all validations through an extension method RegisterValidators or something like that. 
 builder.Services.AddScoped<IValidator<PoliticianDto>, PoliticianDtoValidator>();
@@ -47,6 +49,7 @@ builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 app.UseSerilogRequestLogging();
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
@@ -54,14 +57,13 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.ConfigureExceptionHandler();
 
-
-
+// app.ConfigureExceptionHandler(scope.ServiceProvider.GetRequiredService<ILoggerAdapter<object>>());
 app.UseHttpsRedirection();
 
 
 app.UseAuthorization();
+app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 app.MapControllers();
 

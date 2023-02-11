@@ -3,16 +3,12 @@ using FluentValidation;
 using NSubstitute;
 using NSubstitute.ReturnsExtensions;
 using politicz_politicians_and_parties.Dtos;
+using politicz_politicians_and_parties.Logging;
 using politicz_politicians_and_parties.Mapping;
 using politicz_politicians_and_parties.Models;
 using politicz_politicians_and_parties.Repositories;
 using politicz_politicians_and_parties.Services;
 using politicz_politicians_and_parties.Validators;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Politicians.Api.Test.Unit
 {
@@ -20,17 +16,20 @@ namespace Politicians.Api.Test.Unit
     {
         private readonly PoliticianService _sut;
         private readonly IPoliticianRepository _politicianRepository = Substitute.For<IPoliticianRepository>();
-        private readonly IPoliticalPartyRepository _politicalPartyRepository= Substitute.For<IPoliticalPartyRepository>();
+        private readonly IPoliticalPartyRepository _politicalPartyRepository = Substitute.For<IPoliticalPartyRepository>();
+        private readonly ILoggerAdapter<PoliticianService> _logger = Substitute.For<ILoggerAdapter<PoliticianService>>();
 
         public PoliticianServiceTests()
         {
-            _sut = new PoliticianService(_politicianRepository, _politicalPartyRepository, new PoliticianDtoValidator());
+            _sut = new PoliticianService(_politicianRepository, _politicalPartyRepository, new PoliticianDtoValidator(), _logger);
         }
 
         [Fact]
-        public async Task GetAsync_ShouldReturnPoliticianDto_WhenPoliticianExists() {
+        public async Task GetAsync_ShouldReturnPoliticianDto_WhenPoliticianExists()
+        {
             // Arrange
-            var existingPolitician = new Politician {
+            var existingPolitician = new Politician
+            {
                 Id = 1,
                 FrontEndId = Guid.NewGuid(),
                 BirthDate = DateTime.Now,
@@ -48,23 +47,28 @@ namespace Politicians.Api.Test.Unit
         }
 
         [Fact]
-        public async Task GetAsync_ShouldReturnNull_WhenPoliticianDoesNotExist() { 
+        public async Task GetAsync_ShouldReturnNull_WhenPoliticianDoesNotExist()
+        {
             // Arrange
-            _politicianRepository.GetAsync(Arg.Any<Guid>()).ReturnsNull();
+            var guid = Guid.NewGuid();
+            _politicianRepository.GetAsync(guid).ReturnsNull();
 
             // Act
-            var result = await _sut.GetAsync(Arg.Any<Guid>());
+            var result = await _sut.GetAsync(guid);
 
             // Assert
             result.Should().BeNull();
+            _logger.Received(1).LogWarn(Arg.Is("Politician with id {id} not found"), Arg.Is(guid.ToString()));
+
         }
 
         [Theory]
         [MemberData(nameof(InvalidPoliticianData))]
-        public async Task CreateAsync_ShouldThrowValidationError_WhenInvalidPoliticianDto(PoliticianDto politicianDto) {
+        public async Task CreateAsync_ShouldThrowValidationError_WhenInvalidPoliticianDto(PoliticianDto politicianDto)
+        {
             // Arrange
             _politicianRepository.CreateOneAsync(politicianDto.ToPolitician()).Returns(false);
-            _politicalPartyRepository.GetInternalIdAsync(Arg.Any<Guid>()).Returns(10); 
+            _politicalPartyRepository.GetInternalIdAsync(Arg.Any<Guid>()).Returns(10);
             // does not really matter
 
             // Act
@@ -75,7 +79,8 @@ namespace Politicians.Api.Test.Unit
         }
 
         [Fact]
-        public async Task CreateAsync_ShouldThrowValidationError_WhenParentPoliticalPartyDoesNotExist() {
+        public async Task CreateAsync_ShouldThrowValidationError_WhenParentPoliticalPartyDoesNotExist()
+        {
             // Arrange
             var politicianDto = new PoliticianDto()
             {
@@ -92,6 +97,8 @@ namespace Politicians.Api.Test.Unit
 
             // Assert
             await act.Should().ThrowAsync<ValidationException>().WithMessage($"Political party with id {nonExistingPartyId} does not exist");
+            _logger.Received(1).LogWarn(Arg.Is($"Political party with id {nonExistingPartyId} does not exist"));
+
         }
 
         [Fact]
@@ -113,6 +120,8 @@ namespace Politicians.Api.Test.Unit
 
             // Assert
             created.Should().Be(true);
+            _logger.Received(1).LogInfo(Arg.Is("Politician with internal id {internalId} created"), Arg.Any<int>());
+
         }
 
         [Fact]
