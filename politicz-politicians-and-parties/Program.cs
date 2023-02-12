@@ -34,6 +34,7 @@ builder.Services.AddTransient(typeof(ILoggerAdapter<>), typeof(LoggerAdapter<>))
 // TODO Add all validations through an extension method RegisterValidators or something like that. 
 builder.Services.AddScoped<IValidator<PoliticianDto>, PoliticianDtoValidator>();
 builder.Services.AddScoped<IValidator<PoliticalPartyDto>, PoliticalPartyDtoValidator>();
+builder.Services.AddScoped<IValidator<UpdatePoliticalPartyDto>, UpdatePoliticalPartyDtoValidator>();
 
 builder.Services.AddLogging(c => c.AddFluentMigratorConsole())
     .AddFluentMigratorCore()

@@ -76,6 +76,32 @@ namespace politicz_politicians_and_parties.Controllers
             return Ok(politicianDto);
         }
 
+        [HttpPut("{partyId:guid}")]
+        public async Task<IActionResult> UpdatePoliticalParty([FromRoute] Guid partyId, [FromBody] UpdatePoliticalPartyDto updatePoliticalParty)
+        {
+            var updated = await _politicalPartyService.UpdateAsync(partyId, updatePoliticalParty);
+
+            if (!updated)
+            {
+                return NotFound();
+            }
+
+            return Ok(updatePoliticalParty);
+        }
+
+        [HttpDelete("{partyId:guid}")]
+        public async Task<IActionResult> DeletePoliticalParty([FromRoute] Guid partyId)
+        {
+            var deleted = await _politicalPartyService.DeleteAsync(partyId);
+
+            if (!deleted)
+            {
+                return NotFound(partyId);
+            }
+
+            return Ok();
+        }
+
         [HttpPost("{partyId:guid}/politician")]
         [ProducesResponseType(201, Type = typeof(PoliticianDto))]
         [ProducesResponseType(400, Type = typeof(ErrorDetails))]

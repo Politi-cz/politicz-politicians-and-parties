@@ -9,5 +9,7 @@ namespace politicz_politicians_and_parties.Repositories
         Task<int?> GetInternalIdAsync(Guid frontEndId);
         Task<bool> CreateAsync(PoliticalParty politicalParty);
         Task<bool> ExistsByNameAsync(string partyName);
+        Task<bool> UpdateAsync(PoliticalParty politicalParty);
+        Task<bool> DeleteAsync(Guid partyId);
     }
 }
