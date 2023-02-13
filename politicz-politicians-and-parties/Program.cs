@@ -15,6 +15,7 @@ using System.Reflection;
 // TODO: Change it to logger configuration in appsetings.json
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()
+    .MinimumLevel.Debug()
     .MinimumLevel.Override("Microsoft.AspNetCore", LogEventLevel.Warning)
     .CreateLogger();
 

@@ -42,9 +42,9 @@ namespace politicz_politicians_and_parties.Services
             politicalPartyDto.Id = Guid.NewGuid();
             politicalPartyDto.Politicians.ForEach(x => x.Id = Guid.NewGuid());
 
-            var result = await _politicalPartyRepository.CreateAsync(politicalPartyDto.ToPoliticalParty());
+            var created = await _politicalPartyRepository.CreateAsync(politicalPartyDto.ToPoliticalParty());
 
-            if (result == true)
+            if (created)
             {
                 _logger.LogInfo("Political party with id {id} created", politicalPartyDto.Id);
             }
@@ -53,7 +53,7 @@ namespace politicz_politicians_and_parties.Services
                 _logger.LogError(null, "Unable to create political party");
             }
 
-            return result;
+            return created;
         }
 
         public async Task<bool> DeleteAsync(Guid partyId)
@@ -99,6 +99,16 @@ namespace politicz_politicians_and_parties.Services
             _logger.LogDebug("Updating political party with id {id}", partyId);
 
             _updatePoliticalPartyValidator.ValidateAndThrow(updatePoliticalParty);
+
+            var partyExists = await _politicalPartyRepository.ExistsByNameAsync(updatePoliticalParty.Name);
+
+            if (partyExists)
+            {
+                var msg = $"Political party with name {updatePoliticalParty.Name} already exists";
+                _logger.LogWarn(msg);
+
+                throw new ValidationException(msg, HelperValidatorMethods.GenerateValidationError(nameof(updatePoliticalParty.Name), msg));
+            }
 
             var politicalParty = updatePoliticalParty.ToPoliticalParty(partyId);
 

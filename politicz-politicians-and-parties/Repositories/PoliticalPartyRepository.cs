@@ -29,7 +29,7 @@ namespace politicz_politicians_and_parties.Repositories
             {
                 politicalParty.Id = await transaction.Connection.QuerySingleAsync<int>("INSERT INTO PoliticalParties (FrontEndId, Name, ImageUrl) OUTPUT INSERTED.Id VALUES(@FrontEndId, @Name, @ImageUrl)", politicalParty, transaction: transaction);
 
-                await CreateTags(politicalParty, transaction);
+                await CreateTagsRecords(politicalParty, transaction);
 
                 politicalParty.Politicians.ForEach(x => x.PoliticalPartyId = politicalParty.Id);
 
@@ -143,7 +143,7 @@ namespace politicz_politicians_and_parties.Repositories
             try
             {
 
-                var updatedPartyId = await transaction.Connection.QuerySingleAsync<int>("UPDATE PoliticalParties SET Name = @Name, ImageUrl = @ImageUrl OUTPUT INSERTED.Id WHERE FrontEndId = @FrontEndId", param: politicalParty, transaction: transaction);
+                var updatedPartyId = await transaction.Connection.QuerySingleOrDefaultAsync<int>("UPDATE PoliticalParties SET Name = @Name, ImageUrl = @ImageUrl OUTPUT INSERTED.Id WHERE FrontEndId = @FrontEndId", param: politicalParty, transaction: transaction);
 
                 if (updatedPartyId == 0)
                 {
@@ -154,9 +154,7 @@ namespace politicz_politicians_and_parties.Repositories
                 }
 
                 politicalParty.Id = updatedPartyId;
-
-                // TODO: Exception thrown when an existing tag already assigned to a party is passed to update
-                var tagIds = await CreateTags(politicalParty, transaction);
+                var tagIds = await CreateTagsRecords(politicalParty, transaction);
 
                 await DeleteDanglingTags(politicalParty.Id, tagIds, transaction);
                 transaction.Commit();
@@ -214,7 +212,7 @@ namespace politicz_politicians_and_parties.Repositories
             _logger.LogDebug("Deleted {result} politicalParties_tags records", result);
         }
 
-        private async Task<IEnumerable<int>> CreateTags(PoliticalParty politicalParty, IDbTransaction transaction)
+        private async Task<IEnumerable<int>> CreateTagsRecords(PoliticalParty politicalParty, IDbTransaction transaction)
         {
             var tagIds = new List<int>();
 
@@ -222,12 +220,19 @@ namespace politicz_politicians_and_parties.Repositories
             {
                 foreach (var tag in politicalParty.Tags)
                 {
-                    var tagId = await CreateOrExistTag(tag, transaction);
+                    var tagId = await GetTagId(tag, transaction);
 
-                    await transaction.Connection.ExecuteAsync("INSERT INTO PoliticalParties_Tags (PoliticalPartyId, TagId) VALUES (@PoliticalPartyId, @TagId)",
+                    tagId ??= await CreateTag(tag, transaction);
+
+                    var partyTagRecordExists = await ExistsPoliticalParties_TagsRecord(politicalParty.Id, (int)tagId, transaction);
+
+                    if (!partyTagRecordExists)
+                    {
+                        await transaction.Connection.ExecuteAsync("INSERT INTO PoliticalParties_Tags (PoliticalPartyId, TagId) VALUES (@PoliticalPartyId, @TagId)",
                               new { PoliticalPartyId = politicalParty.Id, TagId = tagId }, transaction: transaction);
+                    }
 
-                    tagIds.Add(tagId);
+                    tagIds.Add((int)tagId);
                 }
             }
 
@@ -248,20 +253,25 @@ namespace politicz_politicians_and_parties.Repositories
             return tags.ToHashSet();
         }
 
-        // TODO: Separate into 2 methods for getting tag and creating tag.
-        private async Task<int> CreateOrExistTag(string tag, IDbTransaction transaction)
+
+        private async Task<int?> GetTagId(string tag, IDbTransaction transaction)
         {
-            var tagId = await transaction.Connection.QuerySingleOrDefaultAsync<int?>("SELECT Id FROM Tags WHERE Name = @Name", new { Name = tag }, transaction: transaction);
+            return await transaction.Connection.QuerySingleOrDefaultAsync<int?>("SELECT Id FROM Tags WHERE Name = @Name", new { Name = tag }, transaction: transaction);
+        }
+        private async Task<int> CreateTag(string tag, IDbTransaction transaction)
+        {
+            var tagId = await transaction.Connection.QuerySingleAsync<int>("INSERT INTO Tags (Name) OUTPUT INSERTED.Id VALUES (@Name)", new { Name = tag }, transaction: transaction);
+            _logger.LogDebug("Created tag with id {id}", tagId);
 
-            if (tagId is null)
-            {
-                tagId = await transaction.Connection.QuerySingleAsync<int>("INSERT INTO Tags (Name) OUTPUT INSERTED.Id VALUES (@Name)", new { Name = tag }, transaction: transaction);
-                _logger.LogDebug("Created tag with id {id}", tagId);
-            }
-
-            return (int)tagId;
+            return tagId;
         }
 
+        private async Task<bool> ExistsPoliticalParties_TagsRecord(int politicalPartyId, int tagId, IDbTransaction transaction)
+        {
+            var sql = "SELECT COUNT(1) FROM PoliticalParties_Tags WHERE PoliticalPartyId = @PartyId AND TagId = @TagId";
+            var result = await transaction.Connection.ExecuteScalarAsync<int>(sql, param: new { PartyId = politicalPartyId, TagId = tagId }, transaction: transaction);
 
+            return result > 0;
+        }
     }
 }
