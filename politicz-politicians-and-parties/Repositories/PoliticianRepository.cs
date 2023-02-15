@@ -25,6 +25,7 @@ namespace politicz_politicians_and_parties.Repositories
             return result > 0;
         }
 
+        // TODO: Pass IdbConnection as parametr, pass another parameter for transaction as IDbTransaction? and set default value to null so it can be used without specifying the transaction
         public async Task<bool> CreateAllAsync(IEnumerable<Politician> politicians, IDbTransaction transaction)
         {
             var sql = @"INSERT INTO Politicians (FrontEndId, BirthDate, FullName, InstagramUrl, TwitterUrl, FacebookUrl, PoliticalPartyId)
@@ -40,6 +41,29 @@ namespace politicz_politicians_and_parties.Repositories
             using var connection = await _connectionFactory.CreateConnectionAsync();
 
             return await connection.QuerySingleOrDefaultAsync<Politician>("SELECT * FROM Politicians WHERE FrontEndId = @FrontEndId", new { FrontEndId = id });
+        }
+
+        public async Task<bool> UpdateAsync(Politician politician)
+        {
+            var sql = @"UPDATE Politicians 
+                        SET BirthDate = @BirthDate, FullName = @FullName, InstagramUrl = @InstagramUrl, TwitterUrl = @TwitterUrl, FacebookUrl = @FacebookUrl
+                        WHERE FrontEndId = @FrontEndId";
+
+            using var connection = await _connectionFactory.CreateConnectionAsync();
+            var result = await connection.ExecuteAsync(sql, param: politician);
+
+            return result > 0;
+        }
+
+        public async Task<bool> DeleteAsync(Guid frontEndId)
+        {
+            var sql = @"DELETE FROM Politicians 
+                        WHERE FrontEndId = @FrontEndId";
+
+            using var connection = await _connectionFactory.CreateConnectionAsync();
+            var result = await connection.ExecuteAsync(sql, param: new { FrontEndId = frontEndId });
+
+            return result > 0;
         }
     }
 }

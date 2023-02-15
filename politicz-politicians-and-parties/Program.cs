@@ -30,7 +30,7 @@ builder.Services.AddScoped<IPoliticianRepository, PoliticianRepository>();
 builder.Services.AddScoped<IPoliticianService, PoliticianService>();
 builder.Services.AddScoped<IPoliticalPartyRepository, PoliticalPartyRepository>();
 builder.Services.AddScoped<IPoliticalPartyService, PoliticalPartyService>();
-builder.Services.AddTransient(typeof(ILoggerAdapter<>), typeof(LoggerAdapter<>));
+builder.Services.AddSingleton(typeof(ILoggerAdapter<>), typeof(LoggerAdapter<>));
 
 // TODO Add all validations through an extension method RegisterValidators or something like that. 
 builder.Services.AddScoped<IValidator<PoliticianDto>, PoliticianDtoValidator>();

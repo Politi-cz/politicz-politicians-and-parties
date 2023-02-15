@@ -117,5 +117,31 @@ namespace politicz_politicians_and_parties.Controllers
 
             return CreatedAtAction(nameof(GetPolitician), new { id = politicianDto.Id }, politicianDto);
         }
+
+        [HttpPut("politician/{politicianId:guid}")]
+        public async Task<IActionResult> UpdatePolitician([FromRoute] Guid politicianId, [FromBody] PoliticianDto politicianDto)
+        {
+            var updated = await _politicianService.UpdateAsync(politicianId, politicianDto);
+
+            if (!updated)
+            {
+                return NotFound(politicianId);
+            }
+
+            return Ok(politicianDto);
+        }
+
+        [HttpDelete("politician/{politicianId:guid}")]
+        public async Task<IActionResult> DeletePolitician([FromRoute] Guid politicianId)
+        {
+            var deleted = await _politicianService.DeleteAsync(politicianId);
+
+            if (!deleted)
+            {
+                return NotFound(politicianId);
+            }
+
+            return Ok(politicianId);
+        }
     }
 }

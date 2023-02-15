@@ -15,6 +15,8 @@ namespace politicz_politicians_and_parties.Migrations
 
         public override void Up()
         {
+            // TODO: In the future might use fluent migrator only for keeping track of version and only execute prepared scripts with tables with Execute.Script instead of defining the tables here in code
+            // TODO: Instead of defining SQL in Repositories create procedures which will be part of the create script.
             Create.Table("PoliticalParties")
                 .WithColumn("Id").AsInt32().NotNullable().PrimaryKey().Identity()
                 .WithColumn("FrontEndId").AsGuid().NotNullable().Unique()

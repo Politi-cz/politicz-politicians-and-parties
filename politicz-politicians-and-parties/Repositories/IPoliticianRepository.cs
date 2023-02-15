@@ -8,5 +8,8 @@ namespace politicz_politicians_and_parties.Repositories
         Task<Politician?> GetAsync(Guid frontEndId);
         Task<bool> CreateOneAsync(Politician politician);
         Task<bool> CreateAllAsync(IEnumerable<Politician> politicians, IDbTransaction transaction);
+
+        Task<bool> UpdateAsync(Politician politician);
+        Task<bool> DeleteAsync(Guid frontEndId);
     }
 }

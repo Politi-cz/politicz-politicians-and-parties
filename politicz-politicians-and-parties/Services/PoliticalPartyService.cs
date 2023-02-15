@@ -88,7 +88,7 @@ namespace politicz_politicians_and_parties.Services
 
             if (politicalParty is null)
             {
-                _logger.LogWarn("Political party with id {id} not found", id.ToString());
+                _logger.LogWarn("Political party with id {id} not found", id);
             }
 
             return politicalParty?.ToPoliticalPartyDto();
