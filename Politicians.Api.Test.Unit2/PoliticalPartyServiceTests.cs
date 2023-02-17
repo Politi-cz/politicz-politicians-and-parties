@@ -20,7 +20,7 @@ namespace PoliticiansAndParties.Api.Test.Unit
 
         public PoliticalPartyServiceTests()
         {
-            _sut = new PoliticalPartyService(_politicianPartyRepository, new PoliticalPartyDtoValidator(), _logger);
+            _sut = new PoliticalPartyService(_politicianPartyRepository, new PoliticalPartyDtoValidator(), new UpdatePoliticalPartyDtoValidator(), _logger);
         }
 
         [Fact]
@@ -66,7 +66,7 @@ namespace PoliticiansAndParties.Api.Test.Unit
             var result = await _sut.GetOneAsync(guid);
             // Assert
             result.Should().BeNull();
-            _logger.Received(1).LogWarn(Arg.Is("Political party with id {id} not found"), Arg.Is(guid.ToString()));
+            _logger.Received(1).LogWarn(Arg.Is("Political party with id {id} not found"), Arg.Is(guid));
         }
 
         [Fact]
@@ -123,7 +123,7 @@ namespace PoliticiansAndParties.Api.Test.Unit
 
         [Theory]
         [MemberData(nameof(InvalidPoliticalPartyData))]
-        public async Task CreateAsync_ShouldThrowValidationError_WhenInvalidPoliticianDto(PoliticalPartyDto politicalPartyDto)
+        public async Task CreateAsync_ThrowsValidationError_WhenInvalidPoliticianDto(PoliticalPartyDto politicalPartyDto)
         {
             // Arrange
             _politicianPartyRepository.ExistsByNameAsync(Arg.Any<string>()).Returns(false);
@@ -137,7 +137,7 @@ namespace PoliticiansAndParties.Api.Test.Unit
         }
 
         [Fact]
-        public async Task CreateAsync_ShouldThrowValidationException_WhenPoliticalPartyWithSameNameExists()
+        public async Task CreateAsync_ThrowsValidationException_WhenPoliticalPartyWithSameNameExists()
         {
             // Arrange
             var politicalPartyDto = new PoliticalPartyDto
@@ -196,7 +196,7 @@ namespace PoliticiansAndParties.Api.Test.Unit
         }
 
         [Fact]
-        public async Task CreateAsync_ShouldNotCreateParty_WhenPoliticalPartyDtoInvalid()
+        public async Task CreateAsync_ReturnsFalse_WhenPartyNotCreated()
         {
             // Arrange
             var politicalPartyDto = new PoliticalPartyDto
@@ -222,6 +222,125 @@ namespace PoliticiansAndParties.Api.Test.Unit
             result.Should().BeFalse();
             _logger.Received(1).LogError(null, Arg.Is("Unable to create political party"));
         }
+
+        [Fact]
+        public async Task UpdateAsync_UpdatesParty_WhenDataValid()
+        {
+            // Arrange
+            var updatePoliticalParty = new UpdatePoliticalPartyDto
+            {
+                Id = Guid.NewGuid(),
+                Name = "updated party",
+                ImageUrl = "https://test.com",
+                Tags = new HashSet<string> { "test" }
+            };
+
+            _politicianPartyRepository.ExistsByNameAsync(updatePoliticalParty.Name).Returns(false);
+            _politicianPartyRepository.UpdateAsync(Arg.Any<PoliticalParty>()).Returns(true);
+
+            // Act
+            var result = await _sut.UpdateAsync(updatePoliticalParty);
+
+            // Assert
+            result.Should().BeTrue();
+            _logger.Received(1).LogInfo(Arg.Is("Political party with id {id} updated"), Arg.Is(updatePoliticalParty.Id));
+
+        }
+
+        [Fact]
+        public async Task UpdateAsync_ThrowsValidationException_WhenDataInvalid()
+        {
+            // Arrange
+            var updatePoliticalParty = new UpdatePoliticalPartyDto
+            {
+                Id = Guid.NewGuid(),
+                Name = "updated party",
+                ImageUrl = "https://test.com",
+            };
+            // Act
+            var act = async () => await _sut.UpdateAsync(updatePoliticalParty);
+
+            // Assert
+            await act.Should().ThrowAsync<ValidationException>();
+        }
+
+        [Fact]
+        public async Task UpdateAsync_ThrowsValidationException_WhenUpdatedPartyNameAlreadyExists()
+        {
+            // Arrange
+            var updatePoliticalParty = new UpdatePoliticalPartyDto
+            {
+                Id = Guid.NewGuid(),
+                Name = "updated party",
+                ImageUrl = "https://test.com",
+                Tags = new HashSet<string> { "test" }
+            };
+
+            _politicianPartyRepository.ExistsByNameAsync(updatePoliticalParty.Name).Returns(true);
+            _politicianPartyRepository.UpdateAsync(Arg.Any<PoliticalParty>()).Returns(false);
+            // Act
+            var act = async () => await _sut.UpdateAsync(updatePoliticalParty);
+
+            // Assert
+            await act.Should().ThrowAsync<ValidationException>().WithMessage($"Political party with name {updatePoliticalParty.Name} already exists");
+            _logger.Received(1).LogWarn(Arg.Is("Political party with name {name} already exists"), Arg.Is(updatePoliticalParty.Name));
+
+        }
+
+        [Fact]
+        public async Task UpdateAsync_ReturnsFalse_WhenPartyDoesNotExist()
+        {
+            // Arrange
+            var updatePoliticalParty = new UpdatePoliticalPartyDto
+            {
+                Id = Guid.NewGuid(),
+                Name = "updated party",
+                ImageUrl = "https://test.com",
+                Tags = new HashSet<string> { "test" }
+            };
+
+            _politicianPartyRepository.ExistsByNameAsync(updatePoliticalParty.Name).Returns(false);
+            _politicianPartyRepository.UpdateAsync(Arg.Any<PoliticalParty>()).Returns(false);
+
+            // Act
+            var result = await _sut.UpdateAsync(updatePoliticalParty);
+
+            // Assert
+            result.Should().BeFalse();
+            _logger.Received(1).LogWarn(Arg.Is("Unable to udpate political party with id {id}"), Arg.Is(updatePoliticalParty.Id));
+        }
+
+        [Fact]
+        public async Task DeleteAsync_ReturnsTrue_WhenPartyDeleted()
+        {
+            // Arrange
+            var id = Guid.NewGuid();
+            _politicianPartyRepository.DeleteAsync(id).Returns(true);
+
+            // Act
+            var result = await _sut.DeleteAsync(id);
+
+            // Assert
+            result.Should().BeTrue();
+            _logger.Received(1).LogInfo(Arg.Is("Political party with id {id} deleted"), Arg.Is(id));
+
+        }
+
+        [Fact]
+        public async Task DeleteAsync_ReturnsFalse_WhenPartyNotFound()
+        {
+            // Arrange
+            var id = Guid.NewGuid();
+            _politicianPartyRepository.DeleteAsync(id).Returns(false);
+
+            // Act
+            var result = await _sut.DeleteAsync(id);
+
+            // Assert
+            result.Should().BeFalse();
+            _logger.Received(1).LogWarn(Arg.Is("Unable to delete party with id {id}, not found"), Arg.Is(id));
+        }
+
 
 
         public static IEnumerable<object[]> InvalidPoliticalPartyData =>

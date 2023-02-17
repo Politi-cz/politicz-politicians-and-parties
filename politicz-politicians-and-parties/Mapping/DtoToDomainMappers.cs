@@ -17,11 +17,11 @@ namespace politicz_politicians_and_parties.Mapping
             };
         }
 
-        public static PoliticalParty ToPoliticalParty(this UpdatePoliticalPartyDto update, Guid partyId)
+        public static PoliticalParty ToPoliticalParty(this UpdatePoliticalPartyDto update)
         {
             return new PoliticalParty
             {
-                FrontEndId = partyId,
+                FrontEndId = update.Id,
                 ImageUrl = update.ImageUrl,
                 Name = update.Name,
                 Tags = update.Tags

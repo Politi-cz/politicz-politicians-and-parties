@@ -63,7 +63,7 @@ namespace politicz_politicians_and_parties.Services
 
             if (!deleted)
             {
-                _logger.LogWarn("Unable to delete party with id {id}", partyId);
+                _logger.LogWarn("Unable to delete party with id {id}, not found", partyId);
 
                 return false;
             }
@@ -94,9 +94,9 @@ namespace politicz_politicians_and_parties.Services
             return politicalParty?.ToPoliticalPartyDto();
         }
 
-        public async Task<bool> UpdateAsync(Guid partyId, UpdatePoliticalPartyDto updatePoliticalParty)
+        public async Task<bool> UpdateAsync(UpdatePoliticalPartyDto updatePoliticalParty)
         {
-            _logger.LogDebug("Updating political party with id {id}", partyId);
+            _logger.LogDebug("Updating political party with id {id}", updatePoliticalParty.Id);
 
             _updatePoliticalPartyValidator.ValidateAndThrow(updatePoliticalParty);
 
@@ -104,23 +104,23 @@ namespace politicz_politicians_and_parties.Services
 
             if (partyExists)
             {
-                var msg = $"Political party with name {updatePoliticalParty.Name} already exists";
-                _logger.LogWarn(msg);
+                _logger.LogWarn("Political party with name {name} already exists", updatePoliticalParty.Name);
 
+                var msg = $"Political party with name {updatePoliticalParty.Name} already exists";
                 throw new ValidationException(msg, HelperValidatorMethods.GenerateValidationError(nameof(updatePoliticalParty.Name), msg));
             }
 
-            var politicalParty = updatePoliticalParty.ToPoliticalParty(partyId);
+            var politicalParty = updatePoliticalParty.ToPoliticalParty();
 
             var updated = await _politicalPartyRepository.UpdateAsync(politicalParty);
 
             if (!updated)
             {
-                _logger.LogWarn("Unable to udpate political party with id {id}", partyId);
+                _logger.LogWarn("Unable to udpate political party with id {id}", updatePoliticalParty.Id);
                 return updated;
             }
 
-            _logger.LogInfo("Political party with id {id} updated", partyId);
+            _logger.LogInfo("Political party with id {id} updated", updatePoliticalParty.Id);
             return updated;
         }
     }

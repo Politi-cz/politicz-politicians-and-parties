@@ -230,5 +230,144 @@ namespace Politicians.Api.Test.Unit
             result.StatusCode.Should().Be(201);
             result.RouteValues!["id"].Should().Be(expectedPoliticianDto.Id);
         }
+
+        [Fact]
+        public async Task UpdatePoliticalParty_ReturnsOkObject_WhenUpdated()
+        {
+            // Arrange
+            var politicalParty = new UpdatePoliticalPartyDto
+            {
+                ImageUrl = "https://test.com",
+                Name = "Test",
+                Tags = new HashSet<string> { "random" }
+            };
+
+            _politicalPartyService.UpdateAsync(politicalParty).Returns(true);
+
+            // Act
+            var result = (OkObjectResult)await _sut.UpdatePoliticalParty(politicalParty);
+
+            // Arrange
+            result.StatusCode.Should().Be((int)HttpStatusCode.OK);
+            result.Value.As<UpdatePoliticalPartyDto>().Should().BeEquivalentTo(politicalParty);
+        }
+
+        [Fact]
+        public async Task UpdatePoliticalParty_ReturnsNotFound_WhenPartyDoesNotExist()
+        {
+            // Arrange
+            var politicalParty = new UpdatePoliticalPartyDto
+            {
+                ImageUrl = "https://test.com",
+                Name = "Test",
+                Tags = new HashSet<string> { "random" }
+            };
+
+            _politicalPartyService.UpdateAsync(politicalParty).Returns(false);
+
+            // Act
+            var result = (NotFoundResult)await _sut.UpdatePoliticalParty(politicalParty);
+
+            // Arrange
+            result.StatusCode.Should().Be((int)HttpStatusCode.NotFound);
+        }
+
+        [Fact]
+        public async Task UpdatePolitician_ReturnsOkObject_WhenUpdated()
+        {
+            // Arrange
+            var politician = new PoliticianDto
+            {
+                Id = Guid.NewGuid(),
+                BirthDate = DateTime.Now,
+                FullName = "Testing politician",
+            };
+
+            _politicianService.UpdateAsync(politician.Id, politician).Returns(true);
+
+            // Act
+            var result = (OkObjectResult)await _sut.UpdatePolitician(politician.Id, politician);
+
+            // Assert
+            result.StatusCode.Should().Be((int)HttpStatusCode.OK);
+            result.Value.As<PoliticianDto>().Should().BeEquivalentTo(politician);
+        }
+
+        [Fact]
+        public async Task UpdatePolitician_ReturnsNotFound_WhenPoliticianDoesNotExist()
+        {
+            // Arrange
+            var politician = new PoliticianDto
+            {
+                Id = Guid.NewGuid(),
+                BirthDate = DateTime.Now,
+                FullName = "Testing politician",
+            };
+
+            _politicianService.UpdateAsync(politician.Id, politician).Returns(false);
+
+            // Act
+            var result = (NotFoundResult)await _sut.UpdatePolitician(politician.Id, politician);
+
+            // Assert
+            result.StatusCode.Should().Be((int)HttpStatusCode.NotFound);
+        }
+
+        [Fact]
+        public async Task DeletePoliticalParty_ReturnsOkObject_WhenUpdated()
+        {
+            // Arrange
+            var partyId = Guid.NewGuid();
+            _politicalPartyService.DeleteAsync(partyId).Returns(true);
+
+            // Arrange
+            var result = (OkResult)await _sut.DeletePoliticalParty(partyId);
+
+            // Assert
+            result.StatusCode.Should().Be((int)HttpStatusCode.OK);
+        }
+
+        [Fact]
+        public async Task DeletePoliticalParty_ReturnsNotFound_WhenPartyDoesNotExist()
+        {
+            // Arrange
+            var partyId = Guid.NewGuid();
+            _politicalPartyService.DeleteAsync(partyId).Returns(false);
+
+            // Arrange
+            var result = (NotFoundResult)await _sut.DeletePoliticalParty(partyId);
+
+            // Assert
+            result.StatusCode.Should().Be((int)HttpStatusCode.NotFound);
+        }
+
+        [Fact]
+        public async Task DeletePolitician_ReturnsOkObject_WhenUpdated()
+        {
+            // Arrange
+            var politicianId = Guid.NewGuid();
+            _politicianService.DeleteAsync(politicianId).Returns(true);
+
+            // Arrange
+            var result = (OkResult)await _sut.DeletePolitician(politicianId);
+
+            // Assert
+            result.StatusCode.Should().Be((int)HttpStatusCode.OK);
+        }
+
+        [Fact]
+        public async Task DeletePolitician_ReturnsNotFound_WhenPoliticianDoesNotExist()
+        {
+            // Arrange
+            var politicianId = Guid.NewGuid();
+            _politicianService.DeleteAsync(politicianId).Returns(false);
+
+            // Arrange
+            var result = (NotFoundResult)await _sut.DeletePolitician(politicianId);
+
+            // Assert
+            result.StatusCode.Should().Be((int)HttpStatusCode.NotFound);
+        }
+
     }
 }

@@ -58,7 +58,7 @@ namespace Politicians.Api.Test.Unit
 
             // Assert
             result.Should().BeNull();
-            _logger.Received(1).LogWarn(Arg.Is("Politician with id {id} not found"), Arg.Is(guid.ToString()));
+            _logger.Received(1).LogWarn(Arg.Is("Politician with id {id} not found"), Arg.Is(guid));
 
         }
 
@@ -143,6 +143,92 @@ namespace Politicians.Api.Test.Unit
 
             // Assert
             created.Should().Be(false);
+        }
+
+        [Fact]
+        public async Task UpdateAsync_UpdatesPolitician_WhenDataValid()
+        {
+            // Arrange
+            var politicianDto = new PoliticianDto
+            {
+                BirthDate = DateTime.Now,
+                FullName = "Test",
+            };
+            var id = Guid.NewGuid();
+            _politicianRepository.UpdateAsync(Arg.Any<Politician>()).Returns(true);
+
+            // Act
+            var result = await _sut.UpdateAsync(id, politicianDto);
+
+            // Assert
+            result.Should().Be(true);
+            _logger.Received(1).LogInfo(Arg.Is("Politician with id {id} updated"), Arg.Is(id));
+        }
+
+        [Fact]
+        public async Task UpdateAsync_ReturnsFalse_WhenPoliticianNotFound()
+        {
+            // Arrange
+            var politicianDto = new PoliticianDto
+            {
+                BirthDate = DateTime.Now,
+                FullName = "Test",
+            };
+            var id = Guid.NewGuid();
+            _politicianRepository.UpdateAsync(Arg.Any<Politician>()).Returns(false);
+
+            // Act
+            var result = await _sut.UpdateAsync(id, politicianDto);
+
+            // Assert
+            result.Should().Be(false);
+            _logger.Received(1).LogWarn(Arg.Is("Politician with id {id} not found"), Arg.Is(id));
+        }
+
+        [Fact]
+        public async Task UpdateAsync_ThrowsValidationException_WhenInvalidData()
+        {
+            // Arrange
+            var politicianDto = new PoliticianDto
+            {
+                FullName = "Test",
+            };
+            var id = Guid.NewGuid();
+            // Act
+            var act = async () => await _sut.UpdateAsync(id, politicianDto);
+
+            // Assert
+            await act.Should().ThrowAsync<ValidationException>();
+        }
+
+        [Fact]
+        public async Task DeleteAsync_ReturnsTrue_WhenPoliticianDeleted()
+        {
+            // Arrange
+            var id = Guid.NewGuid();
+            _politicianRepository.DeleteAsync(id).Returns(true);
+
+            // Act
+            var result = await _sut.DeleteAsync(id);
+
+            // Assert
+            result.Should().BeTrue();
+            _logger.Received(1).LogInfo(Arg.Is("Politician with id {id} deleted"), Arg.Is(id));
+        }
+
+        [Fact]
+        public async Task DeleteAsync_ReturnsFalse_WhenPoliticianNotFound()
+        {
+            // Arrange
+            var id = Guid.NewGuid();
+            _politicianRepository.DeleteAsync(id).Returns(false);
+
+            // Act
+            var result = await _sut.DeleteAsync(id);
+
+            // Assert
+            result.Should().BeFalse();
+            _logger.Received(1).LogWarn(Arg.Is("Politician with id {id} not found"), Arg.Is(id));
         }
 
         public static IEnumerable<object[]> InvalidPoliticianData =>

@@ -77,9 +77,9 @@ namespace politicz_politicians_and_parties.Controllers
         }
 
         [HttpPut("{partyId:guid}")]
-        public async Task<IActionResult> UpdatePoliticalParty([FromRoute] Guid partyId, [FromBody] UpdatePoliticalPartyDto updatePoliticalParty)
+        public async Task<IActionResult> UpdatePoliticalParty([FromRoute, FromBody] UpdatePoliticalPartyDto updatePoliticalParty)
         {
-            var updated = await _politicalPartyService.UpdateAsync(partyId, updatePoliticalParty);
+            var updated = await _politicalPartyService.UpdateAsync(updatePoliticalParty);
 
             if (!updated)
             {
@@ -96,7 +96,7 @@ namespace politicz_politicians_and_parties.Controllers
 
             if (!deleted)
             {
-                return NotFound(partyId);
+                return NotFound();
             }
 
             return Ok();
@@ -125,7 +125,7 @@ namespace politicz_politicians_and_parties.Controllers
 
             if (!updated)
             {
-                return NotFound(politicianId);
+                return NotFound();
             }
 
             return Ok(politicianDto);
@@ -138,10 +138,10 @@ namespace politicz_politicians_and_parties.Controllers
 
             if (!deleted)
             {
-                return NotFound(politicianId);
+                return NotFound();
             }
 
-            return Ok(politicianId);
+            return Ok();
         }
     }
 }

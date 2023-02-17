@@ -8,7 +8,7 @@ namespace politicz_politicians_and_parties.Services
         Task<IEnumerable<PoliticalPartySideNavDto>> GetAllAsync();
         Task<bool> CreateAsync(PoliticalPartyDto politicalParty);
 
-        Task<bool> UpdateAsync(Guid partyId, UpdatePoliticalPartyDto updatePoliticalParty);
+        Task<bool> UpdateAsync(UpdatePoliticalPartyDto updatePoliticalParty);
         Task<bool> DeleteAsync(Guid partyId);
     }
 }
