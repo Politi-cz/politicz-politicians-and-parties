@@ -20,6 +20,7 @@ Log.Logger = new LoggerConfiguration()
     .CreateLogger();
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Configuration.AddEnvironmentVariables("PoliticalPartiesApi_");
 builder.Host.UseSerilog();
 
 // Add services to the container.
@@ -59,10 +60,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-
-// app.ConfigureExceptionHandler(scope.ServiceProvider.GetRequiredService<ILoggerAdapter<object>>());
 app.UseHttpsRedirection();
-
 
 app.UseAuthorization();
 app.UseMiddleware<ExceptionHandlingMiddleware>();

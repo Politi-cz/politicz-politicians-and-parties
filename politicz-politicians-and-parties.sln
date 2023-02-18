@@ -11,7 +11,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{DDE578CA-D
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PoliticiansAndParties.Api.Test.Unit", "Politicians.Api.Test.Unit2\PoliticiansAndParties.Api.Test.Unit.csproj", "{94732B3D-2ACB-4A8C-B0B9-AA5549DF571C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PoliticiansAndParties.Api.Test.Integration", "PoliticiansAndParties.Api.Test.Integration\PoliticiansAndParties.Api.Test.Integration.csproj", "{541CFA62-3708-4E9E-BBE1-1722FA245C56}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PoliticiansAndParties.Api.Test.Integration", "PoliticiansAndParties.Api.Test.Integration\PoliticiansAndParties.Api.Test.Integration.csproj", "{541CFA62-3708-4E9E-BBE1-1722FA245C56}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -1,0 +1,22 @@
+version: "3.9"
+services:
+  api:
+    build: .
+    ports:
+      - "5000:80"
+      - "5001:443"
+    environment:
+      - ASPNETCORE_URLS=https://+:443;http://+:80
+      - ASPNETCORE_Environment=Development
+      - PoliticalPartiesApi_ConnectionStrings__DefaultConnection=Server=db,1433;Database=politicz-politicians-and-parties;User Id=sa;Password=Password12345;TrustServerCertificate=True;
+      - PoliticalPartiesApi_ConnectionStrings__MasterConnection=Server=db,1433;Database=master;User Id=sa;Password=Password12345;TrustServerCertificate=True;
+    depends_on:
+      - db
+
+  db:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    environment:
+      ACCEPT_EULA: "Y"
+      SA_PASSWORD: Password12345
+    ports:
+      - "1433:1433"
