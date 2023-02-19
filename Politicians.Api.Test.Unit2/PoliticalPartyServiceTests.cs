@@ -307,7 +307,7 @@ namespace PoliticiansAndParties.Api.Test.Unit
 
             // Assert
             result.Should().BeFalse();
-            _logger.Received(1).LogWarn(Arg.Is("Unable to udpate political party with id {id}"), Arg.Is(updatePoliticalParty.Id));
+            _logger.Received(1).LogWarn(Arg.Is("Unable to udpate political party with id {id}, not found"), Arg.Is(updatePoliticalParty.Id));
         }
 
         [Fact]

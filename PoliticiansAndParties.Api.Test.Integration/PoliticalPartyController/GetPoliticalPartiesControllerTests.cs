@@ -5,11 +5,11 @@ using System.Net.Http.Json;
 
 namespace PoliticiansAndParties.Api.Test.Integration.PoliticalPartyController
 {
-    public class GetPoliticalPartiesControllerTest : IClassFixture<PoliticiansAndPartiesApiFactory>
+    public class GetPoliticalPartiesControllerTests : IClassFixture<PoliticiansAndPartiesApiFactory>
     {
         readonly HttpClient _client;
 
-        public GetPoliticalPartiesControllerTest(PoliticiansAndPartiesApiFactory politiciansAndPartiesApiFactory)
+        public GetPoliticalPartiesControllerTests(PoliticiansAndPartiesApiFactory politiciansAndPartiesApiFactory)
         {
             _client = politiciansAndPartiesApiFactory.CreateClient();
         }
@@ -37,7 +37,6 @@ namespace PoliticiansAndParties.Api.Test.Integration.PoliticalPartyController
             foreach (var party in politicalParties)
             {
                 var createPartyResponse = await _client.PostAsJsonAsync("api/political-parties/create", party);
-                // createPartyResponse.StatusCode.Should().Be(HttpStatusCode.Created, createPartyResponse.Content.ToString());
 
                 var createdParty = await createPartyResponse.Content.ReadFromJsonAsync<PoliticalPartyDto>();
 
@@ -52,7 +51,12 @@ namespace PoliticiansAndParties.Api.Test.Integration.PoliticalPartyController
             response.StatusCode.Should().Be(System.Net.HttpStatusCode.OK);
             result.Should().BeEquivalentTo(expectedParties);
 
-            // TODO after the test parties should be deleted because test above needs clear database. Now it works because of the test executin order
+            // TODO: Should be handle by Spawner for restoring DB to previous state
+            // Cleanup
+            foreach (var party in expectedParties)
+            {
+                await _client.DeleteAsync($"api/political-parties/{party.Id}");
+            }
         }
 
 

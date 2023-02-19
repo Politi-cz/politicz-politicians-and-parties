@@ -6,11 +6,11 @@ using System.Net.Http.Json;
 
 namespace PoliticiansAndParties.Api.Test.Integration.PoliticalPartyController
 {
-    public class CreatePoliticalPartyControllerTest : IClassFixture<PoliticiansAndPartiesApiFactory>
+    public class CreatePoliticalPartyControllerTests : IClassFixture<PoliticiansAndPartiesApiFactory>
     {
         readonly HttpClient _client;
 
-        public CreatePoliticalPartyControllerTest(PoliticiansAndPartiesApiFactory apiFactory)
+        public CreatePoliticalPartyControllerTests(PoliticiansAndPartiesApiFactory apiFactory)
         {
             _client = apiFactory.CreateClient();
         }

@@ -10,18 +10,16 @@ namespace politicz_politicians_and_parties.Controllers
     public class PoliticalPartyController : ControllerBase
     {
         private readonly IPoliticalPartyService _politicalPartyService;
-        private readonly IPoliticianService _politicianService;
 
-        public PoliticalPartyController(IPoliticalPartyService politicalPartyService, IPoliticianService politicianService)
+        public PoliticalPartyController(IPoliticalPartyService politicalPartyService)
         {
             _politicalPartyService = politicalPartyService;
-            _politicianService = politicianService;
         }
 
         [HttpPost("create")]
         [ProducesResponseType(201, Type = typeof(PoliticalPartyDto))]
         [ProducesResponseType(400, Type = typeof(ErrorDetails))]
-        [ProducesResponseType(500)]
+        [ProducesResponseType(500, Type = typeof(ErrorDetails))]
         public async Task<IActionResult> CreatePoliticalParty([FromBody] PoliticalPartyDto politicalParty)
         {
             var created = await _politicalPartyService.CreateAsync(politicalParty);
@@ -37,7 +35,7 @@ namespace politicz_politicians_and_parties.Controllers
         [HttpGet("{id:guid}")]
         [ProducesResponseType(200, Type = typeof(PoliticalPartyDto))]
         [ProducesResponseType(404)]
-        [ProducesResponseType(500)]
+        [ProducesResponseType(500, Type = typeof(ErrorDetails))]
         public async Task<IActionResult> GetPoliticalParty([FromRoute] Guid id)
         {
             var politicalPartyDto = await _politicalPartyService.GetOneAsync(id);
@@ -52,7 +50,7 @@ namespace politicz_politicians_and_parties.Controllers
 
         [HttpGet]
         [ProducesResponseType(200, Type = typeof(IEnumerable<PoliticalPartySideNavDto>))]
-        [ProducesResponseType(500)]
+        [ProducesResponseType(500, Type = typeof(ErrorDetails))]
         public async Task<IActionResult> GetPoliticalParties()
         {
             var politicalPartiesSideNav = await _politicalPartyService.GetAllAsync();
@@ -60,25 +58,16 @@ namespace politicz_politicians_and_parties.Controllers
             return Ok(politicalPartiesSideNav);
         }
 
-        [HttpGet("politician/{id:guid}")]
-        [ProducesResponseType(200, Type = typeof(PoliticianDto))]
-        [ProducesResponseType(404)]
-        [ProducesResponseType(500)]
-        public async Task<IActionResult> GetPolitician([FromRoute] Guid id)
-        {
-            var politicianDto = await _politicianService.GetAsync(id);
 
-            if (politicianDto is null)
-            {
-                return NotFound();
-            }
-
-            return Ok(politicianDto);
-        }
 
         [HttpPut("{partyId:guid}")]
-        public async Task<IActionResult> UpdatePoliticalParty([FromRoute, FromBody] UpdatePoliticalPartyDto updatePoliticalParty)
+        [ProducesResponseType(200, Type = typeof(UpdatePoliticalPartyDto))]
+        [ProducesResponseType(400, Type = typeof(ErrorDetails))]
+        [ProducesResponseType(404)]
+        [ProducesResponseType(500, Type = typeof(ErrorDetails))]
+        public async Task<IActionResult> UpdatePoliticalParty([FromRoute] Guid partyId, [FromBody] UpdatePoliticalPartyDto updatePoliticalParty)
         {
+            updatePoliticalParty.Id = partyId;
             var updated = await _politicalPartyService.UpdateAsync(updatePoliticalParty);
 
             if (!updated)
@@ -89,52 +78,14 @@ namespace politicz_politicians_and_parties.Controllers
             return Ok(updatePoliticalParty);
         }
 
+
         [HttpDelete("{partyId:guid}")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(404)]
+        [ProducesResponseType(500, Type = typeof(ErrorDetails))]
         public async Task<IActionResult> DeletePoliticalParty([FromRoute] Guid partyId)
         {
             var deleted = await _politicalPartyService.DeleteAsync(partyId);
-
-            if (!deleted)
-            {
-                return NotFound();
-            }
-
-            return Ok();
-        }
-
-        [HttpPost("{partyId:guid}/politician")]
-        [ProducesResponseType(201, Type = typeof(PoliticianDto))]
-        [ProducesResponseType(400, Type = typeof(ErrorDetails))]
-        [ProducesResponseType(500)]
-        public async Task<IActionResult> CreatePolitician([FromRoute] Guid partyId, [FromBody] PoliticianDto politicianDto)
-        {
-            var created = await _politicianService.CreateAsync(partyId, politicianDto);
-
-            if (created is false)
-            {
-                return StatusCode(500);
-            }
-
-            return CreatedAtAction(nameof(GetPolitician), new { id = politicianDto.Id }, politicianDto);
-        }
-
-        [HttpPut("politician/{politicianId:guid}")]
-        public async Task<IActionResult> UpdatePolitician([FromRoute] Guid politicianId, [FromBody] PoliticianDto politicianDto)
-        {
-            var updated = await _politicianService.UpdateAsync(politicianId, politicianDto);
-
-            if (!updated)
-            {
-                return NotFound();
-            }
-
-            return Ok(politicianDto);
-        }
-
-        [HttpDelete("politician/{politicianId:guid}")]
-        public async Task<IActionResult> DeletePolitician([FromRoute] Guid politicianId)
-        {
-            var deleted = await _politicianService.DeleteAsync(politicianId);
 
             if (!deleted)
             {

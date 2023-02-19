@@ -14,7 +14,6 @@ namespace PoliticiansAndParties.Api.Test.Integration.PoliticalPartyController
             _client = politiciansAndPartiesApiFactory.CreateClient();
         }
 
-        // TODO data will be seeded through migration, remove when endpoint for creating political parties/politicians is done
         [Fact]
         public async Task GetPoliticalParty_ReturnsPartyWithPoliticians_WhenPartyExists()
         {

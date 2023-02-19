@@ -12,49 +12,14 @@ namespace Politicians.Api.Test.Unit
     public class PoliticalPartyControllerTests
     {
         private readonly PoliticalPartyController _sut;
-        private readonly IPoliticianService _politicianService = Substitute.For<IPoliticianService>();
         private readonly IPoliticalPartyService _politicalPartyService = Substitute.For<IPoliticalPartyService>();
 
         public PoliticalPartyControllerTests()
         {
-            _sut = new PoliticalPartyController(_politicalPartyService, _politicianService);
+            _sut = new PoliticalPartyController(_politicalPartyService);
         }
 
-        [Fact]
-        public async Task GetPolitician_ReturnsOkAndObject_WhenPoliticianExists()
-        {
-            // Arrange
-            var politician = new PoliticianDto
-            {
-                Id = Guid.NewGuid(),
-                BirthDate = DateTime.Now,
-                FullName = "Petr Koller",
-                FacebookUrl = "https://facebook.com/testUser",
-                TwitterUrl = "https://twitter.com/musk"
-            };
-            _politicianService.GetAsync(politician.Id).Returns(politician);
 
-            // Act
-            var result = (OkObjectResult)await _sut.GetPolitician(politician.Id);
-
-            // Assert
-            result.StatusCode.Should().Be((int)HttpStatusCode.OK);
-            result.Value.Should().BeEquivalentTo(politician);
-        }
-
-        [Fact]
-        public async Task GetPolitician_ReturnsNotFound_WhenPoliticianDoesNotExist()
-        {
-            // Arrange
-            _politicianService.GetAsync(Arg.Any<Guid>()).ReturnsNull();
-
-            // Act
-            var result = (NotFoundResult)await _sut.GetPolitician(Arg.Any<Guid>());
-
-            // Assert
-            // TODO Add constants instead of number
-            result.StatusCode.Should().Be((int)HttpStatusCode.NotFound);
-        }
 
         [Fact]
         public async Task GetPoliticalParty_ReturnsOkObject_WhenPartyExists()
@@ -192,51 +157,13 @@ namespace Politicians.Api.Test.Unit
             result.StatusCode.Should().Be(500);
         }
 
-
-        [Fact]
-        public async Task CreatePolitician_ShouldReturnInternalServerError_WhenPoliticianNotCreated()
-        {
-            // Arrange
-            _politicianService.CreateAsync(Arg.Any<Guid>(), Arg.Any<PoliticianDto>()).Returns(false);
-
-            // Act
-            var result = (StatusCodeResult)await _sut.CreatePolitician(Arg.Any<Guid>(), Arg.Any<PoliticianDto>());
-
-            // Assert
-            result.StatusCode.Should().Be(500);
-        }
-
-        [Fact]
-        public async Task CreatePolitician_ShouldReturnPolitician_WhenPoliticianCreated()
-        {
-            // Arrange
-            var politicianDto = new PoliticianDto
-            {
-                Id = Guid.NewGuid(),
-                BirthDate = DateTime.Now,
-                FullName = "Testing politician",
-            };
-
-            var partyId = Guid.NewGuid();
-            var expectedPoliticianDto = new PoliticianDto();
-
-            _politicianService.CreateAsync(partyId, Arg.Do<PoliticianDto>(x => expectedPoliticianDto = x)).Returns(true);
-
-            // Act
-            var result = (CreatedAtActionResult)await _sut.CreatePolitician(partyId, politicianDto);
-
-            // Assert
-            result.Value.As<PoliticianDto>().Should().BeEquivalentTo(expectedPoliticianDto);
-            result.StatusCode.Should().Be(201);
-            result.RouteValues!["id"].Should().Be(expectedPoliticianDto.Id);
-        }
-
         [Fact]
         public async Task UpdatePoliticalParty_ReturnsOkObject_WhenUpdated()
         {
             // Arrange
             var politicalParty = new UpdatePoliticalPartyDto
             {
+                Id = Guid.NewGuid(),
                 ImageUrl = "https://test.com",
                 Name = "Test",
                 Tags = new HashSet<string> { "random" }
@@ -245,7 +172,7 @@ namespace Politicians.Api.Test.Unit
             _politicalPartyService.UpdateAsync(politicalParty).Returns(true);
 
             // Act
-            var result = (OkObjectResult)await _sut.UpdatePoliticalParty(politicalParty);
+            var result = (OkObjectResult)await _sut.UpdatePoliticalParty(politicalParty.Id, politicalParty);
 
             // Arrange
             result.StatusCode.Should().Be((int)HttpStatusCode.OK);
@@ -258,6 +185,7 @@ namespace Politicians.Api.Test.Unit
             // Arrange
             var politicalParty = new UpdatePoliticalPartyDto
             {
+                Id = Guid.NewGuid(),
                 ImageUrl = "https://test.com",
                 Name = "Test",
                 Tags = new HashSet<string> { "random" }
@@ -266,50 +194,9 @@ namespace Politicians.Api.Test.Unit
             _politicalPartyService.UpdateAsync(politicalParty).Returns(false);
 
             // Act
-            var result = (NotFoundResult)await _sut.UpdatePoliticalParty(politicalParty);
+            var result = (NotFoundResult)await _sut.UpdatePoliticalParty(politicalParty.Id, politicalParty);
 
             // Arrange
-            result.StatusCode.Should().Be((int)HttpStatusCode.NotFound);
-        }
-
-        [Fact]
-        public async Task UpdatePolitician_ReturnsOkObject_WhenUpdated()
-        {
-            // Arrange
-            var politician = new PoliticianDto
-            {
-                Id = Guid.NewGuid(),
-                BirthDate = DateTime.Now,
-                FullName = "Testing politician",
-            };
-
-            _politicianService.UpdateAsync(politician.Id, politician).Returns(true);
-
-            // Act
-            var result = (OkObjectResult)await _sut.UpdatePolitician(politician.Id, politician);
-
-            // Assert
-            result.StatusCode.Should().Be((int)HttpStatusCode.OK);
-            result.Value.As<PoliticianDto>().Should().BeEquivalentTo(politician);
-        }
-
-        [Fact]
-        public async Task UpdatePolitician_ReturnsNotFound_WhenPoliticianDoesNotExist()
-        {
-            // Arrange
-            var politician = new PoliticianDto
-            {
-                Id = Guid.NewGuid(),
-                BirthDate = DateTime.Now,
-                FullName = "Testing politician",
-            };
-
-            _politicianService.UpdateAsync(politician.Id, politician).Returns(false);
-
-            // Act
-            var result = (NotFoundResult)await _sut.UpdatePolitician(politician.Id, politician);
-
-            // Assert
             result.StatusCode.Should().Be((int)HttpStatusCode.NotFound);
         }
 
@@ -336,34 +223,6 @@ namespace Politicians.Api.Test.Unit
 
             // Arrange
             var result = (NotFoundResult)await _sut.DeletePoliticalParty(partyId);
-
-            // Assert
-            result.StatusCode.Should().Be((int)HttpStatusCode.NotFound);
-        }
-
-        [Fact]
-        public async Task DeletePolitician_ReturnsOkObject_WhenUpdated()
-        {
-            // Arrange
-            var politicianId = Guid.NewGuid();
-            _politicianService.DeleteAsync(politicianId).Returns(true);
-
-            // Arrange
-            var result = (OkResult)await _sut.DeletePolitician(politicianId);
-
-            // Assert
-            result.StatusCode.Should().Be((int)HttpStatusCode.OK);
-        }
-
-        [Fact]
-        public async Task DeletePolitician_ReturnsNotFound_WhenPoliticianDoesNotExist()
-        {
-            // Arrange
-            var politicianId = Guid.NewGuid();
-            _politicianService.DeleteAsync(politicianId).Returns(false);
-
-            // Arrange
-            var result = (NotFoundResult)await _sut.DeletePolitician(politicianId);
 
             // Assert
             result.StatusCode.Should().Be((int)HttpStatusCode.NotFound);

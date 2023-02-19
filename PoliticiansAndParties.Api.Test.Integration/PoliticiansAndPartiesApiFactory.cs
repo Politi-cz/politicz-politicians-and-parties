@@ -15,6 +15,10 @@ using System.Reflection;
 
 namespace PoliticiansAndParties.Api.Test.Integration
 {
+    // TODO: In the future instead of creating a docker container for each test class create collection fixture
+    // for each controller. So for example PoliticalPartyController will have one collection fixture running only 1 docker container
+    // for all test classes related to political party controller. This aproach needs to implement Respawner to reset DB state
+    // after each test. Inspire from Nick Chapsas Respawner video
     public class PoliticiansAndPartiesApiFactory : WebApplicationFactory<IApiMarker>, IAsyncLifetime
     {
         private readonly TestcontainerDatabase _dbContainer;

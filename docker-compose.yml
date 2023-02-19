@@ -1,3 +1,6 @@
+# In the future move docker compose to a single project and instead of building image with api, upload docker image to docker hub
+# So this compose will be a cental file with all the api microservices that will be pulled form docker hub
+# To each project add github workflow that after release (maybe after each push to master) a docker image will be build and pushed to docker hub
 version: "3.9"
 services:
   api:

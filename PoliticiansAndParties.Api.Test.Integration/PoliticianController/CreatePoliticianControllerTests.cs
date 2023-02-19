@@ -4,7 +4,7 @@ using politicz_politicians_and_parties.Models;
 using System.Net;
 using System.Net.Http.Json;
 
-namespace PoliticiansAndParties.Api.Test.Integration.PoliticalPartyController
+namespace PoliticiansAndParties.Api.Test.Integration.PoliticianController
 {
     public class CreatePoliticianControllerTests : IClassFixture<PoliticiansAndPartiesApiFactory>
     {
@@ -32,8 +32,8 @@ namespace PoliticiansAndParties.Api.Test.Integration.PoliticalPartyController
             var returnedPolitician = await getPoliticianResponse.Content.ReadFromJsonAsync<PoliticianDto>();
 
             // Assert
-            createPoliticianResponse.StatusCode.Should().Be(System.Net.HttpStatusCode.Created);
-            getPoliticianResponse.StatusCode.Should().Be(System.Net.HttpStatusCode.OK);
+            createPoliticianResponse.StatusCode.Should().Be(HttpStatusCode.Created);
+            getPoliticianResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
             returnedPolitician.Should().BeEquivalentTo(createdPolitician, options => options.Using<DateTime>(ctx => ctx.Subject.Should().BeCloseTo(ctx.Expectation, TimeSpan.FromMilliseconds(100))).WhenTypeIs<DateTime>());
         }

@@ -2,7 +2,7 @@
 using politicz_politicians_and_parties.Dtos;
 using System.Net.Http.Json;
 
-namespace PoliticiansAndParties.Api.Test.Integration.PoliticalPartyController
+namespace PoliticiansAndParties.Api.Test.Integration.PoliticianController
 {
     public class GetPoliticianControllerTests : IClassFixture<PoliticiansAndPartiesApiFactory>
     {

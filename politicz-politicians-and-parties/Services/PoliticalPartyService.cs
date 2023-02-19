@@ -116,7 +116,7 @@ namespace politicz_politicians_and_parties.Services
 
             if (!updated)
             {
-                _logger.LogWarn("Unable to udpate political party with id {id}", updatePoliticalParty.Id);
+                _logger.LogWarn("Unable to udpate political party with id {id}, not found", updatePoliticalParty.Id);
                 return updated;
             }
 
