@@ -6,7 +6,7 @@
 
 ## Running
 - Open terminal
-- Cd into folder with docker-compose-yml
+- Cd into folder with docker-compose.yml
 - Execute command `docker compose up`
 
 ## Usage
