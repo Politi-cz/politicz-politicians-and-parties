@@ -14,15 +14,15 @@ namespace politicz_politicians_and_parties.Repositories
             _connectionFactory = connectionFactory;
         }
 
-        public async Task<bool> CreateOneAsync(Politician politician)
+        public async Task<Politician> CreateOneAsync(Politician politician)
         {
-            using var connection = await _connectionFactory.CreateConnectionAsync();
-            var sql = @"INSERT INTO Politicians (FrontEndId, BirthDate, FullName, InstagramUrl, TwitterUrl, FacebookUrl, PoliticalPartyId) 
+            var sql = @"INSERT INTO Politicians (FrontEndId, BirthDate, FullName, InstagramUrl, TwitterUrl, FacebookUrl, PoliticalPartyId)
+                        OUTPUT INSERTED.*
                         VALUES (@FrontEndId, @BirthDate, @FullName, @InstagramUrl, @TwitterUrl, @FacebookUrl, @PoliticalPartyId)";
 
-            var result = await connection.ExecuteAsync(sql, politician);
+            using var connection = await _connectionFactory.CreateConnectionAsync();
 
-            return result > 0;
+            return await connection.QuerySingleAsync<Politician>(sql, politician); ;
         }
 
         // TODO: Pass IdbConnection as parametr, pass another parameter for transaction as IDbTransaction? and set default value to null so it can be used without specifying the transaction

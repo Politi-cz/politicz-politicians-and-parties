@@ -1,10 +1,15 @@
 ﻿namespace politicz_politicians_and_parties.Models
 {
-    public class ErrorDetails
+    public class ErrorDetail
     {
-        public int StatusCode { get; set; }
-        public string? Message { get; set; }
+        public ErrorDetail(string message, IDictionary<string, string[]>? errors = null)
+        {
+            Message = message;
+            Errors = errors;
+        }
 
-        public IDictionary<string, string> Errors { get; set; } = new Dictionary<string, string>();
+        public string Message { get; set; }
+
+        public IDictionary<string, string[]>? Errors { get; set; }
     }
 }

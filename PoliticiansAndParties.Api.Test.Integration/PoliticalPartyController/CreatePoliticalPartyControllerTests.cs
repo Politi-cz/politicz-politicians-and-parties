@@ -39,20 +39,18 @@ namespace PoliticiansAndParties.Api.Test.Integration.PoliticalPartyController
         {
             // Arrange
             var generatedParty = DataGenerator.GeneratePoliticalParty();
-            var expectedError = new ErrorDetails
+            var expectedError = new ErrorDetail("Validation error")
             {
-                Errors = new Dictionary<string, string> {
-                    {"Politicians", "'Politicians' must not be empty." }
+                Errors = new Dictionary<string, string[]> {
+                    {"Politicians", new []{"'Politicians' must not be empty." } }
                 },
-                Message = "Validation error",
-                StatusCode = (int)HttpStatusCode.BadRequest
             };
 
             generatedParty.Politicians = new List<PoliticianDto>(); // empty list of politicians is invalid
 
             // Act
             var createPartyResponse = await _client.PostAsJsonAsync("api/political-parties/create", generatedParty);
-            var errorDetails = await createPartyResponse.Content.ReadFromJsonAsync<ErrorDetails>();
+            var errorDetails = await createPartyResponse.Content.ReadFromJsonAsync<ErrorDetail>();
 
             // Assert
             createPartyResponse.StatusCode.Should().Be(HttpStatusCode.BadRequest);
@@ -66,18 +64,16 @@ namespace PoliticiansAndParties.Api.Test.Integration.PoliticalPartyController
             var generatedParty = DataGenerator.GeneratePoliticalParty();
             await _client.PostAsJsonAsync("api/political-parties/create", generatedParty);
 
-            var expectedError = new ErrorDetails
+            var expectedError = new ErrorDetail("Validation error")
             {
-                Message = "Validation error",
-                StatusCode = (int)HttpStatusCode.BadRequest,
-                Errors = new Dictionary<string, string> {
-                    {"Name", $"Political party with name {generatedParty.Name} already exists"}
+                Errors = new Dictionary<string, string[]> {
+                    {"Name", new []{$"Political party with name {generatedParty.Name} already exists" } }
                 }
             };
 
             // Act
             var createDuplicatePartyResponse = await _client.PostAsJsonAsync("api/political-parties/create", generatedParty);
-            var errorDetails = await createDuplicatePartyResponse.Content.ReadFromJsonAsync<ErrorDetails>();
+            var errorDetails = await createDuplicatePartyResponse.Content.ReadFromJsonAsync<ErrorDetail>();
 
             // Assert
             createDuplicatePartyResponse.StatusCode.Should().Be(HttpStatusCode.BadRequest);

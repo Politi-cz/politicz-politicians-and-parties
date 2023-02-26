@@ -45,16 +45,11 @@ namespace PoliticiansAndParties.Api.Test.Integration.PoliticianController
             var generatedPolitician = DataGenerator.GeneratePolitician();
             generatedPolitician.FacebookUrl = "invalidUrl";
 
-            var expectedError = new ErrorDetails
-            {
-                Message = "Validation error",
-                StatusCode = (int)HttpStatusCode.BadRequest,
-                Errors = new Dictionary<string, string> { { "FacebookUrl", "Must be valid url" } }
-            };
+            var expectedError = new ErrorDetail("Validation error", new Dictionary<string, string[]> { { "FacebookUrl", new[] { "Must be a valid url." } } });
 
             // Act
             var createPoliticianResponse = await _client.PostAsJsonAsync($"api/political-parties/{Guid.NewGuid()}/politician", generatedPolitician);
-            var errorDetails = await createPoliticianResponse.Content.ReadFromJsonAsync<ErrorDetails>();
+            var errorDetails = await createPoliticianResponse.Content.ReadFromJsonAsync<ErrorDetail>();
 
             // Assert
             createPoliticianResponse.StatusCode.Should().Be(HttpStatusCode.BadRequest);
@@ -68,16 +63,11 @@ namespace PoliticiansAndParties.Api.Test.Integration.PoliticianController
             // Arrange
             var generatedPolitician = DataGenerator.GeneratePolitician();
             var nonExistingPartyId = Guid.NewGuid();
-            var expectedError = new ErrorDetails
-            {
-                Message = "Validation error",
-                StatusCode = (int)HttpStatusCode.BadRequest,
-                Errors = new Dictionary<string, string> { { "Id", $"Political party with id {nonExistingPartyId} does not exist" } }
-            };
+            var expectedError = new ErrorDetail($"Political party with id {nonExistingPartyId} does not exist");
 
             // Act
             var createPoliticianResponse = await _client.PostAsJsonAsync($"api/political-parties/{nonExistingPartyId}/politician", generatedPolitician);
-            var errorDetails = await createPoliticianResponse.Content.ReadFromJsonAsync<ErrorDetails>();
+            var errorDetails = await createPoliticianResponse.Content.ReadFromJsonAsync<ErrorDetail>();
 
             // Assert
             createPoliticianResponse.StatusCode.Should().Be(HttpStatusCode.BadRequest);

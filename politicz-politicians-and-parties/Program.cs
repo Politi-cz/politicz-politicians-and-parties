@@ -1,5 +1,6 @@
 using FluentMigrator.Runner;
 using FluentValidation;
+using politicz_politicians_and_parties.Contracts.Requests;
 using politicz_politicians_and_parties.Database;
 using politicz_politicians_and_parties.Dtos;
 using politicz_politicians_and_parties.Logging;
@@ -37,6 +38,7 @@ builder.Services.AddSingleton(typeof(ILoggerAdapter<>), typeof(LoggerAdapter<>))
 builder.Services.AddScoped<IValidator<PoliticianDto>, PoliticianDtoValidator>();
 builder.Services.AddScoped<IValidator<PoliticalPartyDto>, PoliticalPartyDtoValidator>();
 builder.Services.AddScoped<IValidator<UpdatePoliticalPartyDto>, UpdatePoliticalPartyDtoValidator>();
+builder.Services.AddScoped<IValidator<PoliticianRequest>, PoliticianRequestValidator>();
 
 builder.Services.AddLogging(c => c.AddFluentMigratorConsole())
     .AddFluentMigratorCore()

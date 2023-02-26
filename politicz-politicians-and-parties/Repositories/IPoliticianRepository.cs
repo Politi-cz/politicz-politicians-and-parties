@@ -6,7 +6,7 @@ namespace politicz_politicians_and_parties.Repositories
     public interface IPoliticianRepository
     {
         Task<Politician?> GetAsync(Guid frontEndId);
-        Task<bool> CreateOneAsync(Politician politician);
+        Task<Politician> CreateOneAsync(Politician politician);
         Task<bool> CreateAllAsync(IEnumerable<Politician> politicians, IDbTransaction transaction);
 
         Task<bool> UpdateAsync(Politician politician);

@@ -29,32 +29,20 @@ namespace politicz_politicians_and_parties.Middleware
             catch (Exception exception)
             {
                 context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
-                await context.Response.WriteAsJsonAsync(new ErrorDetails()
-                {
-                    StatusCode = context.Response.StatusCode,
-                    Message = "Internal Server Error."
-                });
+                await context.Response.WriteAsJsonAsync(new ErrorDetail("Internal Server Error."));
                 logger.LogError(exception, "Unexpected error");
             }
         }
 
-        private static ErrorDetails HandleValidationError(FluentValidation.ValidationException exception)
+        private static ErrorDetail HandleValidationError(FluentValidation.ValidationException exception)
         {
-            var error = new ErrorDetails
-            {
+            var errors = exception.Errors.GroupBy(x => x.PropertyName)
+                    .ToDictionary(
+                        g => g.Key,
+                        g => g.Select(x => x.ErrorMessage).ToArray()
+                    );
 
-                StatusCode = (int)HttpStatusCode.BadRequest,
-                Message = "Validation error"
-
-            };
-            foreach (var validationFailure in exception.Errors)
-            {
-                error.Errors.Add(new KeyValuePair<string, string>(
-                    validationFailure.PropertyName,
-                    validationFailure.ErrorMessage));
-            }
-
-            return error;
+            return new ErrorDetail("Validation error", errors);
         }
     }
 }

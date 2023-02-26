@@ -60,11 +60,9 @@ namespace PoliticiansAndParties.Api.Test.Integration.PoliticianController
             updatedPolitician.Id = createdPolitician!.Id;
             updatedPolitician.InstagramUrl = "jklsdfalkjdsalkj"; // invalid url
 
-            var expectedError = new ErrorDetails
+            var expectedError = new ErrorDetail("Validation error")
             {
-                Message = "Validation error",
-                StatusCode = (int)HttpStatusCode.BadRequest,
-                Errors = new Dictionary<string, string> { { "InstagramUrl", "Must be valid url" } }
+                Errors = new Dictionary<string, string[]> { { "InstagramUrl", new[] { "Must be valid url" } } }
             };
 
             // Act
@@ -72,7 +70,7 @@ namespace PoliticiansAndParties.Api.Test.Integration.PoliticianController
 
             // Assert
             updatePoliticianResponse.StatusCode.Should().Be(HttpStatusCode.BadRequest);
-            var result = await updatePoliticianResponse.Content.ReadFromJsonAsync<ErrorDetails>();
+            var result = await updatePoliticianResponse.Content.ReadFromJsonAsync<ErrorDetail>();
             result.Should().BeEquivalentTo(expectedError);
         }
 

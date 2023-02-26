@@ -18,8 +18,8 @@ namespace politicz_politicians_and_parties.Controllers
 
         [HttpPost("create")]
         [ProducesResponseType(201, Type = typeof(PoliticalPartyDto))]
-        [ProducesResponseType(400, Type = typeof(ErrorDetails))]
-        [ProducesResponseType(500, Type = typeof(ErrorDetails))]
+        [ProducesResponseType(400, Type = typeof(ErrorDetail))]
+        [ProducesResponseType(500, Type = typeof(ErrorDetail))]
         public async Task<IActionResult> CreatePoliticalParty([FromBody] PoliticalPartyDto politicalParty)
         {
             var created = await _politicalPartyService.CreateAsync(politicalParty);
@@ -35,7 +35,7 @@ namespace politicz_politicians_and_parties.Controllers
         [HttpGet("{id:guid}")]
         [ProducesResponseType(200, Type = typeof(PoliticalPartyDto))]
         [ProducesResponseType(404)]
-        [ProducesResponseType(500, Type = typeof(ErrorDetails))]
+        [ProducesResponseType(500, Type = typeof(ErrorDetail))]
         public async Task<IActionResult> GetPoliticalParty([FromRoute] Guid id)
         {
             var politicalPartyDto = await _politicalPartyService.GetOneAsync(id);
@@ -50,7 +50,7 @@ namespace politicz_politicians_and_parties.Controllers
 
         [HttpGet]
         [ProducesResponseType(200, Type = typeof(IEnumerable<PoliticalPartySideNavDto>))]
-        [ProducesResponseType(500, Type = typeof(ErrorDetails))]
+        [ProducesResponseType(500, Type = typeof(ErrorDetail))]
         public async Task<IActionResult> GetPoliticalParties()
         {
             var politicalPartiesSideNav = await _politicalPartyService.GetAllAsync();
@@ -62,9 +62,9 @@ namespace politicz_politicians_and_parties.Controllers
 
         [HttpPut("{partyId:guid}")]
         [ProducesResponseType(200, Type = typeof(UpdatePoliticalPartyDto))]
-        [ProducesResponseType(400, Type = typeof(ErrorDetails))]
+        [ProducesResponseType(400, Type = typeof(ErrorDetail))]
         [ProducesResponseType(404)]
-        [ProducesResponseType(500, Type = typeof(ErrorDetails))]
+        [ProducesResponseType(500, Type = typeof(ErrorDetail))]
         public async Task<IActionResult> UpdatePoliticalParty([FromRoute] Guid partyId, [FromBody] UpdatePoliticalPartyDto updatePoliticalParty)
         {
             updatePoliticalParty.Id = partyId;
@@ -82,7 +82,7 @@ namespace politicz_politicians_and_parties.Controllers
         [HttpDelete("{partyId:guid}")]
         [ProducesResponseType(200)]
         [ProducesResponseType(404)]
-        [ProducesResponseType(500, Type = typeof(ErrorDetails))]
+        [ProducesResponseType(500, Type = typeof(ErrorDetail))]
         public async Task<IActionResult> DeletePoliticalParty([FromRoute] Guid partyId)
         {
             var deleted = await _politicalPartyService.DeleteAsync(partyId);

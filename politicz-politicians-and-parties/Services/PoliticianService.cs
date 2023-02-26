@@ -2,8 +2,9 @@
 using politicz_politicians_and_parties.Dtos;
 using politicz_politicians_and_parties.Logging;
 using politicz_politicians_and_parties.Mapping;
+using politicz_politicians_and_parties.Models;
 using politicz_politicians_and_parties.Repositories;
-using politicz_politicians_and_parties.Validators;
+using politicz_politicians_and_parties.Result;
 
 namespace politicz_politicians_and_parties.Services
 {
@@ -22,30 +23,26 @@ namespace politicz_politicians_and_parties.Services
             _logger = logger;
         }
 
-        public async Task<bool> CreateAsync(Guid partyId, PoliticianDto politicianDto)
+        public async Task<Result<Politician>> CreateAsync(Guid partyId, Politician politician)
         {
             _logger.LogDebug("Creating politician to a political party with id {id}", partyId);
-
-            _validator.ValidateAndThrow(politicianDto);
-
-            politicianDto.Id = Guid.NewGuid();
-            var politician = politicianDto.ToPolitician();
 
             var internalPartyId = await _politicalPartyRepository.GetInternalIdAsync(partyId);
 
             if (internalPartyId is null)
             {
                 var msg = $"Political party with id {partyId} does not exist";
-                _logger.LogWarn(msg);
+                _logger.LogWarn("Political party with id {partyId} does not exist", partyId);
 
-                throw new ValidationException(msg, HelperValidatorMethods.GenerateValidationError(nameof(politicianDto.Id), msg));
+                return new Result<Politician>(new ErrorDetail(msg), ErrorType.Invalid);
             }
 
             politician.PoliticalPartyId = (int)internalPartyId;
 
-            _logger.LogInfo("Politician with internal id {internalId} created", politician.PoliticalPartyId);
+            var created = await _politicianRepository.CreateOneAsync(politician);
+            _logger.LogInfo("Politician with id {id} created", politician.FrontEndId);
 
-            return await _politicianRepository.CreateOneAsync(politician);
+            return new Result<Politician>(created);
         }
 
         public async Task<bool> DeleteAsync(Guid frontEndId)
@@ -65,7 +62,7 @@ namespace politicz_politicians_and_parties.Services
             return deleted;
         }
 
-        public async Task<PoliticianDto?> GetAsync(Guid id)
+        public async Task<Result<Politician>> GetAsync(Guid id)
         {
             _logger.LogDebug("Getting politician with id {id}", id);
 
@@ -74,9 +71,11 @@ namespace politicz_politicians_and_parties.Services
             if (politician is null)
             {
                 _logger.LogWarn("Politician with id {id} not found", id);
+
+                return new Result<Politician>(ErrorType.NotFound);
             }
 
-            return politician?.ToPoliticianDto();
+            return new Result<Politician>(politician);
         }
 
         public async Task<bool> UpdateAsync(Guid frontEndId, PoliticianDto politicianDto)

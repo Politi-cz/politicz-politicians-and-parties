@@ -4,9 +4,9 @@ using NSubstitute;
 using NSubstitute.ReturnsExtensions;
 using politicz_politicians_and_parties.Dtos;
 using politicz_politicians_and_parties.Logging;
-using politicz_politicians_and_parties.Mapping;
 using politicz_politicians_and_parties.Models;
 using politicz_politicians_and_parties.Repositories;
+using politicz_politicians_and_parties.Result;
 using politicz_politicians_and_parties.Services;
 using politicz_politicians_and_parties.Validators;
 
@@ -25,7 +25,7 @@ namespace Politicians.Api.Test.Unit
         }
 
         [Fact]
-        public async Task GetAsync_ShouldReturnPoliticianDto_WhenPoliticianExists()
+        public async Task GetAsync_ReturnsResult_WhenPoliticianExists()
         {
             // Arrange
             var existingPolitician = new Politician
@@ -36,113 +36,85 @@ namespace Politicians.Api.Test.Unit
                 FullName = "Petr Koller",
                 PoliticalPartyId = 25,
             };
-            var expectedPolitician = existingPolitician.ToPoliticianDto();
+            var expected = new Result<Politician>(existingPolitician);
             _politicianRepository.GetAsync(existingPolitician.FrontEndId).Returns(existingPolitician);
 
             // Act
             var result = await _sut.GetAsync(existingPolitician.FrontEndId);
 
             // Assert
-            result.Should().BeEquivalentTo(expectedPolitician);
+            result.Should().BeEquivalentTo(expected);
         }
 
         [Fact]
-        public async Task GetAsync_ShouldReturnNull_WhenPoliticianDoesNotExist()
+        public async Task GetAsync_ReturnsNotFoundResult_WhenPoliticianDoesNotExist()
         {
             // Arrange
             var guid = Guid.NewGuid();
             _politicianRepository.GetAsync(guid).ReturnsNull();
+            var expected = new Result<Politician>(ErrorType.NotFound);
 
             // Act
             var result = await _sut.GetAsync(guid);
 
             // Assert
-            result.Should().BeNull();
+            result.Should().BeEquivalentTo(expected);
             _logger.Received(1).LogWarn(Arg.Is("Politician with id {id} not found"), Arg.Is(guid));
 
         }
 
-        [Theory]
-        [MemberData(nameof(InvalidPoliticianData))]
-        public async Task CreateAsync_ShouldThrowValidationError_WhenInvalidPoliticianDto(PoliticianDto politicianDto)
-        {
-            // Arrange
-            _politicianRepository.CreateOneAsync(politicianDto.ToPolitician()).Returns(false);
-            _politicalPartyRepository.GetInternalIdAsync(Arg.Any<Guid>()).Returns(10);
-            // does not really matter
-
-            // Act
-            var act = async () => await _sut.CreateAsync(Guid.NewGuid(), politicianDto);
-
-            // Assert
-            await act.Should().ThrowAsync<ValidationException>();
-        }
 
         [Fact]
-        public async Task CreateAsync_ShouldThrowValidationError_WhenParentPoliticalPartyDoesNotExist()
+        public async Task CreateAsync_ReturnsErrorResult_WhenParentPoliticalPartyDoesNotExist()
         {
             // Arrange
-            var politicianDto = new PoliticianDto()
+            var politician = new Politician()
             {
                 FullName = "Test User",
                 BirthDate = DateTime.Now,
+                FrontEndId = Guid.NewGuid()
             };
             var nonExistingPartyId = Guid.NewGuid();
 
             _politicalPartyRepository.GetInternalIdAsync(nonExistingPartyId).ReturnsNull();
-            _politicianRepository.CreateOneAsync(Arg.Any<Politician>()).Returns(false);
+            var expectedResult = new Result<Politician>(new ErrorDetail($"Political party with id {nonExistingPartyId} does not exist"));
 
             // Act
-            var act = async () => await _sut.CreateAsync(nonExistingPartyId, politicianDto);
+            var result = await _sut.CreateAsync(nonExistingPartyId, politician);
 
             // Assert
-            await act.Should().ThrowAsync<ValidationException>().WithMessage($"Political party with id {nonExistingPartyId} does not exist");
-            _logger.Received(1).LogWarn(Arg.Is($"Political party with id {nonExistingPartyId} does not exist"));
+            result.Should().BeEquivalentTo(expectedResult);
+            _logger.Received(1).LogWarn(Arg.Is("Political party with id {partyId} does not exist"), Arg.Is(nonExistingPartyId));
 
         }
 
         [Fact]
-        public async Task CreateAsync_ShouldCreatePolitician_WhenPoliticianDtoValid()
+        public async Task CreateAsync_CreatesPolitician_WhenDataValid()
         {
             // Arrange
-            var politicianDto = new PoliticianDto()
+            var politician = new Politician
             {
-                FullName = "Test User",
                 BirthDate = DateTime.Now,
+                FrontEndId = Guid.NewGuid(),
+                FullName = "Test Name",
+                InstagramUrl = "https://ig.com/tst",
+                Id = 1,
+                PoliticalPartyId = 5
             };
+
+            var expectedResult = new Result<Politician>(politician);
             var politicalPartyGuid = Guid.NewGuid();
 
-            _politicalPartyRepository.GetInternalIdAsync(politicalPartyGuid).Returns(10);
-            _politicianRepository.CreateOneAsync(Arg.Any<Politician>()).Returns(true);
+            _politicalPartyRepository.GetInternalIdAsync(politicalPartyGuid).Returns(politician.PoliticalPartyId);
+            _politicianRepository.CreateOneAsync(Arg.Any<Politician>()).Returns(politician);
 
             // Act
-            var created = await _sut.CreateAsync(politicalPartyGuid, politicianDto);
+            var created = await _sut.CreateAsync(politicalPartyGuid, politician);
 
             // Assert
-            created.Should().Be(true);
-            _logger.Received(1).LogInfo(Arg.Is("Politician with internal id {internalId} created"), Arg.Any<int>());
+            created.Should().BeEquivalentTo(expectedResult);
+            _logger.Received(1).LogInfo(Arg.Is("Politician with id {id} created"), Arg.Is(politician.FrontEndId));
 
-        }
-
-        [Fact]
-        public async Task CreateAsync_ShouldNotCreatePolitician_WhenPoliticianDtoInvalid()
-        {
-            // Arrange
-            var politicianDto = new PoliticianDto()
-            {
-                FullName = "Test User",
-                BirthDate = DateTime.Now,
-            };
-            var politicalPartyGuid = Guid.NewGuid();
-
-            _politicalPartyRepository.GetInternalIdAsync(politicalPartyGuid).Returns(10);
-            _politicianRepository.CreateOneAsync(Arg.Any<Politician>()).Returns(false);
-
-            // Act
-            var created = await _sut.CreateAsync(politicalPartyGuid, politicianDto);
-
-            // Assert
-            created.Should().Be(false);
         }
 
         [Fact]

@@ -30,13 +30,11 @@ namespace PoliticiansAndParties.Api.Test.Integration.PoliticalPartyController
                 Tags = new HashSet<string>() // Empty set, invalid
             };
 
-            var expectedResponse = new ErrorDetails
+            var expectedResponse = new ErrorDetail("Validation error")
             {
-                Message = "Validation error",
-                StatusCode = (int)HttpStatusCode.BadRequest,
-                Errors = new Dictionary<string, string> {
-                    { "Name", "'Name' must not be empty."},
-                    { "Tags", "'Tags' must not be empty."}
+                Errors = new Dictionary<string, string[]> {
+                    { "Name", new[] { "'Name' must not be empty." }},
+                    { "Tags", new[] { "'Tags' must not be empty." }}
                 }
             };
 
@@ -45,7 +43,7 @@ namespace PoliticiansAndParties.Api.Test.Integration.PoliticalPartyController
 
             // Assert
             updatePartyResponse.StatusCode.Should().Be(HttpStatusCode.BadRequest);
-            var errorDetails = await updatePartyResponse.Content.ReadFromJsonAsync<ErrorDetails>();
+            var errorDetails = await updatePartyResponse.Content.ReadFromJsonAsync<ErrorDetail>();
             errorDetails.Should().BeEquivalentTo(expectedResponse);
 
         }
@@ -58,13 +56,9 @@ namespace PoliticiansAndParties.Api.Test.Integration.PoliticalPartyController
             var createPartyResponse = await _client.PostAsJsonAsync("api/political-parties/create", generatedParty);
             var createdParty = await createPartyResponse.Content.ReadFromJsonAsync<PoliticalPartyDto>();
 
-            var expectedError = new ErrorDetails
+            var expectedError = new ErrorDetail("Validation error")
             {
-                Message = "Validation error",
-                StatusCode = (int)HttpStatusCode.BadRequest,
-                Errors = new Dictionary<string, string> {
-                    {"Name", $"Political party with name {generatedParty.Name} already exists"}
-                }
+                Errors = new Dictionary<string, string[]> { { "Name", new[] { $"Political party with name {generatedParty.Name} already exists" } } }
             };
 
             var partyData = DataGenerator.GeneratePoliticalParty();
@@ -80,7 +74,7 @@ namespace PoliticiansAndParties.Api.Test.Integration.PoliticalPartyController
 
             // Assert
             updatePartyResponse.StatusCode.Should().Be(HttpStatusCode.BadRequest);
-            var errorDetails = await updatePartyResponse.Content.ReadFromJsonAsync<ErrorDetails>();
+            var errorDetails = await updatePartyResponse.Content.ReadFromJsonAsync<ErrorDetail>();
             errorDetails.Should().BeEquivalentTo(expectedError);
         }
 
