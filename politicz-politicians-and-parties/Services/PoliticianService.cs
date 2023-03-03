@@ -10,10 +10,10 @@ namespace politicz_politicians_and_parties.Services
 {
     public class PoliticianService : IPoliticianService
     {
-        readonly IPoliticianRepository _politicianRepository;
-        readonly IPoliticalPartyRepository _politicalPartyRepository;
-        readonly IValidator<PoliticianDto> _validator;
-        readonly ILoggerAdapter<PoliticianService> _logger;
+        private readonly IPoliticianRepository _politicianRepository;
+        private readonly IPoliticalPartyRepository _politicalPartyRepository;
+        private readonly IValidator<PoliticianDto> _validator;
+        private readonly ILoggerAdapter<PoliticianService> _logger;
 
         public PoliticianService(IPoliticianRepository politicianRepository, IPoliticalPartyRepository politicalPartyRepository, IValidator<PoliticianDto> validator, ILoggerAdapter<PoliticianService> logger)
         {
@@ -68,38 +68,29 @@ namespace politicz_politicians_and_parties.Services
 
             var politician = await _politicianRepository.GetAsync(id);
 
-            if (politician is null)
-            {
-                _logger.LogWarn("Politician with id {id} not found", id);
+            if (politician is not null)
+                return new Result<Politician>(politician);
 
-                return new Result<Politician>(ErrorType.NotFound);
-            }
+            _logger.LogWarn("Politician with id {id} not found", id);
+            return new Result<Politician>(ErrorType.NotFound);
 
-            return new Result<Politician>(politician);
         }
 
-        public async Task<bool> UpdateAsync(Guid frontEndId, PoliticianDto politicianDto)
+        public async Task<Result<Politician>> UpdateAsync(Politician politician)
         {
-            _logger.LogDebug("Updating politician with id {id}", frontEndId);
-
-            _validator.ValidateAndThrow(politicianDto);
-
-            politicianDto.Id = frontEndId;
-
-            var politician = politicianDto.ToPolitician();
+            _logger.LogDebug("Updating politician with id {id}", politician.FrontEndId);
 
             var updated = await _politicianRepository.UpdateAsync(politician);
 
             if (!updated)
             {
-                _logger.LogWarn("Politician with id {id} not found", frontEndId);
+                _logger.LogWarn("Politician with id {id} not found", politician.FrontEndId);
+                return new Result<Politician>(ErrorType.NotFound);
             }
-            else
-            {
-                _logger.LogInfo("Politician with id {id} updated", frontEndId);
-            }
+            
+            _logger.LogInfo("Politician with id {id} updated", politician.FrontEndId);
 
-            return updated;
+            return new Result<Politician>(politician);
         }
     }
 }

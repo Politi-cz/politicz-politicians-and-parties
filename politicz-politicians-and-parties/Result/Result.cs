@@ -22,7 +22,7 @@ namespace politicz_politicians_and_parties.Result
         /// <summary>
         /// Initializes an error result with an error detail
         /// </summary>
-        /// <param name="errors">List of error descriptions</param>
+        /// <param name="error">List of error descriptions</param>
         /// <param name="errorType">Type of error</param>
         public Result(ErrorDetail error, ErrorType errorType = ErrorType.Invalid)
         {

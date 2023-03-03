@@ -30,12 +30,7 @@ namespace politicz_politicians_and_parties.Controllers
         {
             var result = await _politicianService.GetAsync(id);
 
-            if (result.IsError)
-            {
-                return HandleErrorResult(result);
-            }
-
-            return Ok(result.Data!.ToPoliticianResponse());
+            return result.IsError ? HandleErrorResult(result) : Ok(result.Data!.ToPoliticianResponse());
         }
 
         [HttpPost("{partyId:guid}/politician")]
@@ -45,40 +40,38 @@ namespace politicz_politicians_and_parties.Controllers
         public async Task<IActionResult> CreatePolitician([FromRoute] Guid partyId, [FromBody] PoliticianRequest politicianRequest)
         {
             var validationResult = await _validator.ValidateAsync(politicianRequest);
-
+            
             if (!validationResult.IsValid)
-            {
                 return BadRequest(new ErrorDetail("Validation error", validationResult.ToDictionary()));
-            }
+
             var politician = politicianRequest.ToPolitician();
 
             var result = await _politicianService.CreateAsync(partyId, politician);
 
             if (result.IsError)
-            {
                 return HandleErrorResult(result);
-            }
 
             var response = result.Data!.ToPoliticianResponse();
 
             return CreatedAtAction(nameof(GetPolitician), new { id = response.Id }, response);
         }
 
-        [HttpPut("politician/{politicianId:guid}")]
+        [HttpPut("politician/{id:guid}")]
         [ProducesResponseType(200, Type = typeof(PoliticianDto))]
         [ProducesResponseType(400, Type = typeof(ErrorDetail))]
         [ProducesResponseType(404)]
         [ProducesResponseType(500, Type = typeof(ErrorDetail))]
-        public async Task<IActionResult> UpdatePolitician([FromRoute] Guid politicianId, [FromBody] PoliticianDto politicianDto)
+        public async Task<IActionResult> UpdatePolitician([FromRoute, FromBody] UpdatePoliticianRequest updatePoliticianRequest)
         {
-            var updated = await _politicianService.UpdateAsync(politicianId, politicianDto);
+            var validationResult = await _validator.ValidateAsync(updatePoliticianRequest.Request);
 
-            if (!updated)
-            {
-                return NotFound();
-            }
+            if (!validationResult.IsValid)
+                return BadRequest(new ErrorDetail("Validation error", validationResult.ToDictionary()));
 
-            return Ok(politicianDto);
+            var politician = updatePoliticianRequest.ToPolitician();
+            var result = await _politicianService.UpdateAsync(politician);
+            
+            return result.IsError ? HandleErrorResult(result) : Ok(politician.ToPoliticianResponse());
         }
 
         [HttpDelete("politician/{politicianId:guid}")]
@@ -89,25 +82,17 @@ namespace politicz_politicians_and_parties.Controllers
         {
             var deleted = await _politicianService.DeleteAsync(politicianId);
 
-            if (!deleted)
-            {
-                return NotFound();
-            }
-
-            return Ok();
+            return !deleted ? NotFound() : Ok();
         }
 
         private IActionResult HandleErrorResult<T>(Result<T> result)
         {
-            switch (result.ErrorType)
+            return result.ErrorType switch
             {
-                case ErrorType.Invalid:
-                    return BadRequest(result?.Error);
-                case ErrorType.NotFound:
-                    return NotFound();
-                default:
-                    return StatusCode(500);
-            }
+                ErrorType.Invalid => BadRequest(result.Error),
+                ErrorType.NotFound => NotFound(),
+                _ => StatusCode(500)
+            };
         }
     }
 }

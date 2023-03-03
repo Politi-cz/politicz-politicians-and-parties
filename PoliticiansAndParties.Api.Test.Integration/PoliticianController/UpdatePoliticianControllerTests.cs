@@ -62,7 +62,7 @@ namespace PoliticiansAndParties.Api.Test.Integration.PoliticianController
 
             var expectedError = new ErrorDetail("Validation error")
             {
-                Errors = new Dictionary<string, string[]> { { "InstagramUrl", new[] { "Must be valid url" } } }
+                Errors = new Dictionary<string, string[]> { { "InstagramUrl", new[] { "Must be a valid url." } } }
             };
 
             // Act

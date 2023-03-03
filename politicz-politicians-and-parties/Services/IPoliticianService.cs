@@ -21,7 +21,12 @@ namespace politicz_politicians_and_parties.Services
         /// <returns>Result of the operation</returns>
         Task<Result<Politician>> CreateAsync(Guid partyId, Politician politician);
 
-        Task<bool> UpdateAsync(Guid frontEndId, PoliticianDto politicianDto);
+        /// <summary>
+        /// Updates a politician
+        /// </summary>
+        /// <param name="politician">New politician data</param>
+        /// <returns>Result of the operation</returns>
+        Task<Result<Politician>> UpdateAsync(Politician politician);
         Task<bool> DeleteAsync(Guid frontEndId);
     }
 }

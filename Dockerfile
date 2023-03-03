@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:7.0 AS build
 WORKDIR /src
 COPY politicz-politicians-and-parties/PoliticiansAndParties.Api.csproj .
 RUN dotnet restore
@@ -6,7 +6,7 @@ COPY politicz-politicians-and-parties .
 RUN dotnet publish "PoliticiansAndParties.Api.csproj" -c Release -o /publish /p:UseAppHost=false
 RUN dotnet dev-certs https
 
-FROM mcr.microsoft.com/dotnet/aspnet:6.0 AS runtime
+FROM mcr.microsoft.com/dotnet/aspnet:7.0 AS runtime
 WORKDIR /app
 COPY --from=build /publish .
 COPY --from=build /root/.dotnet/corefx/cryptography/x509stores/my/* /root/.dotnet/corefx/cryptography/x509stores/my/

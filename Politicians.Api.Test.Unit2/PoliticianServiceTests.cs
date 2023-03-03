@@ -2,6 +2,7 @@
 using FluentValidation;
 using NSubstitute;
 using NSubstitute.ReturnsExtensions;
+using politicz_politicians_and_parties.Contracts.Requests;
 using politicz_politicians_and_parties.Dtos;
 using politicz_politicians_and_parties.Logging;
 using politicz_politicians_and_parties.Models;
@@ -121,58 +122,46 @@ namespace Politicians.Api.Test.Unit
         public async Task UpdateAsync_UpdatesPolitician_WhenDataValid()
         {
             // Arrange
-            var politicianDto = new PoliticianDto
+            var politician = new Politician
             {
                 BirthDate = DateTime.Now,
-                FullName = "Test",
+                FrontEndId = Guid.NewGuid(),
+                FullName = "Test"
             };
-            var id = Guid.NewGuid();
+            var expected = new Result<Politician>(politician);
+            
             _politicianRepository.UpdateAsync(Arg.Any<Politician>()).Returns(true);
-
+            
             // Act
-            var result = await _sut.UpdateAsync(id, politicianDto);
+            var result = await _sut.UpdateAsync(politician);
 
             // Assert
-            result.Should().Be(true);
-            _logger.Received(1).LogInfo(Arg.Is("Politician with id {id} updated"), Arg.Is(id));
+            result.Should().BeEquivalentTo(expected);
+            _logger.Received(1).LogInfo(Arg.Is("Politician with id {id} updated"), Arg.Is(politician.FrontEndId));
         }
 
         [Fact]
-        public async Task UpdateAsync_ReturnsFalse_WhenPoliticianNotFound()
+        public async Task UpdateAsync_ReturnsNotFoundResult_WhenPoliticianNotFound()
         {
             // Arrange
-            var politicianDto = new PoliticianDto
+            var politician = new Politician
             {
+                FrontEndId = Guid.NewGuid(), 
                 BirthDate = DateTime.Now,
                 FullName = "Test",
             };
-            var id = Guid.NewGuid();
+            var expected = new Result<Politician>(ErrorType.NotFound);
+            
             _politicianRepository.UpdateAsync(Arg.Any<Politician>()).Returns(false);
 
             // Act
-            var result = await _sut.UpdateAsync(id, politicianDto);
+            var result = await _sut.UpdateAsync(politician);
 
             // Assert
-            result.Should().Be(false);
-            _logger.Received(1).LogWarn(Arg.Is("Politician with id {id} not found"), Arg.Is(id));
+            result.Should().BeEquivalentTo(expected);
+            _logger.Received(1).LogWarn(Arg.Is("Politician with id {id} not found"), Arg.Is(politician.FrontEndId));
         }
-
-        [Fact]
-        public async Task UpdateAsync_ThrowsValidationException_WhenInvalidData()
-        {
-            // Arrange
-            var politicianDto = new PoliticianDto
-            {
-                FullName = "Test",
-            };
-            var id = Guid.NewGuid();
-            // Act
-            var act = async () => await _sut.UpdateAsync(id, politicianDto);
-
-            // Assert
-            await act.Should().ThrowAsync<ValidationException>();
-        }
-
+        
         [Fact]
         public async Task DeleteAsync_ReturnsTrue_WhenPoliticianDeleted()
         {
