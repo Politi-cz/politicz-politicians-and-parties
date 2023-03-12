@@ -1,16 +1,3 @@
-using FluentMigrator.Runner;
-using FluentValidation;
-using PoliticiansAndParties.Api.Contracts.Requests;
-using PoliticiansAndParties.Api.Database;
-using PoliticiansAndParties.Api.Logging;
-using PoliticiansAndParties.Api.Middleware;
-using PoliticiansAndParties.Api.Repositories;
-using PoliticiansAndParties.Api.Services;
-using PoliticiansAndParties.Api.Validators;
-using Serilog;
-using Serilog.Events;
-using System.Reflection;
-
 // TODO: Change it to logger configuration in appsetings.json
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()
@@ -24,7 +11,8 @@ builder.Host.UseSerilog();
 
 // Add services to the container.
 builder.Services.AddSingleton<IDbConnectionFactory>(new SqlServerConnectionFactory(
-    new ConnectionStrings(builder.Configuration.GetConnectionString("MasterConnection"),
+    new ConnectionStrings(
+        builder.Configuration.GetConnectionString("MasterConnection"),
         builder.Configuration.GetConnectionString("DefaultConnection"))));
 builder.Services.AddSingleton<DatabaseInitializer>();
 builder.Services.AddScoped<IPoliticianRepository, PoliticianRepository>();
@@ -45,6 +33,7 @@ builder.Services.AddLogging(c => c.AddFluentMigratorConsole())
 
 builder.Services.AddCors();
 builder.Services.AddControllers();
+
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -55,8 +44,8 @@ app.UseSerilogRequestLogging();
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
+    _ = app.UseSwagger();
+    _ = app.UseSwaggerUI();
 }
 
 // app.UseHttpsRedirection();

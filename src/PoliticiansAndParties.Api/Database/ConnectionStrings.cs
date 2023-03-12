@@ -1,9 +1,6 @@
-﻿using System.Data;
-using Microsoft.Data.SqlClient;
+﻿namespace PoliticiansAndParties.Api.Database;
 
-namespace PoliticiansAndParties.Api.Database;
-
-public struct ConnectionStrings
+public readonly struct ConnectionStrings
 {
     public ConnectionStrings(string masterConnection, string sqlConnection)
     {
@@ -12,6 +9,7 @@ public struct ConnectionStrings
     }
 
     public string MasterConnection { get; }
+
     public string SqlConnection { get; }
 }
 
@@ -19,10 +17,7 @@ public class SqlServerConnectionFactory : IDbConnectionFactory
 {
     private readonly ConnectionStrings _connectionStrings;
 
-    public SqlServerConnectionFactory(ConnectionStrings connectionStrings)
-    {
-        _connectionStrings = connectionStrings;
-    }
+    public SqlServerConnectionFactory(ConnectionStrings connectionStrings) => _connectionStrings = connectionStrings;
 
     public async Task<IDbConnection> CreateConnectionAsync()
     {

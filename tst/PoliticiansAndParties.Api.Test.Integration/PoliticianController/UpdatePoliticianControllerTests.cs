@@ -1,8 +1,4 @@
-﻿using FluentAssertions;
-using System.Net;
-using System.Net.Http.Json;
-
-namespace PoliticiansAndParties.Api.Test.Integration.PoliticianController;
+﻿namespace PoliticiansAndParties.Api.Test.Integration.PoliticianController;
 
 public class UpdatePoliticianControllerTests : IClassFixture<PoliticiansAndPartiesApiFactory>
 {
@@ -22,7 +18,8 @@ public class UpdatePoliticianControllerTests : IClassFixture<PoliticiansAndParti
 
         var generatedPolitician = DataGenerator.GeneratePolitician();
         var createPoliticianResponse =
-            await _client.PostAsJsonAsync($"api/political-parties/{createdParty!.Id}/politician",
+            await _client.PostAsJsonAsync(
+                $"api/political-parties/{createdParty!.Id}/politician",
                 generatedPolitician);
         var createdPolitician =
             await createPoliticianResponse.Content.ReadFromJsonAsync<PoliticianDto>();
@@ -41,7 +38,8 @@ public class UpdatePoliticianControllerTests : IClassFixture<PoliticiansAndParti
         // Assert
         updatePoliticianResponse.StatusCode.Should().Be(HttpStatusCode.OK);
         var result = await updatePoliticianResponse.Content.ReadFromJsonAsync<PoliticianDto>();
-        result.Should().BeEquivalentTo(updatedPolitician,
+        result.Should().BeEquivalentTo(
+            updatedPolitician,
             options => options
                 .Using<DateTime>(ctx =>
                     ctx.Subject.Should().BeCloseTo(ctx.Expectation, TimeSpan.FromMilliseconds(100)))
@@ -50,7 +48,8 @@ public class UpdatePoliticianControllerTests : IClassFixture<PoliticiansAndParti
         getPoliticianResponse.StatusCode.Should().Be(HttpStatusCode.OK);
         var returnedPolitician =
             await getPoliticianResponse.Content.ReadFromJsonAsync<PoliticianDto>();
-        returnedPolitician.Should().BeEquivalentTo(result,
+        returnedPolitician.Should().BeEquivalentTo(
+            result,
             options => options
                 .Using<DateTime>(ctx =>
                     ctx.Subject.Should().BeCloseTo(ctx.Expectation, TimeSpan.FromMilliseconds(100)))
@@ -68,7 +67,8 @@ public class UpdatePoliticianControllerTests : IClassFixture<PoliticiansAndParti
 
         var generatedPolitician = DataGenerator.GeneratePolitician();
         var createPoliticianResponse =
-            await _client.PostAsJsonAsync($"api/political-parties/{createdParty!.Id}/politician",
+            await _client.PostAsJsonAsync(
+                $"api/political-parties/{createdParty!.Id}/politician",
                 generatedPolitician);
         var createdPolitician =
             await createPoliticianResponse.Content.ReadFromJsonAsync<PoliticianDto>();
@@ -81,8 +81,8 @@ public class UpdatePoliticianControllerTests : IClassFixture<PoliticiansAndParti
         {
             Errors = new Dictionary<string, string[]>
             {
-                { "InstagramUrl", new[] { "Must be a valid url." } }
-            }
+                { "InstagramUrl", new[] { "Must be a valid url." } },
+            },
         };
 
         // Act
@@ -106,7 +106,8 @@ public class UpdatePoliticianControllerTests : IClassFixture<PoliticiansAndParti
 
         // Act
         var updatePoliticianResponse =
-            await _client.PutAsJsonAsync($"api/political-parties/politician/{nonExistingId}",
+            await _client.PutAsJsonAsync(
+                $"api/political-parties/politician/{nonExistingId}",
                 updatedPolitician);
 
         // Assert

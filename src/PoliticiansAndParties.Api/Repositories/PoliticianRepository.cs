@@ -1,18 +1,10 @@
-﻿using System.Data;
-using Dapper;
-using PoliticiansAndParties.Api.Database;
-using PoliticiansAndParties.Api.Models;
-
-namespace PoliticiansAndParties.Api.Repositories;
+﻿namespace PoliticiansAndParties.Api.Repositories;
 
 public class PoliticianRepository : IPoliticianRepository
 {
     private readonly IDbConnectionFactory _connectionFactory;
 
-    public PoliticianRepository(IDbConnectionFactory connectionFactory)
-    {
-        _connectionFactory = connectionFactory;
-    }
+    public PoliticianRepository(IDbConnectionFactory connectionFactory) => _connectionFactory = connectionFactory;
 
     public async Task<Politician> CreateOneAsync(Politician politician)
     {
@@ -33,7 +25,7 @@ public class PoliticianRepository : IPoliticianRepository
             @"INSERT INTO Politicians (FrontEndId, BirthDate, FullName, InstagramUrl, TwitterUrl, FacebookUrl, PoliticalPartyId)
                         VALUES (@FrontEndId, @BirthDate, @FullName, @InstagramUrl, @TwitterUrl, @FacebookUrl, @PoliticalPartyId)";
 
-        var result = await transaction.Connection.ExecuteAsync(sql, politicians, transaction);
+        int result = await transaction.Connection.ExecuteAsync(sql, politicians, transaction);
 
         return result > 0;
     }
@@ -53,7 +45,7 @@ public class PoliticianRepository : IPoliticianRepository
                         WHERE FrontEndId = @FrontEndId";
 
         using var connection = await _connectionFactory.CreateConnectionAsync();
-        var result = await connection.ExecuteAsync(sql, politician);
+        int result = await connection.ExecuteAsync(sql, politician);
 
         return result > 0;
     }
@@ -64,7 +56,7 @@ public class PoliticianRepository : IPoliticianRepository
                         WHERE FrontEndId = @FrontEndId";
 
         using var connection = await _connectionFactory.CreateConnectionAsync();
-        var result = await connection.ExecuteAsync(sql, new { FrontEndId = frontEndId });
+        int result = await connection.ExecuteAsync(sql, new { FrontEndId = frontEndId });
 
         return result > 0;
     }

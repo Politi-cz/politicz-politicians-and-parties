@@ -84,10 +84,12 @@ dotnet_naming_style.pascal_case_style.capitalization             = pascal_case
 # Use PascalCase for constant fields
 dotnet_naming_rule.constant_fields_should_be_pascal_case.severity = suggestion
 dotnet_naming_rule.constant_fields_should_be_pascal_case.symbols  = constant_fields
-dotnet_naming_rule.constant_fields_should_be_pascal_case.style    = pascal_case_style
+dotnet_naming_rule.constant_fields_should_be_pascal_case.style = pascal_case_style
 dotnet_naming_symbols.constant_fields.applicable_kinds            = field
 dotnet_naming_symbols.constant_fields.applicable_accessibilities  = *
 dotnet_naming_symbols.constant_fields.required_modifiers          = const
+tab_width = 4
+end_of_line = crlf
 ###############################
 # C# Coding Conventions
 ###############################
@@ -154,7 +156,7 @@ csharp_new_line_between_query_expression_clauses = true # IDE0055
 # Indentation preferences
 csharp_indent_case_contents = true # IDE0055
 csharp_indent_switch_labels = true # IDE0055
-csharp_indent_labels = flush_left # IDE0055
+csharp_indent_labels = flush_left# IDE0055
 # Space preferences
 csharp_space_after_cast = false # IDE0055 (a conflict with SA1003 & SA1009)
 csharp_space_after_keywords_in_control_flow_statements = true # IDE0055

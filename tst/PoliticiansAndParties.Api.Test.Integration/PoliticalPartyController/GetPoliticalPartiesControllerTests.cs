@@ -1,8 +1,4 @@
-﻿using FluentAssertions;
-using System.Net;
-using System.Net.Http.Json;
-
-namespace PoliticiansAndParties.Api.Test.Integration.PoliticalPartyController;
+﻿namespace PoliticiansAndParties.Api.Test.Integration.PoliticalPartyController;
 
 public class GetPoliticalPartiesControllerTests : IClassFixture<PoliticiansAndPartiesApiFactory>
 {
@@ -21,8 +17,8 @@ public class GetPoliticalPartiesControllerTests : IClassFixture<PoliticiansAndPa
         // Assert
         var result =
             await response.Content.ReadFromJsonAsync<IEnumerable<PoliticalPartySideNavDto>>();
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
-        result.Should().BeEmpty();
+        _ = response.StatusCode.Should().Be(HttpStatusCode.OK);
+        _ = result.Should().BeEmpty();
     }
 
     [Fact]
@@ -49,12 +45,14 @@ public class GetPoliticalPartiesControllerTests : IClassFixture<PoliticiansAndPa
         // Assert
         var result =
             await response.Content.ReadFromJsonAsync<IEnumerable<PoliticalPartySideNavDto>>();
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
-        result.Should().BeEquivalentTo(expectedParties);
+        _ = response.StatusCode.Should().Be(HttpStatusCode.OK);
+        _ = result.Should().BeEquivalentTo(expectedParties);
 
         // TODO: Should be handle by Spawner for restoring DB to previous state
         // Cleanup
         foreach (var party in expectedParties)
+        {
             await _client.DeleteAsync($"api/political-parties/{party.Id}");
+        }
     }
 }

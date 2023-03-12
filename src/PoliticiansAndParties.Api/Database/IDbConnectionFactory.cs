@@ -1,9 +1,8 @@
-﻿using System.Data;
-
-namespace PoliticiansAndParties.Api.Database;
+﻿namespace PoliticiansAndParties.Api.Database;
 
 public interface IDbConnectionFactory
 {
     Task<IDbConnection> CreateConnectionAsync();
+
     Task<IDbConnection> CreateMasterConnectionAsync();
 }

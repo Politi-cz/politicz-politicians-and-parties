@@ -1,8 +1,4 @@
-﻿using FluentAssertions;
-using System.Net;
-using System.Net.Http.Json;
-
-namespace PoliticiansAndParties.Api.Test.Integration.PoliticianController;
+﻿namespace PoliticiansAndParties.Api.Test.Integration.PoliticianController;
 
 public class CreatePoliticianControllerTests : IClassFixture<PoliticiansAndPartiesApiFactory>
 {
@@ -24,7 +20,8 @@ public class CreatePoliticianControllerTests : IClassFixture<PoliticiansAndParti
 
         // Act
         var createPoliticianResponse =
-            await _client.PostAsJsonAsync($"api/political-parties/{createdParty!.Id}/politician",
+            await _client.PostAsJsonAsync(
+                $"api/political-parties/{createdParty!.Id}/politician",
                 generatedPolitician);
         var createdPolitician =
             await createPoliticianResponse.Content.ReadFromJsonAsync<PoliticianDto>();
@@ -37,7 +34,8 @@ public class CreatePoliticianControllerTests : IClassFixture<PoliticiansAndParti
         createPoliticianResponse.StatusCode.Should().Be(HttpStatusCode.Created);
         getPoliticianResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
-        returnedPolitician.Should().BeEquivalentTo(createdPolitician,
+        returnedPolitician.Should().BeEquivalentTo(
+            createdPolitician,
             options => options
                 .Using<DateTime>(ctx =>
                     ctx.Subject.Should().BeCloseTo(ctx.Expectation, TimeSpan.FromMilliseconds(100)))
@@ -51,15 +49,17 @@ public class CreatePoliticianControllerTests : IClassFixture<PoliticiansAndParti
         var generatedPolitician = DataGenerator.GeneratePolitician();
         generatedPolitician.FacebookUrl = "invalidUrl";
 
-        var expectedError = new ErrorDetail("Validation error",
+        var expectedError = new ErrorDetail(
+            "Validation error",
             new Dictionary<string, string[]>
             {
-                { "FacebookUrl", new[] { "Must be a valid url." } }
+                { "FacebookUrl", new[] { "Must be a valid url." } },
             });
 
         // Act
         var createPoliticianResponse =
-            await _client.PostAsJsonAsync($"api/political-parties/{Guid.NewGuid()}/politician",
+            await _client.PostAsJsonAsync(
+                $"api/political-parties/{Guid.NewGuid()}/politician",
                 generatedPolitician);
         var errorDetails = await createPoliticianResponse.Content.ReadFromJsonAsync<ErrorDetail>();
 
@@ -79,7 +79,8 @@ public class CreatePoliticianControllerTests : IClassFixture<PoliticiansAndParti
 
         // Act
         var createPoliticianResponse =
-            await _client.PostAsJsonAsync($"api/political-parties/{nonExistingPartyId}/politician",
+            await _client.PostAsJsonAsync(
+                $"api/political-parties/{nonExistingPartyId}/politician",
                 generatedPolitician);
         var errorDetails = await createPoliticianResponse.Content.ReadFromJsonAsync<ErrorDetail>();
 

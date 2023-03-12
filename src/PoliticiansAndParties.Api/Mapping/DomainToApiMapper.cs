@@ -1,43 +1,30 @@
-﻿using PoliticiansAndParties.Api.Contracts.Responses;
-using PoliticiansAndParties.Api.Models;
-
-namespace PoliticiansAndParties.Api.Mapping;
+﻿namespace PoliticiansAndParties.Api.Mapping;
 
 public static class DomainToApiMapper
 {
-    public static PoliticianResponse ToPoliticianResponse(this Politician politician)
-    {
-        return new PoliticianResponse(
+    public static PoliticianResponse ToPoliticianResponse(this Politician politician) => new(
             politician.FrontEndId,
             politician.FullName,
             politician.BirthDate,
             politician.ImageUrl,
             politician.InstagramUrl,
             politician.TwitterUrl,
-            politician.FacebookUrl
-        );
-    }
+            politician.FacebookUrl);
 
-    public static PoliticalPartyResponse ToPoliticalPartyResponse(this PoliticalParty politicalParty)
+    public static PoliticalPartyResponse ToPoliticalPartyResponse(this PoliticalParty politicalParty) => new()
     {
-        return new PoliticalPartyResponse
-        {
-            Id = politicalParty.FrontEndId,
-            Name = politicalParty.Name,
-            ImageUrl = politicalParty.ImageUrl,
-            Politicians = politicalParty.Politicians.Select(x => x.ToPoliticianResponse()),
-            Tags = politicalParty.Tags
-        };
-    }
+        Id = politicalParty.FrontEndId,
+        Name = politicalParty.Name,
+        ImageUrl = politicalParty.ImageUrl,
+        Politicians = politicalParty.Politicians.Select(x => x.ToPoliticianResponse()),
+        Tags = politicalParty.Tags,
+    };
 
-    public static PartySideNavResponse ToPartySideNav(this PoliticalParty politicalParty)
+    public static PartySideNavResponse ToPartySideNav(this PoliticalParty politicalParty) => new()
     {
-        return new PartySideNavResponse
-        {
-            Id = politicalParty.FrontEndId,
-            ImageUrl = politicalParty.ImageUrl,
-            Name = politicalParty.Name,
-            Tags = politicalParty.Tags
-        };
-    }
+        Id = politicalParty.FrontEndId,
+        ImageUrl = politicalParty.ImageUrl,
+        Name = politicalParty.Name,
+        Tags = politicalParty.Tags,
+    };
 }

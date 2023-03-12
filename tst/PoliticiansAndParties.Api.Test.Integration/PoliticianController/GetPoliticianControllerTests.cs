@@ -1,8 +1,4 @@
-﻿using FluentAssertions;
-using System.Net;
-using System.Net.Http.Json;
-
-namespace PoliticiansAndParties.Api.Test.Integration.PoliticianController;
+﻿namespace PoliticiansAndParties.Api.Test.Integration.PoliticianController;
 
 public class GetPoliticianControllerTests : IClassFixture<PoliticiansAndPartiesApiFactory>
 {
@@ -23,20 +19,20 @@ public class GetPoliticianControllerTests : IClassFixture<PoliticiansAndPartiesA
         var createdParty = await createPartyResponse.Content.ReadFromJsonAsync<PoliticalPartyDto>();
 
         var createPoliticianResponse =
-            await _client.PostAsJsonAsync($"api/political-parties/{createdParty!.Id}/politician",
+            await _client.PostAsJsonAsync(
+                $"api/political-parties/{createdParty!.Id}/politician",
                 politician);
         var createdPolitician =
             await createPoliticianResponse.Content.ReadFromJsonAsync<PoliticianDto>();
-
 
         // Act
         var response =
             await _client.GetAsync($"api/political-parties/politician/{createdPolitician!.Id}");
 
-
         // Assert
         var politicianResponse = await response.Content.ReadFromJsonAsync<PoliticianDto>();
-        politicianResponse.Should().BeEquivalentTo(createdPolitician,
+        politicianResponse.Should().BeEquivalentTo(
+            createdPolitician,
             options => options
                 .Using<DateTime>(ctx =>
                     ctx.Subject.Should().BeCloseTo(ctx.Expectation, TimeSpan.FromMilliseconds(100)))
@@ -50,8 +46,7 @@ public class GetPoliticianControllerTests : IClassFixture<PoliticiansAndPartiesA
         // Act
         var response = await _client.GetAsync("api/political-parties/politician/" + Guid.NewGuid());
 
-
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+        _ = response.StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
 }

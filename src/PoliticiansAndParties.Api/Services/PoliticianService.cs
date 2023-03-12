@@ -1,9 +1,4 @@
-﻿using PoliticiansAndParties.Api.Logging;
-using PoliticiansAndParties.Api.Models;
-using PoliticiansAndParties.Api.Repositories;
-using PoliticiansAndParties.Api.Result;
-
-namespace PoliticiansAndParties.Api.Services;
+﻿namespace PoliticiansAndParties.Api.Services;
 
 public class PoliticianService : IPoliticianService
 {
@@ -11,7 +6,8 @@ public class PoliticianService : IPoliticianService
     private readonly IPoliticalPartyRepository _politicalPartyRepository;
     private readonly IPoliticianRepository _politicianRepository;
 
-    public PoliticianService(IPoliticianRepository politicianRepository,
+    public PoliticianService(
+        IPoliticianRepository politicianRepository,
         IPoliticalPartyRepository politicalPartyRepository,
         ILoggerAdapter<PoliticianService> logger)
     {
@@ -24,11 +20,11 @@ public class PoliticianService : IPoliticianService
     {
         _logger.LogDebug("Creating politician to a political party with id {id}", partyId);
 
-        var internalPartyId = await _politicalPartyRepository.GetInternalIdAsync(partyId);
+        int? internalPartyId = await _politicalPartyRepository.GetInternalIdAsync(partyId);
 
         if (internalPartyId is null)
         {
-            var msg = $"Political party with id {partyId} does not exist";
+            string msg = $"Political party with id {partyId} does not exist";
             _logger.LogWarn("Political party with id {partyId} does not exist", partyId);
 
             return new Result<Politician>(new ErrorDetail(msg));
@@ -45,7 +41,7 @@ public class PoliticianService : IPoliticianService
     public async Task<Result<Guid>> DeleteAsync(Guid frontEndId)
     {
         _logger.LogDebug("Deleting party with id {id}", frontEndId);
-        var deleted = await _politicianRepository.DeleteAsync(frontEndId);
+        bool deleted = await _politicianRepository.DeleteAsync(frontEndId);
 
         if (!deleted)
         {
@@ -63,7 +59,10 @@ public class PoliticianService : IPoliticianService
 
         var politician = await _politicianRepository.GetAsync(id);
 
-        if (politician is not null) return new Result<Politician>(politician);
+        if (politician is not null)
+        {
+            return new Result<Politician>(politician);
+        }
 
         _logger.LogWarn("Politician with id {id} not found", id);
         return new Result<Politician>(ErrorType.NotFound);
@@ -73,7 +72,7 @@ public class PoliticianService : IPoliticianService
     {
         _logger.LogDebug("Updating politician with id {id}", politician.FrontEndId);
 
-        var updated = await _politicianRepository.UpdateAsync(politician);
+        bool updated = await _politicianRepository.UpdateAsync(politician);
 
         if (!updated)
         {

@@ -1,13 +1,4 @@
-﻿using FluentValidation;
-using Microsoft.AspNetCore.Mvc;
-using PoliticiansAndParties.Api.Contracts.Requests;
-using PoliticiansAndParties.Api.Contracts.Responses;
-using PoliticiansAndParties.Api.Models;
-using PoliticiansAndParties.Api.Result;
-using PoliticiansAndParties.Api.Services;
-using PoliticiansAndParties.Api.Mapping;
-
-namespace PoliticiansAndParties.Api.Controllers;
+﻿namespace PoliticiansAndParties.Api.Controllers;
 
 [Route("api/political-parties")]
 [ApiController]
@@ -37,20 +28,25 @@ public class PoliticianController : ControllerBase
     [ProducesResponseType(201, Type = typeof(PoliticianResponse))]
     [ProducesResponseType(400, Type = typeof(ErrorDetail))]
     [ProducesResponseType(500, Type = typeof(ErrorDetail))]
-    public async Task<IActionResult> CreatePolitician([FromRoute] Guid partyId,
+    public async Task<IActionResult> CreatePolitician(
+        [FromRoute] Guid partyId,
         [FromBody] PoliticianRequest politicianRequest)
     {
         var validationResult = await _validator.ValidateAsync(politicianRequest);
 
         if (!validationResult.IsValid)
+        {
             return BadRequest(new ErrorDetail("Validation error", validationResult.ToDictionary()));
+        }
 
         var politician = politicianRequest.ToPolitician();
 
         var result = await _politicianService.CreateAsync(partyId, politician);
 
         if (result.IsError)
+        {
             return HandleErrorResult(result);
+        }
 
         var response = result.Data!.ToPoliticianResponse();
 
@@ -63,12 +59,14 @@ public class PoliticianController : ControllerBase
     [ProducesResponseType(404)]
     [ProducesResponseType(500, Type = typeof(ErrorDetail))]
     public async Task<IActionResult> UpdatePolitician(
-        [FromRoute] [FromBody] UpdatePoliticianRequest updatePoliticianRequest)
+        [FromRoute][FromBody] UpdatePoliticianRequest updatePoliticianRequest)
     {
         var validationResult = await _validator.ValidateAsync(updatePoliticianRequest.Request);
 
         if (!validationResult.IsValid)
+        {
             return BadRequest(new ErrorDetail("Validation error", validationResult.ToDictionary()));
+        }
 
         var politician = updatePoliticianRequest.ToPolitician();
         var result = await _politicianService.UpdateAsync(politician);
@@ -87,13 +85,12 @@ public class PoliticianController : ControllerBase
         return result.IsError ? HandleErrorResult(result) : Ok();
     }
 
-    private IActionResult HandleErrorResult<T>(Result<T> result)
+    private IActionResult HandleErrorResult<T>(Result<T> result) => result.ErrorType switch
     {
-        return result.ErrorType switch
-        {
-            ErrorType.Invalid => BadRequest(result.Error),
-            ErrorType.NotFound => NotFound(result.Error),
-            _ => StatusCode(500)
-        };
-    }
+        ErrorType.Invalid => BadRequest(result.Error),
+        ErrorType.NotFound => NotFound(result.Error),
+        ErrorType.None => throw new NotImplementedException(),
+        ErrorType.InternalError => throw new NotImplementedException(),
+        _ => StatusCode(500),
+    };
 }

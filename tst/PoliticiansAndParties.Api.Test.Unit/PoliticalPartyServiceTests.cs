@@ -1,7 +1,4 @@
-﻿using FluentValidation;
-using NSubstitute;
-
-namespace PoliticiansAndParties.Api.Test.Unit;
+﻿namespace PoliticiansAndParties.Api.Test.Unit;
 
 public class PoliticalPartyServiceTests
 {
@@ -14,17 +11,17 @@ public class PoliticalPartyServiceTests
     private readonly PoliticalPartyService _sut;
 
     public PoliticalPartyServiceTests() =>
-        _sut = new PoliticalPartyService(_politicianPartyRepository,
+        _sut = new PoliticalPartyService(
+            _politicianPartyRepository,
             new PoliticalPartyDtoValidator(),
             new UpdatePoliticalPartyDtoValidator(), _logger);
-
 
     public static IEnumerable<object[]> InvalidPoliticalPartyData =>
         new List<object[]>
         {
             new object[]
             {
-                new PoliticalPartyDto() // Empry political party
+                new PoliticalPartyDto(), // Empry political party
             },
             new object[]
             {
@@ -32,12 +29,13 @@ public class PoliticalPartyServiceTests
                 {
                     Name = "Party",
                     ImageUrl = "https://testimageurl.com/",
+
                     // Tags list empty
                     Politicians = new List<PoliticianDto>
                     {
-                        new() { FullName = "Test", BirthDate = DateTime.Now }
-                    }
-                }
+                        new() { FullName = "Test", BirthDate = DateTime.Now },
+                    },
+                },
             },
             new object[]
             {
@@ -45,9 +43,10 @@ public class PoliticalPartyServiceTests
                 {
                     Name = "Party",
                     ImageUrl = "https://testimageurl.com/",
-                    Tags = new HashSet<string> { "test" }
+                    Tags = new HashSet<string> { "test" },
+
                     // Politicians list empty
-                }
+                },
             },
             new object[]
             {
@@ -60,37 +59,38 @@ public class PoliticalPartyServiceTests
                     {
                         new() // Invalid politician dto
                         {
-                            BirthDate = DateTime.Now
-                        }
-                    }
-                }
+                            BirthDate = DateTime.Now,
+                        },
+                    },
+                },
             },
             new object[]
             {
                 new PoliticalPartyDto
                 {
-                    Name = "", // Empty party name
+                    Name = string.Empty, // Empty party name
                     ImageUrl = "https://testimageurl.com/",
                     Tags = new HashSet<string> { "test" },
                     Politicians = new List<PoliticianDto>
                     {
-                        new() { FullName = "Test", BirthDate = DateTime.Now }
-                    }
-                }
+                        new() { FullName = "Test", BirthDate = DateTime.Now },
+                    },
+                },
             },
             new object[]
             {
                 new PoliticalPartyDto
                 {
                     Name = "Test",
+
                     // missing image url
                     Tags = new HashSet<string> { "test" },
                     Politicians = new List<PoliticianDto>
                     {
-                        new() { FullName = "Test", BirthDate = DateTime.Now }
-                    }
-                }
-            }
+                        new() { FullName = "Test", BirthDate = DateTime.Now },
+                    },
+                },
+            },
         };
 
     [Fact]
@@ -108,22 +108,23 @@ public class PoliticalPartyServiceTests
                 new()
                 {
                     Id = 1,
-                    ImageUrl = "",
+                    ImageUrl = string.Empty,
                     FrontEndId = Guid.NewGuid(),
                     BirthDate = DateTime.Now,
                     InstagramUrl = "ig.com/pepaKarel",
                     FullName = "Pepa Karel",
-                    PoliticalPartyId = 1
-                }
-            }
+                    PoliticalPartyId = 1,
+                },
+            },
         };
 
         var expectedResult = politicalParty.ToPoliticalPartyDto();
 
-        _politicianPartyRepository.GetAsync(politicalParty.FrontEndId).Returns(politicalParty);
+        _ = _politicianPartyRepository.GetAsync(politicalParty.FrontEndId).Returns(politicalParty);
 
         // Act
         var result = await _sut.GetOneAsync(politicalParty.FrontEndId);
+
         // Assert
         result.Should().BeEquivalentTo(expectedResult);
     }
@@ -137,8 +138,9 @@ public class PoliticalPartyServiceTests
 
         // Act
         var result = await _sut.GetOneAsync(guid);
+
         // Assert
-        result.Should().BeNull();
+        _ = result.Should().BeNull();
         _logger.Received(1).LogWarn(Arg.Is("Political party with id {id} not found"), Arg.Is(guid));
     }
 
@@ -159,38 +161,39 @@ public class PoliticalPartyServiceTests
                     new()
                     {
                         Id = 1,
-                        ImageUrl = "",
+                        ImageUrl = string.Empty,
                         FrontEndId = Guid.NewGuid(),
                         BirthDate = DateTime.Now,
                         InstagramUrl = "ig.com/pepaKarel",
                         FullName = "Pepa Karel",
-                        PoliticalPartyId = 1
-                    }
-                }
+                        PoliticalPartyId = 1,
+                    },
+                },
             },
             new()
             {
-                Id = 2, FrontEndId = Guid.NewGuid(), ImageUrl = "img.com/2", Name = "Teeest"
-            }
+                Id = 2, FrontEndId = Guid.NewGuid(), ImageUrl = "img.com/2", Name = "Teeest",
+            },
         };
 
         var expectedResult = politicalParties.Select(x => x.ToPoliticalPartySideNavDto());
 
-        _politicianPartyRepository.GetAllAsync().Returns(politicalParties);
+        _ = _politicianPartyRepository.GetAllAsync().Returns(politicalParties);
 
         // Act
         var result = await _sut.GetAllAsync();
+
         // Assert
-        result.Should().BeEquivalentTo(expectedResult);
+        _ = result.Should().BeEquivalentTo(expectedResult);
     }
 
     [Fact]
     public async Task GetPoliticalPartiesAsync_ReturnsEmptyIEnumerable_WhenPartyDoesNotExist()
     {
         // Arrange
-        _politicianPartyRepository.GetAllAsync().Returns(Enumerable.Empty<PoliticalParty>());
-        // Act
+        _ = _politicianPartyRepository.GetAllAsync().Returns(Enumerable.Empty<PoliticalParty>());
 
+        // Act
         var result = await _sut.GetAllAsync();
 
         // Assert
@@ -203,14 +206,14 @@ public class PoliticalPartyServiceTests
         PoliticalPartyDto politicalPartyDto)
     {
         // Arrange
-        _politicianPartyRepository.ExistsByNameAsync(Arg.Any<string>()).Returns(false);
+        _ = _politicianPartyRepository.ExistsByNameAsync(Arg.Any<string>()).Returns(false);
         _politicianPartyRepository.CreateAsync(Arg.Any<PoliticalParty>()).Returns(false);
 
         // Act
         var act = async () => await _sut.CreateAsync(politicalPartyDto);
 
         // Assert
-        await act.Should().ThrowAsync<ValidationException>();
+        _ = await act.Should().ThrowAsync<ValidationException>();
     }
 
     [Fact]
@@ -224,11 +227,11 @@ public class PoliticalPartyServiceTests
             Tags = new HashSet<string> { "Test party" },
             Politicians = new List<PoliticianDto>
             {
-                new() { BirthDate = DateTime.Now, FullName = "Testing politician" }
-            }
+                new() { BirthDate = DateTime.Now, FullName = "Testing politician" },
+            },
         };
 
-        _politicianPartyRepository.ExistsByNameAsync(politicalPartyDto.Name).Returns(true);
+        _ = _politicianPartyRepository.ExistsByNameAsync(politicalPartyDto.Name).Returns(true);
         _politicianPartyRepository.CreateAsync(Arg.Any<PoliticalParty>()).Returns(false);
 
         // Act
@@ -252,12 +255,12 @@ public class PoliticalPartyServiceTests
             Tags = new HashSet<string> { "Test party" },
             Politicians = new List<PoliticianDto>
             {
-                new() { BirthDate = DateTime.Now, FullName = "Testing politician" }
-            }
+                new() { BirthDate = DateTime.Now, FullName = "Testing politician" },
+            },
         };
         var politicalParty = politicalPartyDto.ToPoliticalParty();
 
-        _politicianPartyRepository.ExistsByNameAsync(politicalPartyDto.Name).Returns(false);
+        _ = _politicianPartyRepository.ExistsByNameAsync(politicalPartyDto.Name).Returns(false);
         _politicianPartyRepository.CreateAsync(Arg.Do<PoliticalParty>(x => politicalParty = x))
             .Returns(true);
 
@@ -267,7 +270,8 @@ public class PoliticalPartyServiceTests
         // Assert
         result.Should().BeTrue();
         politicalPartyDto.Id.Should().Be(politicalParty.FrontEndId);
-        _logger.Received(1).LogInfo(Arg.Is("Political party with id {id} created"),
+        _logger.Received(1).LogInfo(
+            Arg.Is("Political party with id {id} created"),
             Arg.Is(politicalParty.FrontEndId));
     }
 
@@ -282,11 +286,11 @@ public class PoliticalPartyServiceTests
             Tags = new HashSet<string> { "Test party" },
             Politicians = new List<PoliticianDto>
             {
-                new() { BirthDate = DateTime.Now, FullName = "Testing politician" }
-            }
+                new() { BirthDate = DateTime.Now, FullName = "Testing politician" },
+            },
         };
 
-        _politicianPartyRepository.ExistsByNameAsync(politicalPartyDto.Name).Returns(false);
+        _ = _politicianPartyRepository.ExistsByNameAsync(politicalPartyDto.Name).Returns(false);
         _politicianPartyRepository.CreateAsync(Arg.Any<PoliticalParty>()).Returns(false);
 
         // Act
@@ -306,18 +310,19 @@ public class PoliticalPartyServiceTests
             Id = Guid.NewGuid(),
             Name = "updated party",
             ImageUrl = "https://test.com",
-            Tags = new HashSet<string> { "test" }
+            Tags = new HashSet<string> { "test" },
         };
 
-        _politicianPartyRepository.ExistsByNameAsync(updatePoliticalParty.Name).Returns(false);
-        _politicianPartyRepository.UpdateAsync(Arg.Any<PoliticalParty>()).Returns(true);
+        _ = _politicianPartyRepository.ExistsByNameAsync(updatePoliticalParty.Name).Returns(false);
+        _ = _politicianPartyRepository.UpdateAsync(Arg.Any<PoliticalParty>()).Returns(true);
 
         // Act
         var result = await _sut.UpdateAsync(updatePoliticalParty);
 
         // Assert
         result.Should().BeTrue();
-        _logger.Received(1).LogInfo(Arg.Is("Political party with id {id} updated"),
+        _logger.Received(1).LogInfo(
+            Arg.Is("Political party with id {id} updated"),
             Arg.Is(updatePoliticalParty.Id));
     }
 
@@ -327,13 +332,16 @@ public class PoliticalPartyServiceTests
         // Arrange
         var updatePoliticalParty = new UpdatePoliticalPartyDto
         {
-            Id = Guid.NewGuid(), Name = "updated party", ImageUrl = "https://test.com"
+            Id = Guid.NewGuid(),
+            Name = "updated party",
+            ImageUrl = "https://test.com",
         };
+
         // Act
         var act = async () => await _sut.UpdateAsync(updatePoliticalParty);
 
         // Assert
-        await act.Should().ThrowAsync<ValidationException>();
+        _ = await act.Should().ThrowAsync<ValidationException>();
     }
 
     [Fact]
@@ -345,18 +353,20 @@ public class PoliticalPartyServiceTests
             Id = Guid.NewGuid(),
             Name = "updated party",
             ImageUrl = "https://test.com",
-            Tags = new HashSet<string> { "test" }
+            Tags = new HashSet<string> { "test" },
         };
 
-        _politicianPartyRepository.ExistsByNameAsync(updatePoliticalParty.Name).Returns(true);
-        _politicianPartyRepository.UpdateAsync(Arg.Any<PoliticalParty>()).Returns(false);
+        _ = _politicianPartyRepository.ExistsByNameAsync(updatePoliticalParty.Name).Returns(true);
+        _ = _politicianPartyRepository.UpdateAsync(Arg.Any<PoliticalParty>()).Returns(false);
+
         // Act
         var act = async () => await _sut.UpdateAsync(updatePoliticalParty);
 
         // Assert
         await act.Should().ThrowAsync<ValidationException>()
             .WithMessage($"Political party with name {updatePoliticalParty.Name} already exists");
-        _logger.Received(1).LogWarn(Arg.Is("Political party with name {name} already exists"),
+        _logger.Received(1).LogWarn(
+            Arg.Is("Political party with name {name} already exists"),
             Arg.Is(updatePoliticalParty.Name));
     }
 
@@ -369,11 +379,11 @@ public class PoliticalPartyServiceTests
             Id = Guid.NewGuid(),
             Name = "updated party",
             ImageUrl = "https://test.com",
-            Tags = new HashSet<string> { "test" }
+            Tags = new HashSet<string> { "test" },
         };
 
-        _politicianPartyRepository.ExistsByNameAsync(updatePoliticalParty.Name).Returns(false);
-        _politicianPartyRepository.UpdateAsync(Arg.Any<PoliticalParty>()).Returns(false);
+        _ = _politicianPartyRepository.ExistsByNameAsync(updatePoliticalParty.Name).Returns(false);
+        _ = _politicianPartyRepository.UpdateAsync(Arg.Any<PoliticalParty>()).Returns(false);
 
         // Act
         var result = await _sut.UpdateAsync(updatePoliticalParty);
@@ -390,7 +400,7 @@ public class PoliticalPartyServiceTests
     {
         // Arrange
         var id = Guid.NewGuid();
-        _politicianPartyRepository.DeleteAsync(id).Returns(true);
+        _ = _politicianPartyRepository.DeleteAsync(id).Returns(true);
 
         // Act
         var result = await _sut.DeleteAsync(id);
@@ -405,14 +415,15 @@ public class PoliticalPartyServiceTests
     {
         // Arrange
         var id = Guid.NewGuid();
-        _politicianPartyRepository.DeleteAsync(id).Returns(false);
+        _ = _politicianPartyRepository.DeleteAsync(id).Returns(false);
 
         // Act
         var result = await _sut.DeleteAsync(id);
 
         // Assert
         result.Should().BeFalse();
-        _logger.Received(1).LogWarn(Arg.Is("Unable to delete party with id {id}, not found"),
+        _logger.Received(1).LogWarn(
+            Arg.Is("Unable to delete party with id {id}, not found"),
             Arg.Is(id));
     }
 }

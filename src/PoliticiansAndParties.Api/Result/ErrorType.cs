@@ -5,5 +5,5 @@ public enum ErrorType
     None,
     Invalid,
     NotFound,
-    InternalError
+    InternalError,
 }

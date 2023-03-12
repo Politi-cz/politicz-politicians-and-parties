@@ -1,17 +1,4 @@
-﻿using DotNet.Testcontainers.Builders;
-using DotNet.Testcontainers.Configurations;
-using DotNet.Testcontainers.Containers;
-using FluentMigrator;
-using FluentMigrator.Runner;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Mvc.Testing;
-using Microsoft.AspNetCore.TestHost;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
-using Microsoft.Extensions.Logging;
-using System.Reflection;
-
-namespace PoliticiansAndParties.Api.Test.Integration;
+﻿namespace PoliticiansAndParties.Api.Test.Integration;
 
 // TODO: In the future instead of creating a docker container for each test class create collection fixture
 // for each controller. So for example PoliticalPartyController will have one collection fixture running only 1 docker container
@@ -35,23 +22,24 @@ public class PoliticiansAndPartiesApiFactory : WebApplicationFactory<IApiMarker>
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         // TODO: Figure out what to do with logging, (rewatch the course)
-        builder.ConfigureLogging(logging => { logging.ClearProviders(); });
+        _ = builder.ConfigureLogging(logging => { _ = logging.ClearProviders(); });
 
         string? masterConnectionString = _dbContainer.ConnectionString;
         masterConnectionString += "TrustServerCertificate=True;";
         string defaultConnectionString =
             masterConnectionString.Replace("master", "politicz-politicians-and-parties");
+
         // TODO: Try to add appsettings.json conf file for tests
-        builder.ConfigureTestServices(services =>
+        _ = builder.ConfigureTestServices(services =>
         {
-            services.RemoveAll(typeof(IDbConnectionFactory));
-            services.AddSingleton<IDbConnectionFactory>(_ =>
-                new SqlServerConnectionFactory(new ConnectionStrings(masterConnectionString,
+            _ = services.RemoveAll(typeof(IDbConnectionFactory));
+            _ = services.AddSingleton<IDbConnectionFactory>(_ =>
+                new SqlServerConnectionFactory(new ConnectionStrings(
+                    masterConnectionString,
                     defaultConnectionString)));
 
-
-            services.RemoveAll(typeof(IMigrationProcessor));
-            services.AddLogging(c => c.AddFluentMigratorConsole())
+            _ = services.RemoveAll(typeof(IMigrationProcessor));
+            _ = services.AddLogging(c => c.AddFluentMigratorConsole())
                 .AddFluentMigratorCore()
                 .ConfigureRunner(c => c.AddSqlServer()
                     .WithGlobalConnectionString(defaultConnectionString)

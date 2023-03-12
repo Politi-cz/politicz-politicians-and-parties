@@ -1,8 +1,4 @@
-﻿using FluentAssertions;
-using System.Net;
-using System.Net.Http.Json;
-
-namespace PoliticiansAndParties.Api.Test.Integration.PoliticalPartyController;
+﻿namespace PoliticiansAndParties.Api.Test.Integration.PoliticalPartyController;
 
 public class CreatePoliticalPartyControllerTests : IClassFixture<PoliticiansAndPartiesApiFactory>
 {
@@ -28,7 +24,8 @@ public class CreatePoliticalPartyControllerTests : IClassFixture<PoliticiansAndP
         createPartyResponse.StatusCode.Should().Be(HttpStatusCode.Created);
         getPartyResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
-        createdParty.Should().BeEquivalentTo(returnedParty,
+        createdParty.Should().BeEquivalentTo(
+            returnedParty,
             options => options
                 .Using<DateTime>(ctx =>
                     ctx.Subject.Should().BeCloseTo(ctx.Expectation, TimeSpan.FromMilliseconds(100)))
@@ -44,8 +41,8 @@ public class CreatePoliticalPartyControllerTests : IClassFixture<PoliticiansAndP
         {
             Errors = new Dictionary<string, string[]>
             {
-                { "Politicians", new[] { "'Politicians' must not be empty." } }
-            }
+                { "Politicians", new[] { "'Politicians' must not be empty." } },
+            },
         };
 
         generatedParty.Politicians =
@@ -75,8 +72,8 @@ public class CreatePoliticalPartyControllerTests : IClassFixture<PoliticiansAndP
                 {
                     "Name",
                     new[] { $"Political party with name {generatedParty.Name} already exists" }
-                }
-            }
+                },
+            },
         };
 
         // Act

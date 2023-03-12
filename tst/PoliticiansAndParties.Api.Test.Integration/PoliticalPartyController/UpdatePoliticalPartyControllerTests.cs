@@ -1,8 +1,4 @@
-﻿using FluentAssertions;
-using System.Net;
-using System.Net.Http.Json;
-
-namespace PoliticiansAndParties.Api.Test.Integration.PoliticalPartyController;
+﻿namespace PoliticiansAndParties.Api.Test.Integration.PoliticalPartyController;
 
 public class UpdatePoliticalPartyControllerTests : IClassFixture<PoliticiansAndPartiesApiFactory>
 {
@@ -22,9 +18,9 @@ public class UpdatePoliticalPartyControllerTests : IClassFixture<PoliticiansAndP
 
         var updatedParty = new UpdatePoliticalPartyDto
         {
-            Name = "", // Invalid, empty name
+            Name = string.Empty, // Invalid, empty name
             ImageUrl = "https://newTestUrl.com",
-            Tags = new HashSet<string>() // Empty set, invalid
+            Tags = new HashSet<string>(), // Empty set, invalid
         };
 
         var expectedResponse = new ErrorDetail("Validation error")
@@ -32,8 +28,8 @@ public class UpdatePoliticalPartyControllerTests : IClassFixture<PoliticiansAndP
             Errors = new Dictionary<string, string[]>
             {
                 { "Name", new[] { "'Name' must not be empty." } },
-                { "Tags", new[] { "'Tags' must not be empty." } }
-            }
+                { "Tags", new[] { "'Tags' must not be empty." } },
+            },
         };
 
         // Act
@@ -62,14 +58,16 @@ public class UpdatePoliticalPartyControllerTests : IClassFixture<PoliticiansAndP
                 {
                     "Name",
                     new[] { $"Political party with name {generatedParty.Name} already exists" }
-                }
-            }
+                },
+            },
         };
 
         var partyData = DataGenerator.GeneratePoliticalParty();
         var updatedParty = new UpdatePoliticalPartyDto
         {
-            Name = createdParty!.Name, ImageUrl = partyData.ImageUrl, Tags = partyData.Tags
+            Name = createdParty!.Name,
+            ImageUrl = partyData.ImageUrl,
+            Tags = partyData.Tags,
         };
 
         // Act
@@ -88,13 +86,16 @@ public class UpdatePoliticalPartyControllerTests : IClassFixture<PoliticiansAndP
         // Arrange
         var nonExistingParty = new UpdatePoliticalPartyDto
         {
-            Name = "test", ImageUrl = "https://test.com", Tags = new HashSet<string> { "Name" }
+            Name = "test",
+            ImageUrl = "https://test.com",
+            Tags = new HashSet<string> { "Name" },
         };
         var nonExistingGuid = Guid.NewGuid();
 
         // Act
         var updatePartyResponse =
-            await _client.PutAsJsonAsync($"api/political-parties/{nonExistingGuid}",
+            await _client.PutAsJsonAsync(
+                $"api/political-parties/{nonExistingGuid}",
                 nonExistingParty);
 
         // Assert
@@ -117,7 +118,7 @@ public class UpdatePoliticalPartyControllerTests : IClassFixture<PoliticiansAndP
             Id = createdParty!.Id,
             Name = "Updated name",
             ImageUrl = "https://updastedurl.com",
-            Tags = updatedTags
+            Tags = updatedTags,
         };
 
         // Act

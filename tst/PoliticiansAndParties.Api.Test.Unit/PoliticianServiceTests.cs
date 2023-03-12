@@ -1,6 +1,4 @@
-﻿using NSubstitute;
-
-namespace PoliticiansAndParties.Api.Test.Unit;
+﻿namespace PoliticiansAndParties.Api.Test.Unit;
 
 public class PoliticianServiceTests
 {
@@ -16,9 +14,7 @@ public class PoliticianServiceTests
     private readonly PoliticianService _sut;
 
     public PoliticianServiceTests() =>
-        _sut = new PoliticianService(_politicianRepository, _politicalPartyRepository,
-            new PoliticianDtoValidator(),
-            _logger);
+        _sut = new PoliticianService(_politicianRepository, _politicalPartyRepository, new PoliticianDtoValidator(), _logger);
 
     public static IEnumerable<object[]> InvalidPoliticianData =>
         new List<object[]>
@@ -29,11 +25,11 @@ public class PoliticianServiceTests
                 new PoliticianDto
                 {
                     BirthDate = new DateTime(2000, 12, 10),
-                    FullName = "", // Validation error
+                    FullName = string.Empty, // Validation error
                     FacebookUrl = "https://facebook.com/test",
                     TwitterUrl = "https://twitter.com/test",
-                    InstagramUrl = "https://instagram.com/test"
-                }
+                    InstagramUrl = "https://instagram.com/test",
+                },
             },
             new object[]
             {
@@ -43,8 +39,8 @@ public class PoliticianServiceTests
                     FullName = "Karel",
                     FacebookUrl = "https://facebook.com/test",
                     TwitterUrl = "https://twitter.com/test",
-                    InstagramUrl = "https://instagram.com/test"
-                }
+                    InstagramUrl = "https://instagram.com/test",
+                },
             },
             new object[]
             {
@@ -52,8 +48,8 @@ public class PoliticianServiceTests
                 {
                     BirthDate = new DateTime(2000, 12, 10),
                     FullName = "Karel",
-                    FacebookUrl = "htt://facebook.com/test" // Invalid url
-                }
+                    FacebookUrl = "htt://facebook.com/test", // Invalid url
+                },
             },
             new object[]
             {
@@ -61,8 +57,8 @@ public class PoliticianServiceTests
                 {
                     BirthDate = new DateTime(2000, 12, 10),
                     FullName = "Karel",
-                    InstagramUrl = "fdsafasd" // Invalid url
-                }
+                    InstagramUrl = "fdsafasd", // Invalid url
+                },
             },
             new object[]
             {
@@ -70,9 +66,9 @@ public class PoliticianServiceTests
                 {
                     BirthDate = new DateTime(2000, 12, 10),
                     FullName = "Karel",
-                    TwitterUrl = "dsfsdsss" // Invalid url
-                }
-            }
+                    TwitterUrl = "dsfsdsss", // Invalid url
+                },
+            },
         };
 
     [Fact]
@@ -86,16 +82,16 @@ public class PoliticianServiceTests
             BirthDate = DateTime.Now,
             ImageUrl = "https://newimage.com",
             FullName = "Petr Koller",
-            PoliticalPartyId = 25
+            PoliticalPartyId = 25,
         };
         var expected = new Result<Politician>(existingPolitician);
-        _politicianRepository.GetAsync(existingPolitician.FrontEndId).Returns(existingPolitician);
+        _ = _politicianRepository.GetAsync(existingPolitician.FrontEndId).Returns(existingPolitician);
 
         // Act
         var result = await _sut.GetAsync(existingPolitician.FrontEndId);
 
         // Assert
-        result.Should().BeEquivalentTo(expected);
+        _ = result.Should().BeEquivalentTo(expected);
     }
 
     [Fact]
@@ -103,17 +99,16 @@ public class PoliticianServiceTests
     {
         // Arrange
         var guid = Guid.NewGuid();
-        _politicianRepository.GetAsync(guid).ReturnsNull();
+        _ = _politicianRepository.GetAsync(guid).ReturnsNull();
         var expected = new Result<Politician>(ErrorType.NotFound);
 
         // Act
         var result = await _sut.GetAsync(guid);
 
         // Assert
-        result.Should().BeEquivalentTo(expected);
+        _ = result.Should().BeEquivalentTo(expected);
         _logger.Received(1).LogWarn(Arg.Is("Politician with id {id} not found"), Arg.Is(guid));
     }
-
 
     [Fact]
     public async Task CreateAsync_ReturnsErrorResult_WhenParentPoliticalPartyDoesNotExist()
@@ -124,11 +119,11 @@ public class PoliticianServiceTests
             FullName = "Test User",
             BirthDate = DateTime.Now,
             ImageUrl = "https://newimage.com",
-            FrontEndId = Guid.NewGuid()
+            FrontEndId = Guid.NewGuid(),
         };
         var nonExistingPartyId = Guid.NewGuid();
 
-        _politicalPartyRepository.GetInternalIdAsync(nonExistingPartyId).ReturnsNull();
+        _ = _politicalPartyRepository.GetInternalIdAsync(nonExistingPartyId).ReturnsNull();
         var expectedResult =
             new Result<Politician>(
                 new ErrorDetail($"Political party with id {nonExistingPartyId} does not exist"));
@@ -137,8 +132,9 @@ public class PoliticianServiceTests
         var result = await _sut.CreateAsync(nonExistingPartyId, politician);
 
         // Assert
-        result.Should().BeEquivalentTo(expectedResult);
-        _logger.Received(1).LogWarn(Arg.Is("Political party with id {partyId} does not exist"),
+        _ = result.Should().BeEquivalentTo(expectedResult);
+        _logger.Received(1).LogWarn(
+            Arg.Is("Political party with id {partyId} does not exist"),
             Arg.Is(nonExistingPartyId));
     }
 
@@ -154,22 +150,23 @@ public class PoliticianServiceTests
             ImageUrl = "https://newimage.com",
             InstagramUrl = "https://ig.com/tst",
             Id = 1,
-            PoliticalPartyId = 5
+            PoliticalPartyId = 5,
         };
 
         var expectedResult = new Result<Politician>(politician);
         var politicalPartyGuid = Guid.NewGuid();
 
-        _politicalPartyRepository.GetInternalIdAsync(politicalPartyGuid)
+        _ = _politicalPartyRepository.GetInternalIdAsync(politicalPartyGuid)
             .Returns(politician.PoliticalPartyId);
-        _politicianRepository.CreateOneAsync(Arg.Any<Politician>()).Returns(politician);
+        _ = _politicianRepository.CreateOneAsync(Arg.Any<Politician>()).Returns(politician);
 
         // Act
         var created = await _sut.CreateAsync(politicalPartyGuid, politician);
 
         // Assert
-        created.Should().BeEquivalentTo(expectedResult);
-        _logger.Received(1).LogInfo(Arg.Is("Politician with id {id} created"),
+        _ = created.Should().BeEquivalentTo(expectedResult);
+        _logger.Received(1).LogInfo(
+            Arg.Is("Politician with id {id} created"),
             Arg.Is(politician.FrontEndId));
     }
 
@@ -182,18 +179,19 @@ public class PoliticianServiceTests
             BirthDate = DateTime.Now,
             ImageUrl = "https://newimage.com",
             FrontEndId = Guid.NewGuid(),
-            FullName = "Test"
+            FullName = "Test",
         };
         var expected = new Result<Politician>(politician);
 
-        _politicianRepository.UpdateAsync(Arg.Any<Politician>()).Returns(true);
+        _ = _politicianRepository.UpdateAsync(Arg.Any<Politician>()).Returns(true);
 
         // Act
         var result = await _sut.UpdateAsync(politician);
 
         // Assert
-        result.Should().BeEquivalentTo(expected);
-        _logger.Received(1).LogInfo(Arg.Is("Politician with id {id} updated"),
+        _ = result.Should().BeEquivalentTo(expected);
+        _logger.Received(1).LogInfo(
+            Arg.Is("Politician with id {id} updated"),
             Arg.Is(politician.FrontEndId));
     }
 
@@ -206,18 +204,19 @@ public class PoliticianServiceTests
             FrontEndId = Guid.NewGuid(),
             ImageUrl = "https://newimage.com",
             BirthDate = DateTime.Now,
-            FullName = "Test"
+            FullName = "Test",
         };
         var expected = new Result<Politician>(ErrorType.NotFound);
 
-        _politicianRepository.UpdateAsync(Arg.Any<Politician>()).Returns(false);
+        _ = _politicianRepository.UpdateAsync(Arg.Any<Politician>()).Returns(false);
 
         // Act
         var result = await _sut.UpdateAsync(politician);
 
         // Assert
-        result.Should().BeEquivalentTo(expected);
-        _logger.Received(1).LogWarn(Arg.Is("Politician with id {id} not found"),
+        _ = result.Should().BeEquivalentTo(expected);
+        _logger.Received(1).LogWarn(
+            Arg.Is("Politician with id {id} not found"),
             Arg.Is(politician.FrontEndId));
     }
 
@@ -226,14 +225,14 @@ public class PoliticianServiceTests
     {
         // Arrange
         var id = Guid.NewGuid();
-        _politicianRepository.DeleteAsync(id).Returns(true);
+        _ = _politicianRepository.DeleteAsync(id).Returns(true);
         var expected = new Result<Guid>(id);
 
         // Act
         var result = await _sut.DeleteAsync(id);
 
         // Assert
-        result.Should().BeEquivalentTo(expected);
+        _ = result.Should().BeEquivalentTo(expected);
         _logger.Received(1).LogInfo(Arg.Is("Politician with id {id} deleted"), Arg.Is(id));
     }
 
@@ -242,14 +241,14 @@ public class PoliticianServiceTests
     {
         // Arrange
         var id = Guid.NewGuid();
-        _politicianRepository.DeleteAsync(id).Returns(false);
+        _ = _politicianRepository.DeleteAsync(id).Returns(false);
         var expected = new Result<Guid>(ErrorType.NotFound);
 
         // Act
         var result = await _sut.DeleteAsync(id);
 
         // Assert
-        result.Should().BeEquivalentTo(expected);
+        _ = result.Should().BeEquivalentTo(expected);
         _logger.Received(1).LogWarn(Arg.Is("Politician with id {id} not found"), Arg.Is(id));
     }
 }

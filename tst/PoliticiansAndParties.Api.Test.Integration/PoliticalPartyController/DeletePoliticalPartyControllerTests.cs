@@ -1,8 +1,4 @@
-﻿using FluentAssertions;
-using System.Net;
-using System.Net.Http.Json;
-
-namespace PoliticiansAndParties.Api.Test.Integration.PoliticalPartyController;
+﻿namespace PoliticiansAndParties.Api.Test.Integration.PoliticalPartyController;
 
 public class DeletePoliticalPartyControllerTests : IClassFixture<PoliticiansAndPartiesApiFactory>
 {
@@ -45,6 +41,6 @@ public class DeletePoliticalPartyControllerTests : IClassFixture<PoliticiansAndP
             await _client.DeleteAsync($"api/political-parties/{nonExistingPartyId}");
 
         // Assert
-        deletePartyResponse.StatusCode.Should().Be(HttpStatusCode.NotFound);
+        _ = deletePartyResponse.StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
 }

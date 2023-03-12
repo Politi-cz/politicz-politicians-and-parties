@@ -1,8 +1,4 @@
-﻿using FluentAssertions;
-using System.Net;
-using System.Net.Http.Json;
-
-namespace PoliticiansAndParties.Api.Test.Integration.PoliticalPartyController;
+﻿namespace PoliticiansAndParties.Api.Test.Integration.PoliticalPartyController;
 
 public class GetPoliticalPartyControllerTests : IClassFixture<PoliticiansAndPartiesApiFactory>
 {
@@ -26,7 +22,8 @@ public class GetPoliticalPartyControllerTests : IClassFixture<PoliticiansAndPart
 
         // Assert
         var result = await response.Content.ReadFromJsonAsync<PoliticalPartyDto>();
-        result.Should().BeEquivalentTo(createdParty,
+        result.Should().BeEquivalentTo(
+            createdParty,
             options => options
                 .Using<DateTime>(ctx =>
                     ctx.Subject.Should().BeCloseTo(ctx.Expectation, TimeSpan.FromMilliseconds(100)))
@@ -39,7 +36,8 @@ public class GetPoliticalPartyControllerTests : IClassFixture<PoliticiansAndPart
     {
         // Act
         var response = await _client.GetAsync("api/political-parties/" + Guid.NewGuid());
+
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+        _ = response.StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
 }

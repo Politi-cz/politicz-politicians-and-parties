@@ -1,6 +1,4 @@
-﻿using Bogus;
-
-namespace PoliticiansAndParties.Api.Test.Integration;
+﻿namespace PoliticiansAndParties.Api.Test.Integration;
 
 public static class DataGenerator
 {
@@ -20,7 +18,8 @@ public static class DataGenerator
         .RuleFor(x => x.TwitterUrl, "https://randomtwurl.com")
         .RuleFor(x => x.Id, Guid.NewGuid());
 
-    public static IEnumerable<PoliticalPartyDto> GeneratePoliticalParties(int count = 10,
+    public static IEnumerable<PoliticalPartyDto> GeneratePoliticalParties(
+        int count = 10,
         int maxPoliticiansInParty = 20)
     {
         var parties = _partyGenerator.Generate(count);

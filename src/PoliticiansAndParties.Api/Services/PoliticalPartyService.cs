@@ -1,13 +1,4 @@
-﻿using FluentValidation;
-using PoliticiansAndParties.Api.Dtos;
-using PoliticiansAndParties.Api.Logging;
-using PoliticiansAndParties.Api.Models;
-using PoliticiansAndParties.Api.Repositories;
-using PoliticiansAndParties.Api.Result;
-using PoliticiansAndParties.Api.Validators;
-using PoliticiansAndParties.Api.Mapping;
-
-namespace PoliticiansAndParties.Api.Services;
+﻿namespace PoliticiansAndParties.Api.Services;
 
 public class PoliticalPartyService : IPoliticalPartyService
 {
@@ -15,7 +6,8 @@ public class PoliticalPartyService : IPoliticalPartyService
     private readonly IPoliticalPartyRepository _politicalPartyRepository;
     private readonly IValidator<UpdatePoliticalPartyDto> _updatePoliticalPartyValidator;
 
-    public PoliticalPartyService(IPoliticalPartyRepository politicalPartyRepository,
+    public PoliticalPartyService(
+        IPoliticalPartyRepository politicalPartyRepository,
         IValidator<UpdatePoliticalPartyDto> updatePartyValidator,
         ILoggerAdapter<PoliticalPartyService> logger)
     {
@@ -28,7 +20,7 @@ public class PoliticalPartyService : IPoliticalPartyService
     {
         _logger.LogDebug("Creating a political party");
 
-        var partyExists = await _politicalPartyRepository.ExistsByNameAsync(politicalParty.Name);
+        bool partyExists = await _politicalPartyRepository.ExistsByNameAsync(politicalParty.Name);
 
         if (partyExists)
         {
@@ -53,10 +45,10 @@ public class PoliticalPartyService : IPoliticalPartyService
         {
             _logger.LogWarn("Political party with id {id} not found", id);
 
-            return new Result<PoliticalParty>(new ErrorDetail($"Political party with id {id} not found"),
+            return new Result<PoliticalParty>(
+                new ErrorDetail($"Political party with id {id} not found"),
                 ErrorType.NotFound);
         }
-
 
         return new Result<PoliticalParty>(politicalParty);
     }
@@ -64,13 +56,14 @@ public class PoliticalPartyService : IPoliticalPartyService
     public async Task<Result<Guid>> DeleteAsync(Guid partyId)
     {
         _logger.LogDebug("Deleting party with id {id}", partyId);
-        var deleted = await _politicalPartyRepository.DeleteAsync(partyId);
+        bool deleted = await _politicalPartyRepository.DeleteAsync(partyId);
 
         if (!deleted)
         {
             _logger.LogWarn("Unable to delete party with id {id}, not found", partyId);
 
-            return new Result<Guid>(new ErrorDetail($"Political party with id {partyId} not found"),
+            return new Result<Guid>(
+                new ErrorDetail($"Political party with id {partyId} not found"),
                 ErrorType.NotFound);
         }
 
@@ -92,20 +85,21 @@ public class PoliticalPartyService : IPoliticalPartyService
 
         _updatePoliticalPartyValidator.ValidateAndThrow(updatePoliticalParty);
 
-        var partyExists = await _politicalPartyRepository.ExistsByNameAsync(updatePoliticalParty.Name);
+        bool partyExists = await _politicalPartyRepository.ExistsByNameAsync(updatePoliticalParty.Name);
 
         if (partyExists)
         {
             _logger.LogWarn("Political party with name {name} already exists", updatePoliticalParty.Name);
 
-            var msg = $"Political party with name {updatePoliticalParty.Name} already exists";
-            throw new ValidationException(msg,
+            string msg = $"Political party with name {updatePoliticalParty.Name} already exists";
+            throw new ValidationException(
+                msg,
                 HelperValidatorMethods.GenerateValidationError(nameof(updatePoliticalParty.Name), msg));
         }
 
         var politicalParty = updatePoliticalParty.ToPoliticalParty();
 
-        var updated = await _politicalPartyRepository.UpdateAsync(politicalParty);
+        bool updated = await _politicalPartyRepository.UpdateAsync(politicalParty);
 
         if (!updated)
         {

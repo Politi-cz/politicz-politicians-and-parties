@@ -1,8 +1,4 @@
-﻿using FluentAssertions;
-using System.Net;
-using System.Net.Http.Json;
-
-namespace PoliticiansAndParties.Api.Test.Integration.PoliticianController;
+﻿namespace PoliticiansAndParties.Api.Test.Integration.PoliticianController;
 
 public class DeletePoliticianControllerTests : IClassFixture<PoliticiansAndPartiesApiFactory>
 {
@@ -22,7 +18,8 @@ public class DeletePoliticianControllerTests : IClassFixture<PoliticiansAndParti
 
         var generatedPolitician = DataGenerator.GeneratePolitician();
         var createPoliticianResponse =
-            await _client.PostAsJsonAsync($"api/political-parties/{createdParty!.Id}/politician",
+            await _client.PostAsJsonAsync(
+                $"api/political-parties/{createdParty!.Id}/politician",
                 generatedPolitician);
         var createdPolitician =
             await createPoliticianResponse.Content.ReadFromJsonAsync<PoliticianDto>();
@@ -53,6 +50,6 @@ public class DeletePoliticianControllerTests : IClassFixture<PoliticiansAndParti
                 $"api/political-parties/politician/{nonExistingPoliticianId}");
 
         // Assert
-        deletePoliticianResponse.StatusCode.Should().Be(HttpStatusCode.NotFound);
+        _ = deletePoliticianResponse.StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
 }

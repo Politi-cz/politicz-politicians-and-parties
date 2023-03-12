@@ -1,18 +1,10 @@
-﻿using System.Net;
-using FluentValidation;
-using PoliticiansAndParties.Api.Logging;
-using PoliticiansAndParties.Api.Models;
-
-namespace PoliticiansAndParties.Api.Middleware;
+﻿namespace PoliticiansAndParties.Api.Middleware;
 
 public class ExceptionHandlingMiddleware
 {
     private readonly RequestDelegate _next;
 
-    public ExceptionHandlingMiddleware(RequestDelegate next)
-    {
-        _next = next;
-    }
+    public ExceptionHandlingMiddleware(RequestDelegate next) => _next = next;
 
     public async Task InvokeAsync(HttpContext context, ILoggerAdapter<ExceptionHandlingMiddleware> logger)
     {
@@ -40,8 +32,7 @@ public class ExceptionHandlingMiddleware
         var errors = exception.Errors.GroupBy(x => x.PropertyName)
             .ToDictionary(
                 g => g.Key,
-                g => g.Select(x => x.ErrorMessage).ToArray()
-            );
+                g => g.Select(x => x.ErrorMessage).ToArray());
 
         return new ErrorDetail("Validation error", errors);
     }
