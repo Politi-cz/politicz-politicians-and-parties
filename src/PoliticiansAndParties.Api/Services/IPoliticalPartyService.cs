@@ -6,33 +6,33 @@ public interface IPoliticalPartyService
     ///     Creates a political party.
     /// </summary>
     /// <param name="politicalParty">Political party to create.</param>
-    /// <returns>Result of the operation.</returns>
-    Task<Result<PoliticalParty>> CreateAsync(PoliticalParty politicalParty);
+    /// <returns>Discriminated union <see cref="ResultOrFailure{T}"/>.</returns>
+    Task<ResultOrFailure<PoliticalParty>> Create(PoliticalParty politicalParty);
 
     /// <summary>
     ///     Gets a political party.
     /// </summary>
     /// <param name="id">Id of a party.</param>
-    /// <returns>Result of the operation.</returns>
-    Task<Result<PoliticalParty>> GetOneAsync(Guid id);
+    /// <returns>Discriminated union <see cref="ResultOrNotFound{T}"/>.</returns>
+    Task<ResultOrNotFound<PoliticalParty>> GetOne(Guid id);
 
     /// <summary>
     ///     Gets all political parties.
     /// </summary>
-    /// <returns>Result of the operation.</returns>
-    Task<Result<IEnumerable<PoliticalParty>>> GetAllAsync();
+    /// <returns>Political parties.</returns>
+    Task<IEnumerable<PoliticalParty>> GetAll();
 
     /// <summary>
     ///     Updates a political party.
     /// </summary>
-    /// <param name="updatePoliticalParty">Updated political party.</param>
-    /// <returns>Result of the operation.</returns>
-    Task<Result<PoliticalParty>> UpdateAsync(UpdatePoliticalPartyDto updatePoliticalParty);
+    /// <param name="politicalParty">Updated political party.</param>
+    /// <returns>Discriminated union <see cref="ResultNotFoundOrFailure{T}"/>.</returns>
+    Task<ResultNotFoundOrFailure<PoliticalParty>> UpdateAsync(PoliticalParty politicalParty);
 
     /// <summary>
     ///     Deletes a political party.
     /// </summary>
     /// <param name="partyId">Id of a party.</param>
-    /// <returns>Result of the operation.</returns>
-    Task<Result<Guid>> DeleteAsync(Guid partyId);
+    /// <returns>Discriminated union <see cref="SuccessOrNotFound"/>.</returns>
+    Task<SuccessOrNotFound> Delete(Guid partyId);
 }

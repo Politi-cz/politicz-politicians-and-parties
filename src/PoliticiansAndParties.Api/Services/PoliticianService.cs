@@ -16,72 +16,62 @@ public class PoliticianService : IPoliticianService
         _logger = logger;
     }
 
-    public async Task<Result<Politician>> CreateAsync(Guid partyId, Politician politician)
+    public async Task<ResultOrFailure<Politician>> Create(Guid partyId, Politician politician)
     {
-        _logger.LogDebug("Creating politician to a political party with id {id}", partyId);
+        _logger.LogDebug("Creating politician to a political party with id {Id}", partyId);
 
-        int? internalPartyId = await _politicalPartyRepository.GetInternalIdAsync(partyId);
+        var getIdResult = await _politicalPartyRepository.GetInternalId(partyId);
 
-        if (internalPartyId is null)
+        if (getIdResult.TryPickT1(out _, out int internalId))
         {
-            string msg = $"Political party with id {partyId} does not exist";
             _logger.LogWarn("Political party with id {partyId} does not exist", partyId);
 
-            return new Result<Politician>(new ErrorDetail(msg));
+            return new Failure($"Political party with id {partyId} does not exist");
         }
 
-        politician.PoliticalPartyId = (int)internalPartyId;
+        politician.PoliticalPartyId = internalId;
 
-        var created = await _politicianRepository.CreateOneAsync(politician);
-        _logger.LogInfo("Politician with id {id} created", politician.FrontEndId);
+        var created = await _politicianRepository.CreateOne(politician);
+        _logger.LogInfo("Politician with id {Id} created", politician.FrontEndId);
 
-        return new Result<Politician>(created);
+        return created;
     }
 
-    public async Task<Result<Guid>> DeleteAsync(Guid frontEndId)
+    public async Task<SuccessOrNotFound> Delete(Guid frontEndId)
     {
-        _logger.LogDebug("Deleting party with id {id}", frontEndId);
-        bool deleted = await _politicianRepository.DeleteAsync(frontEndId);
+        _logger.LogDebug("Deleting party with id {Id}", frontEndId);
+        var result = await _politicianRepository.Delete(frontEndId);
 
-        if (!deleted)
-        {
-            _logger.LogWarn("Politician with id {id} not found", frontEndId);
-            return new Result<Guid>(ErrorType.NotFound);
-        }
+        result.Switch(
+            _ => _logger.LogInfo("Politician with id {Id} deleted", frontEndId),
+            _ => _logger.LogWarn("Politician with id {Id} not found", frontEndId));
 
-        _logger.LogInfo("Politician with id {id} deleted", frontEndId);
-        return new Result<Guid>(frontEndId);
+        return result;
     }
 
-    public async Task<Result<Politician>> GetAsync(Guid id)
+    public async Task<ResultOrNotFound<Politician>> Get(Guid id)
     {
-        _logger.LogDebug("Getting politician with id {id}", id);
+        _logger.LogDebug("Getting politician with id {Id}", id);
 
-        var politician = await _politicianRepository.GetAsync(id);
+        var result = await _politicianRepository.Get(id);
 
-        if (politician is not null)
-        {
-            return new Result<Politician>(politician);
-        }
+        result.Switch(
+            _ => _logger.LogDebug("Got politician with id {Id}", id),
+            _ => _logger.LogWarn("Politician with id {Id} not found", id));
 
-        _logger.LogWarn("Politician with id {id} not found", id);
-        return new Result<Politician>(ErrorType.NotFound);
+        return result;
     }
 
-    public async Task<Result<Politician>> UpdateAsync(Politician politician)
+    public async Task<ResultOrNotFound<Politician>> Update(Politician politician)
     {
-        _logger.LogDebug("Updating politician with id {id}", politician.FrontEndId);
+        _logger.LogDebug("Updating politician with id {Id}", politician.FrontEndId);
 
-        bool updated = await _politicianRepository.UpdateAsync(politician);
+        var result = await _politicianRepository.Update(politician);
 
-        if (!updated)
-        {
-            _logger.LogWarn("Politician with id {id} not found", politician.FrontEndId);
-            return new Result<Politician>(ErrorType.NotFound);
-        }
+        result.Switch(
+            _ => _logger.LogInfo("Politician with id {Id} updated", politician.FrontEndId),
+            _ => _logger.LogWarn("Politician with id {Id} not found", politician.FrontEndId));
 
-        _logger.LogInfo("Politician with id {id} updated", politician.FrontEndId);
-
-        return new Result<Politician>(politician);
+        return result;
     }
 }

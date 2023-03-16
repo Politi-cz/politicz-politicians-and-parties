@@ -13,9 +13,9 @@ public class PoliticalPartyRepository : IPoliticalPartyRepository
         _logger = logger;
     }
 
-    public async Task<IEnumerable<PoliticalParty>> GetAllAsync()
+    public async Task<IEnumerable<PoliticalParty>> GetAll()
     {
-        using var connection = await _connectionFactory.CreateConnectionAsync();
+        using var connection = await _connectionFactory.CreateConnection();
 
         const string sql = @"SELECT pp.Id, pp.FrontEndId, pp.[Name], pp.[ImageUrl], t.[Name] FROM PoliticalParties pp
                         INNER JOIN PoliticalParties_Tags pt ON pp.Id = pt.PoliticalPartyId
@@ -43,9 +43,9 @@ public class PoliticalPartyRepository : IPoliticalPartyRepository
         return politicalParties;
     }
 
-    public async Task<PoliticalParty?> GetAsync(Guid frontEndId)
+    public async Task<ResultOrNotFound<PoliticalParty>> GetOne(Guid frontEndId)
     {
-        using var connection = await _connectionFactory.CreateConnectionAsync();
+        using var connection = await _connectionFactory.CreateConnection();
 
         const string sql =
             @"SELECT pp.Id, pp.FrontEndId, [Name], [ImageUrl], p.Id, p.FrontEndId, BirthDate, FullName, InstagramUrl, TwitterUrl, FacebookUrl, PoliticalPartyId
@@ -76,26 +76,30 @@ public class PoliticalPartyRepository : IPoliticalPartyRepository
         // FrontEndId is specified in WHERE clausule so at most 1 result should exist if there is more than one throw exception
         var politicalParty = politicalParties.SingleOrDefault();
 
-        if (politicalParty is not null)
+        if (politicalParty is null)
         {
-            politicalParty.Tags = await LoadTags(politicalParty.Id, connection);
+            return default(NotFound);
         }
+
+        politicalParty.Tags = await LoadTags(politicalParty.Id, connection);
 
         return politicalParty;
     }
 
-    public async Task<int?> GetInternalIdAsync(Guid frontEndId)
+    public async Task<ResultOrNotFound<int>> GetInternalId(Guid frontEndId)
     {
-        using var connection = await _connectionFactory.CreateConnectionAsync();
+        using var connection = await _connectionFactory.CreateConnection();
 
         const string sql = "SELECT Id FROM PoliticalParties WHERE FrontEndId = @FrontEndId";
 
-        return await connection.QuerySingleOrDefaultAsync<int?>(sql, new { FrontEndId = frontEndId });
+        int id = await connection.QuerySingleOrDefaultAsync<int>(sql, new { FrontEndId = frontEndId });
+
+        return id == 0 ? default(NotFound) : id;
     }
 
-    public async Task<bool> ExistsByNameAsync(string partyName)
+    public async Task<bool> ExistsByName(string partyName)
     {
-        using var connection = await _connectionFactory.CreateConnectionAsync();
+        using var connection = await _connectionFactory.CreateConnection();
 
         const string sql = "SELECT COUNT(1) FROM PoliticalParties WHERE Name = @Name";
 
@@ -104,46 +108,47 @@ public class PoliticalPartyRepository : IPoliticalPartyRepository
         return result > 0;
     }
 
-    public async Task<bool> UpdateAsync(PoliticalParty politicalParty)
+    public async Task<ResultOrNotFound<PoliticalParty>> Update(PoliticalParty politicalParty)
     {
-        using var connection = await _connectionFactory.CreateConnectionAsync();
+        const string sql = @"UPDATE PoliticalParties SET Name = @Name, ImageUrl = @ImageUrl
+                             OUTPUT INSERTED.*
+                             WHERE FrontEndId = @FrontEndId";
+
+        using var connection = await _connectionFactory.CreateConnection();
         using var transaction = connection.BeginTransaction();
 
         try
         {
-            int updatedPartyId = await transaction.Connection.QuerySingleOrDefaultAsync<int>(
-                "UPDATE PoliticalParties SET Name = @Name, ImageUrl = @ImageUrl OUTPUT INSERTED.Id WHERE FrontEndId = @FrontEndId",
-                politicalParty,
-                transaction);
+            var updatedParty = await transaction.Connection.QuerySingleOrDefaultAsync<PoliticalParty>(sql, politicalParty, transaction);
 
-            if (updatedPartyId == 0)
+            if (updatedParty is null)
             {
-                _logger.LogWarn("Political party with id {id} not found", politicalParty.FrontEndId);
+                _logger.LogWarn("Political party with id {Id} not found", politicalParty.FrontEndId);
+                transaction.Rollback();
 
-                transaction.Commit();
-                return false;
+                return default(NotFound);
             }
 
-            politicalParty.Id = updatedPartyId;
-            var tagIds = await CreateTagsRecords(politicalParty, transaction);
+            updatedParty.Tags = politicalParty.Tags;
+            var tagIds = await CreateTagsRecords(updatedParty, transaction);
 
-            await DeleteDanglingTags(politicalParty.Id, tagIds, transaction);
+            await DeleteDanglingTags(updatedParty.Id, tagIds, transaction);
             transaction.Commit();
 
-            return true;
+            return updatedParty;
         }
         catch (SqlException e)
         {
-            _logger.LogError(e, "Unable updating party with id {id}", politicalParty.Id);
+            _logger.LogError(e, "Unable updating party with id {Id}", politicalParty.Id);
             transaction.Rollback();
 
             throw;
         }
     }
 
-    public async Task<bool> DeleteAsync(Guid partyId)
+    public async Task<SuccessOrNotFound> Delete(Guid partyId)
     {
-        using var connection = await _connectionFactory.CreateConnectionAsync();
+        using var connection = await _connectionFactory.CreateConnection();
         using var transaction = connection.BeginTransaction();
 
         try
@@ -160,26 +165,26 @@ public class PoliticalPartyRepository : IPoliticalPartyRepository
 
             if (result == 0)
             {
-                _logger.LogWarn("Political party with id {id} not found", partyId);
+                _logger.LogWarn("Political party with id {Id} not found", partyId);
                 transaction.Rollback();
 
-                return false;
+                return default(NotFound);
             }
 
             transaction.Commit();
-            return result > 0;
+            return default(Success);
         }
         catch (SqlException e)
         {
-            _logger.LogError(e, "Unable to delete party with id {id}", partyId);
+            _logger.LogError(e, "Unable to delete party with id {Id}", partyId);
             transaction.Rollback();
             throw;
         }
     }
 
-    public async Task<PoliticalParty> CreateAsync(PoliticalParty politicalParty)
+    public async Task<PoliticalParty> Create(PoliticalParty politicalParty)
     {
-        using var connection = await _connectionFactory.CreateConnectionAsync();
+        using var connection = await _connectionFactory.CreateConnection();
         using var transaction = connection.BeginTransaction();
 
         try
@@ -193,7 +198,7 @@ public class PoliticalPartyRepository : IPoliticalPartyRepository
 
             politicalParty.Politicians.ForEach(x => x.PoliticalPartyId = politicalParty.Id);
 
-            _ = await _politicianRepository.CreateAllAsync(politicalParty.Politicians, transaction);
+            _ = await _politicianRepository.CreateAll(politicalParty.Politicians, transaction);
 
             transaction.Commit();
             return politicalParty;
@@ -263,7 +268,7 @@ public class PoliticalPartyRepository : IPoliticalPartyRepository
     {
         int tagId = await transaction.Connection.QuerySingleAsync<int>(
             "INSERT INTO Tags (Name) OUTPUT INSERTED.Id VALUES (@Name)", new { Name = tag }, transaction);
-        _logger.LogDebug("Created tag with id {id}", tagId);
+        _logger.LogDebug("Created tag with id {Id}", tagId);
 
         return tagId;
     }

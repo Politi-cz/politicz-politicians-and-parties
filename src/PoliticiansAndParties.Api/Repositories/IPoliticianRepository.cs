@@ -2,13 +2,39 @@
 
 public interface IPoliticianRepository
 {
-    Task<Politician?> GetAsync(Guid frontEndId);
+    /// <summary>
+    /// Gets a <see cref="Politician"/>.
+    /// </summary>
+    /// <param name="frontEndId">Front-end id of <see cref="Politician"/>.</param>
+    /// <returns>Discriminated union <see cref="ResultOrNotFound{T}"/>.</returns>
+    Task<ResultOrNotFound<Politician>> Get(Guid frontEndId);
 
-    Task<Politician> CreateOneAsync(Politician politician);
+    /// <summary>
+    /// Creates a <see cref="Politician"/>.
+    /// </summary>
+    /// <param name="politician"><see cref="Politician"/> to create.</param>
+    /// <returns>Created <see cref="Politician"/>.</returns>
+    Task<Politician> CreateOne(Politician politician);
 
-    Task<bool> CreateAllAsync(IEnumerable<Politician> politicians, IDbTransaction transaction);
+    /// <summary>
+    /// Creates <see cref="IEnumerable{T}"/> of <see cref="Politician"/>.
+    /// </summary>
+    /// <param name="politicians">Politicians to create.</param>
+    /// <param name="transaction">Transaction.</param>
+    /// <returns>True/false if politicians were created.</returns>
+    Task<bool> CreateAll(IEnumerable<Politician> politicians, IDbTransaction transaction);
 
-    Task<bool> UpdateAsync(Politician politician);
+    /// <summary>
+    /// Updates a <see cref="Politician"/>.
+    /// </summary>
+    /// <param name="politician">Updated <see cref="Politician"/>.</param>
+    /// <returns>Discriminated union <see cref="ResultOrNotFound{T}"/>.</returns>
+    Task<ResultOrNotFound<Politician>> Update(Politician politician);
 
-    Task<bool> DeleteAsync(Guid frontEndId);
+    /// <summary>
+    /// Deletes a <see cref="Politician"/>.
+    /// </summary>
+    /// <param name="frontEndId">Front-end id of <see cref="Politician"/>.</param>
+    /// <returns>Discriminated union <see cref="SuccessOrNotFound"/>.</returns>
+    Task<SuccessOrNotFound> Delete(Guid frontEndId);
 }

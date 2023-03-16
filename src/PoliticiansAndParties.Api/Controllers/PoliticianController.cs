@@ -15,19 +15,17 @@ public class PoliticianController : ControllerBase
 
     [HttpGet("politician/{id:guid}")]
     [ProducesResponseType(200, Type = typeof(PoliticianResponse))]
-    [ProducesResponseType(404)]
-    [ProducesResponseType(500, Type = typeof(ErrorDetail))]
     public async Task<IActionResult> GetPolitician([FromRoute] Guid id)
     {
-        var result = await _politicianService.GetAsync(id);
+        var result = await _politicianService.Get(id);
 
-        return result.IsError ? HandleErrorResult(result) : Ok(result.Data!.ToPoliticianResponse());
+        return result.Match<IActionResult>(
+        success => Ok(success.ToPoliticianResponse()),
+        _ => CreateNotFoundResponse(id));
     }
 
     [HttpPost("{partyId:guid}/politician")]
     [ProducesResponseType(201, Type = typeof(PoliticianResponse))]
-    [ProducesResponseType(400, Type = typeof(ErrorDetail))]
-    [ProducesResponseType(500, Type = typeof(ErrorDetail))]
     public async Task<IActionResult> CreatePolitician(
         [FromRoute] Guid partyId,
         [FromBody] PoliticianRequest politicianRequest)
@@ -41,56 +39,44 @@ public class PoliticianController : ControllerBase
 
         var politician = politicianRequest.ToPolitician();
 
-        var result = await _politicianService.CreateAsync(partyId, politician);
+        var result = await _politicianService.Create(partyId, politician);
 
-        if (result.IsError)
-        {
-            return HandleErrorResult(result);
-        }
-
-        var response = result.Data!.ToPoliticianResponse();
-
-        return CreatedAtAction(nameof(GetPolitician), new { id = response.Id }, response);
+        return result.Match<IActionResult>(
+            success => CreatedAtAction(nameof(GetPolitician), new { id = success.FrontEndId }, success.ToPoliticianResponse()),
+            failure => BadRequest(new ErrorDetail(failure.Message)));
     }
 
     [HttpPut("politician/{id:guid}")]
     [ProducesResponseType(200, Type = typeof(PoliticianResponse))]
-    [ProducesResponseType(400, Type = typeof(ErrorDetail))]
-    [ProducesResponseType(404)]
-    [ProducesResponseType(500, Type = typeof(ErrorDetail))]
-    public async Task<IActionResult> UpdatePolitician(
-        [FromRoute][FromBody] UpdatePoliticianRequest updatePoliticianRequest)
+    public async Task<IActionResult> UpdatePolitician([FromRoute] Guid id, [FromBody] PoliticianRequest updatePoliticianRequest)
     {
-        var validationResult = await _validator.ValidateAsync(updatePoliticianRequest.Request);
+        var validationResult = await _validator.ValidateAsync(updatePoliticianRequest);
 
         if (!validationResult.IsValid)
         {
             return BadRequest(new ErrorDetail("Validation error", validationResult.ToDictionary()));
         }
 
-        var politician = updatePoliticianRequest.ToPolitician();
-        var result = await _politicianService.UpdateAsync(politician);
+        var politician = updatePoliticianRequest.ToPolitician(id);
+        var result = await _politicianService.Update(politician);
 
-        return result.IsError ? HandleErrorResult(result) : Ok(politician.ToPoliticianResponse());
+        return result.Match<IActionResult>(
+            success => Ok(success.ToPoliticianResponse()),
+            _ => CreateNotFoundResponse(id));
     }
 
     [HttpDelete("politician/{politicianId:guid}")]
     [ProducesResponseType(200)]
-    [ProducesResponseType(404)]
-    [ProducesResponseType(500, Type = typeof(ErrorDetail))]
     public async Task<IActionResult> DeletePolitician([FromRoute] Guid politicianId)
     {
-        var result = await _politicianService.DeleteAsync(politicianId);
+        var result = await _politicianService.Delete(politicianId);
 
-        return result.IsError ? HandleErrorResult(result) : Ok();
+        return result.Match<IActionResult>(
+            _ => Ok(),
+            _ => CreateNotFoundResponse(politicianId));
     }
 
-    private IActionResult HandleErrorResult<T>(Result<T> result) => result.ErrorType switch
-    {
-        ErrorType.Invalid => BadRequest(result.Error),
-        ErrorType.NotFound => NotFound(result.Error),
-        ErrorType.None => throw new NotImplementedException(),
-        ErrorType.InternalError => throw new NotImplementedException(),
-        _ => StatusCode(500),
-    };
+    // TODO: Create a controller class from which will other controllers will inherit and that class will contains these generic responses like this one
+    private NotFoundObjectResult CreateNotFoundResponse(Guid entityId) =>
+        NotFound(new ErrorDetail($"Politician with id {entityId} not found"));
 }

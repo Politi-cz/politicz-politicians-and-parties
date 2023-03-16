@@ -6,20 +6,20 @@ public class PoliticianRepository : IPoliticianRepository
 
     public PoliticianRepository(IDbConnectionFactory connectionFactory) => _connectionFactory = connectionFactory;
 
-    public async Task<Politician> CreateOneAsync(Politician politician)
+    public async Task<Politician> CreateOne(Politician politician)
     {
         const string sql =
             @"INSERT INTO Politicians (FrontEndId, BirthDate, FullName, InstagramUrl, TwitterUrl, FacebookUrl, PoliticalPartyId)
                         OUTPUT INSERTED.*
                         VALUES (@FrontEndId, @BirthDate, @FullName, @InstagramUrl, @TwitterUrl, @FacebookUrl, @PoliticalPartyId)";
 
-        using var connection = await _connectionFactory.CreateConnectionAsync();
+        using var connection = await _connectionFactory.CreateConnection();
 
         return await connection.QuerySingleAsync<Politician>(sql, politician);
     }
 
     // TODO: Pass IdbConnection as parametr, pass another parameter for transaction as IDbTransaction? and set default value to null so it can be used without specifying the transaction
-    public async Task<bool> CreateAllAsync(IEnumerable<Politician> politicians, IDbTransaction transaction)
+    public async Task<bool> CreateAll(IEnumerable<Politician> politicians, IDbTransaction transaction)
     {
         const string sql =
             @"INSERT INTO Politicians (FrontEndId, BirthDate, FullName, InstagramUrl, TwitterUrl, FacebookUrl, PoliticalPartyId)
@@ -30,34 +30,37 @@ public class PoliticianRepository : IPoliticianRepository
         return result > 0;
     }
 
-    public async Task<Politician?> GetAsync(Guid id)
+    public async Task<ResultOrNotFound<Politician>> Get(Guid id)
     {
-        using var connection = await _connectionFactory.CreateConnectionAsync();
+        using var connection = await _connectionFactory.CreateConnection();
 
-        return await connection.QuerySingleOrDefaultAsync<Politician>(
+        var politician = await connection.QuerySingleOrDefaultAsync<Politician>(
             "SELECT * FROM Politicians WHERE FrontEndId = @FrontEndId", new { FrontEndId = id });
+
+        return politician is null ? default(NotFound) : politician;
     }
 
-    public async Task<bool> UpdateAsync(Politician politician)
+    public async Task<ResultOrNotFound<Politician>> Update(Politician politician)
     {
         const string sql = @"UPDATE Politicians
                         SET BirthDate = @BirthDate, FullName = @FullName, InstagramUrl = @InstagramUrl, TwitterUrl = @TwitterUrl, FacebookUrl = @FacebookUrl
+                        OUTPUT INSERTED.*
                         WHERE FrontEndId = @FrontEndId";
 
-        using var connection = await _connectionFactory.CreateConnectionAsync();
-        int result = await connection.ExecuteAsync(sql, politician);
+        using var connection = await _connectionFactory.CreateConnection();
+        var result = await connection.QuerySingleOrDefaultAsync<Politician>(sql, politician);
 
-        return result > 0;
+        return result is null ? default(NotFound) : result;
     }
 
-    public async Task<bool> DeleteAsync(Guid frontEndId)
+    public async Task<SuccessOrNotFound> Delete(Guid frontEndId)
     {
         const string sql = @"DELETE FROM Politicians
                         WHERE FrontEndId = @FrontEndId";
 
-        using var connection = await _connectionFactory.CreateConnectionAsync();
+        using var connection = await _connectionFactory.CreateConnection();
         int result = await connection.ExecuteAsync(sql, new { FrontEndId = frontEndId });
 
-        return result > 0;
+        return result > 0 ? default(Success) : default(NotFound);
     }
 }

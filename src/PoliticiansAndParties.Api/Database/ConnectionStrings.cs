@@ -12,26 +12,3 @@ public readonly struct ConnectionStrings
 
     public string SqlConnection { get; }
 }
-
-public class SqlServerConnectionFactory : IDbConnectionFactory
-{
-    private readonly ConnectionStrings _connectionStrings;
-
-    public SqlServerConnectionFactory(ConnectionStrings connectionStrings) => _connectionStrings = connectionStrings;
-
-    public async Task<IDbConnection> CreateConnectionAsync()
-    {
-        var connection = new SqlConnection(_connectionStrings.SqlConnection);
-        await connection.OpenAsync();
-
-        return connection;
-    }
-
-    public async Task<IDbConnection> CreateMasterConnectionAsync()
-    {
-        var connection = new SqlConnection(_connectionStrings.MasterConnection);
-        await connection.OpenAsync();
-
-        return connection;
-    }
-}

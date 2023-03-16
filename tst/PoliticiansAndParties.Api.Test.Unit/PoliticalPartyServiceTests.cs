@@ -120,10 +120,10 @@ public class PoliticalPartyServiceTests
 
         var expectedResult = politicalParty.ToPoliticalPartyDto();
 
-        _ = _politicianPartyRepository.GetAsync(politicalParty.FrontEndId).Returns(politicalParty);
+        _ = _politicianPartyRepository.GetOne(politicalParty.FrontEndId).Returns(politicalParty);
 
         // Act
-        var result = await _sut.GetOneAsync(politicalParty.FrontEndId);
+        var result = await _sut.GetOne(politicalParty.FrontEndId);
 
         // Assert
         result.Should().BeEquivalentTo(expectedResult);
@@ -134,10 +134,10 @@ public class PoliticalPartyServiceTests
     {
         // Arrange
         var guid = Guid.NewGuid();
-        _politicianPartyRepository.GetAsync(guid).ReturnsNull();
+        _politicianPartyRepository.GetOne(guid).ReturnsNull();
 
         // Act
-        var result = await _sut.GetOneAsync(guid);
+        var result = await _sut.GetOne(guid);
 
         // Assert
         _ = result.Should().BeNull();
@@ -178,10 +178,10 @@ public class PoliticalPartyServiceTests
 
         var expectedResult = politicalParties.Select(x => x.ToPoliticalPartySideNavDto());
 
-        _ = _politicianPartyRepository.GetAllAsync().Returns(politicalParties);
+        _ = _politicianPartyRepository.GetAll().Returns(politicalParties);
 
         // Act
-        var result = await _sut.GetAllAsync();
+        var result = await _sut.GetAll();
 
         // Assert
         _ = result.Should().BeEquivalentTo(expectedResult);
@@ -191,10 +191,10 @@ public class PoliticalPartyServiceTests
     public async Task GetPoliticalPartiesAsync_ReturnsEmptyIEnumerable_WhenPartyDoesNotExist()
     {
         // Arrange
-        _ = _politicianPartyRepository.GetAllAsync().Returns(Enumerable.Empty<PoliticalParty>());
+        _ = _politicianPartyRepository.GetAll().Returns(Enumerable.Empty<PoliticalParty>());
 
         // Act
-        var result = await _sut.GetAllAsync();
+        var result = await _sut.GetAll();
 
         // Assert
         result.Should().BeEmpty();
@@ -206,11 +206,11 @@ public class PoliticalPartyServiceTests
         PoliticalPartyDto politicalPartyDto)
     {
         // Arrange
-        _ = _politicianPartyRepository.ExistsByNameAsync(Arg.Any<string>()).Returns(false);
-        _politicianPartyRepository.CreateAsync(Arg.Any<PoliticalParty>()).Returns(false);
+        _ = _politicianPartyRepository.ExistsByName(Arg.Any<string>()).Returns(false);
+        _politicianPartyRepository.Create(Arg.Any<PoliticalParty>()).Returns(false);
 
         // Act
-        var act = async () => await _sut.CreateAsync(politicalPartyDto);
+        var act = async () => await _sut.Create(politicalPartyDto);
 
         // Assert
         _ = await act.Should().ThrowAsync<ValidationException>();
@@ -231,11 +231,11 @@ public class PoliticalPartyServiceTests
             },
         };
 
-        _ = _politicianPartyRepository.ExistsByNameAsync(politicalPartyDto.Name).Returns(true);
-        _politicianPartyRepository.CreateAsync(Arg.Any<PoliticalParty>()).Returns(false);
+        _ = _politicianPartyRepository.ExistsByName(politicalPartyDto.Name).Returns(true);
+        _politicianPartyRepository.Create(Arg.Any<PoliticalParty>()).Returns(false);
 
         // Act
-        var act = async () => await _sut.CreateAsync(politicalPartyDto);
+        var act = async () => await _sut.Create(politicalPartyDto);
 
         // Assert
         await act.Should().ThrowAsync<ValidationException>()
@@ -260,12 +260,12 @@ public class PoliticalPartyServiceTests
         };
         var politicalParty = politicalPartyDto.ToPoliticalParty();
 
-        _ = _politicianPartyRepository.ExistsByNameAsync(politicalPartyDto.Name).Returns(false);
-        _politicianPartyRepository.CreateAsync(Arg.Do<PoliticalParty>(x => politicalParty = x))
+        _ = _politicianPartyRepository.ExistsByName(politicalPartyDto.Name).Returns(false);
+        _politicianPartyRepository.Create(Arg.Do<PoliticalParty>(x => politicalParty = x))
             .Returns(true);
 
         // Act
-        var result = await _sut.CreateAsync(politicalPartyDto);
+        var result = await _sut.Create(politicalPartyDto);
 
         // Assert
         result.Should().BeTrue();
@@ -290,11 +290,11 @@ public class PoliticalPartyServiceTests
             },
         };
 
-        _ = _politicianPartyRepository.ExistsByNameAsync(politicalPartyDto.Name).Returns(false);
-        _politicianPartyRepository.CreateAsync(Arg.Any<PoliticalParty>()).Returns(false);
+        _ = _politicianPartyRepository.ExistsByName(politicalPartyDto.Name).Returns(false);
+        _politicianPartyRepository.Create(Arg.Any<PoliticalParty>()).Returns(false);
 
         // Act
-        var result = await _sut.CreateAsync(politicalPartyDto);
+        var result = await _sut.Create(politicalPartyDto);
 
         // Assert
         result.Should().BeFalse();
@@ -313,8 +313,8 @@ public class PoliticalPartyServiceTests
             Tags = new HashSet<string> { "test" },
         };
 
-        _ = _politicianPartyRepository.ExistsByNameAsync(updatePoliticalParty.Name).Returns(false);
-        _ = _politicianPartyRepository.UpdateAsync(Arg.Any<PoliticalParty>()).Returns(true);
+        _ = _politicianPartyRepository.ExistsByName(updatePoliticalParty.Name).Returns(false);
+        _ = _politicianPartyRepository.Update(Arg.Any<PoliticalParty>()).Returns(true);
 
         // Act
         var result = await _sut.UpdateAsync(updatePoliticalParty);
@@ -356,8 +356,8 @@ public class PoliticalPartyServiceTests
             Tags = new HashSet<string> { "test" },
         };
 
-        _ = _politicianPartyRepository.ExistsByNameAsync(updatePoliticalParty.Name).Returns(true);
-        _ = _politicianPartyRepository.UpdateAsync(Arg.Any<PoliticalParty>()).Returns(false);
+        _ = _politicianPartyRepository.ExistsByName(updatePoliticalParty.Name).Returns(true);
+        _ = _politicianPartyRepository.Update(Arg.Any<PoliticalParty>()).Returns(false);
 
         // Act
         var act = async () => await _sut.UpdateAsync(updatePoliticalParty);
@@ -382,8 +382,8 @@ public class PoliticalPartyServiceTests
             Tags = new HashSet<string> { "test" },
         };
 
-        _ = _politicianPartyRepository.ExistsByNameAsync(updatePoliticalParty.Name).Returns(false);
-        _ = _politicianPartyRepository.UpdateAsync(Arg.Any<PoliticalParty>()).Returns(false);
+        _ = _politicianPartyRepository.ExistsByName(updatePoliticalParty.Name).Returns(false);
+        _ = _politicianPartyRepository.Update(Arg.Any<PoliticalParty>()).Returns(false);
 
         // Act
         var result = await _sut.UpdateAsync(updatePoliticalParty);
@@ -400,10 +400,10 @@ public class PoliticalPartyServiceTests
     {
         // Arrange
         var id = Guid.NewGuid();
-        _ = _politicianPartyRepository.DeleteAsync(id).Returns(true);
+        _ = _politicianPartyRepository.Delete(id).Returns(true);
 
         // Act
-        var result = await _sut.DeleteAsync(id);
+        var result = await _sut.Delete(id);
 
         // Assert
         result.Should().BeTrue();
@@ -415,10 +415,10 @@ public class PoliticalPartyServiceTests
     {
         // Arrange
         var id = Guid.NewGuid();
-        _ = _politicianPartyRepository.DeleteAsync(id).Returns(false);
+        _ = _politicianPartyRepository.Delete(id).Returns(false);
 
         // Act
-        var result = await _sut.DeleteAsync(id);
+        var result = await _sut.Delete(id);
 
         // Assert
         result.Should().BeFalse();

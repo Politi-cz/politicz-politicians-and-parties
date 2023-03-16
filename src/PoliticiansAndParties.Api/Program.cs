@@ -1,4 +1,4 @@
-// TODO: Change it to logger configuration in appsetings.json
+// TODO: Change it to logger configuration in upsettings.json
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()
     .MinimumLevel.Debug()
@@ -10,10 +10,11 @@ builder.Configuration.AddEnvironmentVariables("PoliticalPartiesApi_");
 builder.Host.UseSerilog();
 
 // Add services to the container.
+// TODO: Add secret manager for a local development
 builder.Services.AddSingleton<IDbConnectionFactory>(new SqlServerConnectionFactory(
     new ConnectionStrings(
-        builder.Configuration.GetConnectionString("MasterConnection"),
-        builder.Configuration.GetConnectionString("DefaultConnection"))));
+        builder.Configuration.GetConnectionString("MasterConnection")!,
+        builder.Configuration.GetConnectionString("DefaultConnection")!)));
 builder.Services.AddSingleton<DatabaseInitializer>();
 builder.Services.AddScoped<IPoliticianRepository, PoliticianRepository>();
 builder.Services.AddScoped<IPoliticianService, PoliticianService>();
@@ -32,7 +33,16 @@ builder.Services.AddLogging(c => c.AddFluentMigratorConsole())
         .ScanIn(Assembly.GetExecutingAssembly()).For.All());
 
 builder.Services.AddCors();
-builder.Services.AddControllers();
+builder.Services.AddControllers(options =>
+{
+    options.Filters.Add(new ProducesAttribute("application/json"));
+    options.Filters.Add(
+        new ProducesResponseTypeAttribute(typeof(ErrorDetail), (int)HttpStatusCode.BadRequest));
+    options.Filters.Add(
+        new ProducesResponseTypeAttribute(typeof(ErrorDetail), (int)HttpStatusCode.NotFound));
+    options.Filters.Add(
+        new ProducesResponseTypeAttribute(typeof(ErrorDetail), (int)HttpStatusCode.InternalServerError));
+});
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
@@ -56,12 +66,12 @@ app.UseMiddleware<ExceptionHandlingMiddleware>();
 app.MapControllers();
 
 var databaseInitializer = app.Services.GetRequiredService<DatabaseInitializer>();
-await databaseInitializer.InitializeAsync(builder.Configuration.GetValue<string>("Database"));
+await databaseInitializer.Initialize(builder.Configuration.GetValue<string>("Database")!);
 
 using var scope = app.Services.CreateScope();
 var runner = scope.ServiceProvider.GetRequiredService<IMigrationRunner>();
 
-runner!.ListMigrations();
+runner.ListMigrations();
 runner.MigrateUp();
 
 app.Run();

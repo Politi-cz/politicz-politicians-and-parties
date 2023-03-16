@@ -2,7 +2,7 @@
 
 public interface IDbConnectionFactory
 {
-    Task<IDbConnection> CreateConnectionAsync();
+    Task<IDbConnection> CreateConnection();
 
-    Task<IDbConnection> CreateMasterConnectionAsync();
+    Task<IDbConnection> CreateMasterConnection();
 }

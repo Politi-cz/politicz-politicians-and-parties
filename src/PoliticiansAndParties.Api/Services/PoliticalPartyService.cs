@@ -4,110 +4,90 @@ public class PoliticalPartyService : IPoliticalPartyService
 {
     private readonly ILoggerAdapter<PoliticalPartyService> _logger;
     private readonly IPoliticalPartyRepository _politicalPartyRepository;
-    private readonly IValidator<UpdatePoliticalPartyDto> _updatePoliticalPartyValidator;
 
     public PoliticalPartyService(
         IPoliticalPartyRepository politicalPartyRepository,
-        IValidator<UpdatePoliticalPartyDto> updatePartyValidator,
         ILoggerAdapter<PoliticalPartyService> logger)
     {
         _politicalPartyRepository = politicalPartyRepository;
-        _updatePoliticalPartyValidator = updatePartyValidator;
         _logger = logger;
     }
 
-    public async Task<Result<PoliticalParty>> CreateAsync(PoliticalParty politicalParty)
+    public async Task<ResultOrFailure<PoliticalParty>> Create(PoliticalParty politicalParty)
     {
         _logger.LogDebug("Creating a political party");
 
-        bool partyExists = await _politicalPartyRepository.ExistsByNameAsync(politicalParty.Name);
+        bool partyExists = await _politicalPartyRepository.ExistsByName(politicalParty.Name);
 
         if (partyExists)
         {
-            _logger.LogWarn("Political party with name {name} already exists", politicalParty.Name);
+            _logger.LogWarn("Political party with name {Name} already exists", politicalParty.Name);
 
-            return new Result<PoliticalParty>(
-                new ErrorDetail($"Political party with name {politicalParty.Name} already exists"));
+            return new Failure($"Political party with name {politicalParty.Name} already exists");
         }
 
-        var createdParty = await _politicalPartyRepository.CreateAsync(politicalParty);
-        _logger.LogInfo("Political party with id {id} created", politicalParty.Id);
+        var createdParty = await _politicalPartyRepository.Create(politicalParty);
+        _logger.LogInfo("Political party with id {Id} created", politicalParty.Id);
 
-        return new Result<PoliticalParty>(createdParty);
+        return createdParty;
     }
 
-    public async Task<Result<PoliticalParty>> GetOneAsync(Guid id)
+    public async Task<ResultOrNotFound<PoliticalParty>> GetOne(Guid id)
     {
-        _logger.LogDebug("Getting political party with id {id}", id);
-        var politicalParty = await _politicalPartyRepository.GetAsync(id);
+        _logger.LogDebug("Getting political party with id {Id}", id);
+        var result = await _politicalPartyRepository.GetOne(id);
 
-        if (politicalParty is null)
-        {
-            _logger.LogWarn("Political party with id {id} not found", id);
+        result.Switch(
+            _ => _logger.LogDebug("Political party with id {Id} found", id),
+            _ => _logger.LogWarn("Political party with id {Id} not found", id));
 
-            return new Result<PoliticalParty>(
-                new ErrorDetail($"Political party with id {id} not found"),
-                ErrorType.NotFound);
-        }
-
-        return new Result<PoliticalParty>(politicalParty);
+        return result;
     }
 
-    public async Task<Result<Guid>> DeleteAsync(Guid partyId)
+    public async Task<SuccessOrNotFound> Delete(Guid partyId)
     {
-        _logger.LogDebug("Deleting party with id {id}", partyId);
-        bool deleted = await _politicalPartyRepository.DeleteAsync(partyId);
+        _logger.LogDebug("Deleting party with id {Id}", partyId);
+        var result = await _politicalPartyRepository.Delete(partyId);
 
-        if (!deleted)
-        {
-            _logger.LogWarn("Unable to delete party with id {id}, not found", partyId);
+        result.Switch(
+            _ => _logger.LogInfo("Political party with id {Id} deleted", partyId),
+            _ => _logger.LogWarn("Unable to delete party with id {Id}, not found", partyId));
 
-            return new Result<Guid>(
-                new ErrorDetail($"Political party with id {partyId} not found"),
-                ErrorType.NotFound);
-        }
-
-        _logger.LogInfo("Political party with id {id} deleted", partyId);
-        return new Result<Guid>(partyId);
+        return result;
     }
 
-    public async Task<Result<IEnumerable<PoliticalParty>>> GetAllAsync()
+    public async Task<IEnumerable<PoliticalParty>> GetAll()
     {
         _logger.LogDebug("Fetching all political parties");
-        var politicalParties = await _politicalPartyRepository.GetAllAsync();
 
-        return new Result<IEnumerable<PoliticalParty>>(politicalParties);
+        return await _politicalPartyRepository.GetAll();
     }
 
-    public async Task<bool> UpdateAsync(UpdatePoliticalPartyDto updatePoliticalParty)
+    public async Task<ResultNotFoundOrFailure<PoliticalParty>> UpdateAsync(PoliticalParty politicalParty)
     {
-        _logger.LogDebug("Updating political party with id {id}", updatePoliticalParty.Id);
+        _logger.LogDebug("Updating political party with id {Id}", politicalParty.FrontEndId);
 
-        _updatePoliticalPartyValidator.ValidateAndThrow(updatePoliticalParty);
-
-        bool partyExists = await _politicalPartyRepository.ExistsByNameAsync(updatePoliticalParty.Name);
+        bool partyExists = await _politicalPartyRepository.ExistsByName(politicalParty.Name);
 
         if (partyExists)
         {
-            _logger.LogWarn("Political party with name {name} already exists", updatePoliticalParty.Name);
+            _logger.LogWarn("Political party with name {Name} already exists", politicalParty.Name);
 
-            string msg = $"Political party with name {updatePoliticalParty.Name} already exists";
-            throw new ValidationException(
-                msg,
-                HelperValidatorMethods.GenerateValidationError(nameof(updatePoliticalParty.Name), msg));
+            return new Failure($"Political party with name {politicalParty.Name} already exists");
         }
 
-        var politicalParty = updatePoliticalParty.ToPoliticalParty();
+        var updateResult = await _politicalPartyRepository.Update(politicalParty);
+        return updateResult.Match<ResultNotFoundOrFailure<PoliticalParty>>(
+            updatedSuccess =>
+            {
+                _logger.LogInfo("Political party with id {Id} updated", politicalParty.FrontEndId);
 
-        bool updated = await _politicalPartyRepository.UpdateAsync(politicalParty);
-
-        if (!updated)
-        {
-            _logger.LogWarn("Unable to udpate political party with id {id}, not found", updatePoliticalParty.Id);
-            return updated;
-        }
-
-        _logger.LogInfo("Political party with id {id} updated", updatePoliticalParty.Id);
-        return updated;
+                return updatedSuccess;
+            },
+            notFound =>
+            {
+                _logger.LogInfo("Unable to udpate political party with id {Id}, not found", politicalParty.FrontEndId);
+                return notFound;
+            });
     }
 }

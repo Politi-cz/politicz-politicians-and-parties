@@ -85,10 +85,10 @@ public class PoliticianServiceTests
             PoliticalPartyId = 25,
         };
         var expected = new Result<Politician>(existingPolitician);
-        _ = _politicianRepository.GetAsync(existingPolitician.FrontEndId).Returns(existingPolitician);
+        _ = _politicianRepository.Get(existingPolitician.FrontEndId).Returns(existingPolitician);
 
         // Act
-        var result = await _sut.GetAsync(existingPolitician.FrontEndId);
+        var result = await _sut.Get(existingPolitician.FrontEndId);
 
         // Assert
         _ = result.Should().BeEquivalentTo(expected);
@@ -99,11 +99,11 @@ public class PoliticianServiceTests
     {
         // Arrange
         var guid = Guid.NewGuid();
-        _ = _politicianRepository.GetAsync(guid).ReturnsNull();
+        _ = _politicianRepository.Get(guid).ReturnsNull();
         var expected = new Result<Politician>(ErrorType.NotFound);
 
         // Act
-        var result = await _sut.GetAsync(guid);
+        var result = await _sut.Get(guid);
 
         // Assert
         _ = result.Should().BeEquivalentTo(expected);
@@ -123,13 +123,13 @@ public class PoliticianServiceTests
         };
         var nonExistingPartyId = Guid.NewGuid();
 
-        _ = _politicalPartyRepository.GetInternalIdAsync(nonExistingPartyId).ReturnsNull();
+        _ = _politicalPartyRepository.GetInternalId(nonExistingPartyId).ReturnsNull();
         var expectedResult =
             new Result<Politician>(
                 new ErrorDetail($"Political party with id {nonExistingPartyId} does not exist"));
 
         // Act
-        var result = await _sut.CreateAsync(nonExistingPartyId, politician);
+        var result = await _sut.Create(nonExistingPartyId, politician);
 
         // Assert
         _ = result.Should().BeEquivalentTo(expectedResult);
@@ -156,12 +156,12 @@ public class PoliticianServiceTests
         var expectedResult = new Result<Politician>(politician);
         var politicalPartyGuid = Guid.NewGuid();
 
-        _ = _politicalPartyRepository.GetInternalIdAsync(politicalPartyGuid)
+        _ = _politicalPartyRepository.GetInternalId(politicalPartyGuid)
             .Returns(politician.PoliticalPartyId);
-        _ = _politicianRepository.CreateOneAsync(Arg.Any<Politician>()).Returns(politician);
+        _ = _politicianRepository.CreateOne(Arg.Any<Politician>()).Returns(politician);
 
         // Act
-        var created = await _sut.CreateAsync(politicalPartyGuid, politician);
+        var created = await _sut.Create(politicalPartyGuid, politician);
 
         // Assert
         _ = created.Should().BeEquivalentTo(expectedResult);
@@ -183,10 +183,10 @@ public class PoliticianServiceTests
         };
         var expected = new Result<Politician>(politician);
 
-        _ = _politicianRepository.UpdateAsync(Arg.Any<Politician>()).Returns(true);
+        _ = _politicianRepository.Update(Arg.Any<Politician>()).Returns(true);
 
         // Act
-        var result = await _sut.UpdateAsync(politician);
+        var result = await _sut.Update(politician);
 
         // Assert
         _ = result.Should().BeEquivalentTo(expected);
@@ -208,10 +208,10 @@ public class PoliticianServiceTests
         };
         var expected = new Result<Politician>(ErrorType.NotFound);
 
-        _ = _politicianRepository.UpdateAsync(Arg.Any<Politician>()).Returns(false);
+        _ = _politicianRepository.Update(Arg.Any<Politician>()).Returns(false);
 
         // Act
-        var result = await _sut.UpdateAsync(politician);
+        var result = await _sut.Update(politician);
 
         // Assert
         _ = result.Should().BeEquivalentTo(expected);
@@ -225,11 +225,11 @@ public class PoliticianServiceTests
     {
         // Arrange
         var id = Guid.NewGuid();
-        _ = _politicianRepository.DeleteAsync(id).Returns(true);
+        _ = _politicianRepository.Delete(id).Returns(true);
         var expected = new Result<Guid>(id);
 
         // Act
-        var result = await _sut.DeleteAsync(id);
+        var result = await _sut.Delete(id);
 
         // Assert
         _ = result.Should().BeEquivalentTo(expected);
@@ -241,11 +241,11 @@ public class PoliticianServiceTests
     {
         // Arrange
         var id = Guid.NewGuid();
-        _ = _politicianRepository.DeleteAsync(id).Returns(false);
+        _ = _politicianRepository.Delete(id).Returns(false);
         var expected = new Result<Guid>(ErrorType.NotFound);
 
         // Act
-        var result = await _sut.DeleteAsync(id);
+        var result = await _sut.Delete(id);
 
         // Assert
         _ = result.Should().BeEquivalentTo(expected);

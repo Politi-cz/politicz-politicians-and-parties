@@ -13,20 +13,29 @@ public static class ApiToDomainMapper
         FullName = politicianRequest.FullName,
     };
 
-    public static Politician ToPolitician(this UpdatePoliticianRequest updatePoliticianRequest) => new()
+    public static Politician ToPolitician(this PoliticianRequest politicianRequest, Guid id) => new()
     {
-        FrontEndId = updatePoliticianRequest.Id,
-        BirthDate = updatePoliticianRequest.Request.BirthDate,
-        ImageUrl = updatePoliticianRequest.Request.ImageUrl,
-        FacebookUrl = updatePoliticianRequest.Request.FacebookUrl,
-        InstagramUrl = updatePoliticianRequest.Request.InstagramUrl,
-        TwitterUrl = updatePoliticianRequest.Request.TwitterUrl,
-        FullName = updatePoliticianRequest.Request.FullName,
+        FrontEndId = id,
+        BirthDate = politicianRequest.BirthDate,
+        FacebookUrl = politicianRequest.FacebookUrl,
+        ImageUrl = politicianRequest.ImageUrl,
+        InstagramUrl = politicianRequest.InstagramUrl,
+        TwitterUrl = politicianRequest.TwitterUrl,
+        FullName = politicianRequest.FullName,
     };
 
     public static PoliticalParty ToPoliticalParty(this PoliticalPartyRequest politicalPartyRequest) => new()
     {
         FrontEndId = Guid.NewGuid(),
+        Name = politicalPartyRequest.Name,
+        ImageUrl = politicalPartyRequest.ImageUrl,
+        Politicians = politicalPartyRequest.Politicians.Select(x => x.ToPolitician()).ToList(),
+        Tags = politicalPartyRequest.Tags,
+    };
+
+    public static PoliticalParty ToPoliticalParty(this PoliticalPartyRequest politicalPartyRequest, Guid partyId) => new()
+    {
+        FrontEndId = partyId,
         Name = politicalPartyRequest.Name,
         ImageUrl = politicalPartyRequest.ImageUrl,
         Politicians = politicalPartyRequest.Politicians.Select(x => x.ToPolitician()).ToList(),

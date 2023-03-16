@@ -15,10 +15,9 @@ public class PoliticalPartyController : ControllerBase
         _validator = validator;
     }
 
+    // TODO: Create filter for all ProducesResponseType errors
     [HttpPost("create")]
     [ProducesResponseType(201, Type = typeof(PoliticalPartyResponse))]
-    [ProducesResponseType(400, Type = typeof(ErrorDetail))]
-    [ProducesResponseType(500, Type = typeof(ErrorDetail))]
     public async Task<IActionResult> CreatePoliticalParty([FromBody] PoliticalPartyRequest politicalPartyRequest)
     {
         var validationResult = await _validator.ValidateAsync(politicalPartyRequest);
@@ -28,71 +27,68 @@ public class PoliticalPartyController : ControllerBase
             return BadRequest(new ErrorDetail("Validation error", validationResult.ToDictionary()));
         }
 
-        var result = await _politicalPartyService.CreateAsync(politicalPartyRequest.ToPoliticalParty());
+        var result = await _politicalPartyService.Create(politicalPartyRequest.ToPoliticalParty());
 
-        return result.IsError
-            ? HandleErrorResult(result)
-            : CreatedAtAction(nameof(GetPoliticalParty), new { id = result.Data!.Id }, result.Data.ToPoliticalPartyResponse());
+        return result.Match<IActionResult>(
+            party => CreatedAtAction(nameof(GetPoliticalParty), new { id = party.FrontEndId }, party.ToPoliticalPartyResponse()),
+            failure => BadRequest(new ErrorDetail(failure.Message)));
     }
 
     [HttpGet("{id:guid}")]
     [ProducesResponseType(200, Type = typeof(PoliticalPartyResponse))]
-    [ProducesResponseType(404)]
-    [ProducesResponseType(500, Type = typeof(ErrorDetail))]
     public async Task<IActionResult> GetPoliticalParty([FromRoute] Guid id)
     {
-        var result = await _politicalPartyService.GetOneAsync(id);
+        var result = await _politicalPartyService.GetOne(id);
 
-        return result.IsError ? HandleErrorResult(result) : Ok(result.Data!.ToPoliticalPartyResponse());
+        return result.Match<IActionResult>(
+            success => Ok(success.ToPoliticalPartyResponse()),
+            _ => CreateNotFoundResponse(id));
     }
 
     [HttpGet]
-    [ProducesResponseType(200, Type = typeof(IEnumerable<PoliticalPartySideNavDto>))]
-    [ProducesResponseType(500, Type = typeof(ErrorDetail))]
+    [ProducesResponseType(200, Type = typeof(IEnumerable<PartySideNavResponse>))]
     public async Task<IActionResult> GetPoliticalParties()
     {
-        var result = await _politicalPartyService.GetAllAsync();
+        var parties = await _politicalPartyService.GetAll();
 
-        if (result.IsError)
-        {
-            _ = HandleErrorResult(result);
-        }
-
-        return Ok(result.Data!.Select(x => x.ToPoliticalPartySideNavDto()));
+        return Ok(parties.Select(x => x.ToPartySideNav()));
     }
 
     [HttpPut("{partyId:guid}")]
-    [ProducesResponseType(200, Type = typeof(UpdatePoliticalPartyDto))]
-    [ProducesResponseType(400, Type = typeof(ErrorDetail))]
-    [ProducesResponseType(404)]
-    [ProducesResponseType(500, Type = typeof(ErrorDetail))]
+    [ProducesResponseType(200, Type = typeof(PoliticalPartyRequest))]
     public async Task<IActionResult> UpdatePoliticalParty(
-        [FromRoute] Guid partyId,
-        [FromBody] UpdatePoliticalPartyDto updatePoliticalParty)
+        [FromRoute] Guid partyId, [FromBody] PoliticalPartyRequest politicalPartyRequest)
     {
-        updatePoliticalParty.Id = partyId;
-        var updated = await _politicalPartyService.UpdateAsync(updatePoliticalParty);
+        // TODO: probably will fail because politicians list is empty (Add conditional validation or some rule)
+        var validationResult = await _validator.ValidateAsync(politicalPartyRequest);
 
-        return !updated ? NotFound() : (IActionResult)Ok(updatePoliticalParty);
+        if (!validationResult.IsValid)
+        {
+            return BadRequest(new ErrorDetail("Validation error", validationResult.ToDictionary()));
+        }
+
+        var partyUpdate = politicalPartyRequest.ToPoliticalParty(partyId);
+
+        var result = await _politicalPartyService.UpdateAsync(partyUpdate);
+
+        return result.Match<IActionResult>(
+            Ok,
+            _ => CreateNotFoundResponse(partyId),
+            failure => BadRequest(failure.Message));
     }
 
     [HttpDelete("{partyId:guid}")]
     [ProducesResponseType(200)]
-    [ProducesResponseType(404)]
-    [ProducesResponseType(500, Type = typeof(ErrorDetail))]
     public async Task<IActionResult> DeletePoliticalParty([FromRoute] Guid partyId)
     {
-        var result = await _politicalPartyService.DeleteAsync(partyId);
+        var result = await _politicalPartyService.Delete(partyId);
 
-        return result.IsError ? HandleErrorResult(result) : Ok();
+        return result.Match<IActionResult>(
+            _ => Ok(),
+            _ => CreateNotFoundResponse(partyId));
     }
 
-    private IActionResult HandleErrorResult<T>(Result<T> result) => result.ErrorType switch
-    {
-        ErrorType.Invalid => BadRequest(result.Error),
-        ErrorType.NotFound => NotFound(result.Error),
-        ErrorType.None => throw new NotImplementedException(),
-        ErrorType.InternalError => throw new NotImplementedException(),
-        _ => StatusCode(500),
-    };
+    // TODO: Create a controller class from which will other controllers will inherit and that class will contains these generic responses like this one
+    private NotFoundObjectResult CreateNotFoundResponse(Guid entityId) =>
+        NotFound(new ErrorDetail($"Political party with id {entityId} not found"));
 }
