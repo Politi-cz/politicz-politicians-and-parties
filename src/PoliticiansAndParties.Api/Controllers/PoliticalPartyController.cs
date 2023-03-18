@@ -69,7 +69,7 @@ public class PoliticalPartyController : ControllerBase
 
         var partyUpdate = politicalPartyRequest.ToPoliticalParty(partyId);
 
-        var result = await _politicalPartyService.UpdateAsync(partyUpdate);
+        var result = await _politicalPartyService.Update(partyUpdate);
 
         return result.Match<IActionResult>(
             Ok,

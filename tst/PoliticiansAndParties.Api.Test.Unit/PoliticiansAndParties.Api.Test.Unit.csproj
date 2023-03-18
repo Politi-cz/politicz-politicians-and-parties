@@ -23,4 +23,8 @@
       <ProjectReference Include="..\..\src\PoliticiansAndParties.Api\PoliticiansAndParties.Api.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="Validators" />
+    </ItemGroup>
+
 </Project>

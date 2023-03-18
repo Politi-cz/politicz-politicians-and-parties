@@ -1,4 +1,4 @@
-// TODO: Change it to logger configuration in upsettings.json
+﻿// TODO: Change it to logger configuration in upsettings.json
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()
     .MinimumLevel.Debug()

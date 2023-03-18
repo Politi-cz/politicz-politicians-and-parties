@@ -2,7 +2,7 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{3C9FEA5E-F15B-46A3-885B-61F2DCB42727}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tst", "tst", "{79AF7303-0214-452C-A18B-3B784C84434A}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{79AF7303-0214-452C-A18B-3B784C84434A}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PoliticiansAndParties.Api", "src\PoliticiansAndParties.Api\PoliticiansAndParties.Api.csproj", "{92D5816D-9D97-40EC-8832-3ED0970C1B15}"
 EndProject

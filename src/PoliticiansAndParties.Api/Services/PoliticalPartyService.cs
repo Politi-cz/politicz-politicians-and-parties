@@ -27,7 +27,7 @@ public class PoliticalPartyService : IPoliticalPartyService
         }
 
         var createdParty = await _politicalPartyRepository.Create(politicalParty);
-        _logger.LogInfo("Political party with id {Id} created", politicalParty.Id);
+        _logger.LogInfo("Political party with id {Id} created", politicalParty.FrontEndId);
 
         return createdParty;
     }
@@ -63,7 +63,7 @@ public class PoliticalPartyService : IPoliticalPartyService
         return await _politicalPartyRepository.GetAll();
     }
 
-    public async Task<ResultNotFoundOrFailure<PoliticalParty>> UpdateAsync(PoliticalParty politicalParty)
+    public async Task<ResultNotFoundOrFailure<PoliticalParty>> Update(PoliticalParty politicalParty)
     {
         _logger.LogDebug("Updating political party with id {Id}", politicalParty.FrontEndId);
 
@@ -77,16 +77,18 @@ public class PoliticalPartyService : IPoliticalPartyService
         }
 
         var updateResult = await _politicalPartyRepository.Update(politicalParty);
+
         return updateResult.Match<ResultNotFoundOrFailure<PoliticalParty>>(
-            updatedSuccess =>
+            updated =>
             {
                 _logger.LogInfo("Political party with id {Id} updated", politicalParty.FrontEndId);
 
-                return updatedSuccess;
+                return updated;
             },
             notFound =>
             {
-                _logger.LogInfo("Unable to udpate political party with id {Id}, not found", politicalParty.FrontEndId);
+                _logger.LogWarn("Unable to update political party with id {Id}, not found", politicalParty.FrontEndId);
+
                 return notFound;
             });
     }

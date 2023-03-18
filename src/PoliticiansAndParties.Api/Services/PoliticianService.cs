@@ -24,7 +24,7 @@ public class PoliticianService : IPoliticianService
 
         if (getIdResult.TryPickT1(out _, out int internalId))
         {
-            _logger.LogWarn("Political party with id {partyId} does not exist", partyId);
+            _logger.LogWarn("Political party with id {PartyId} does not exist", partyId);
 
             return new Failure($"Political party with id {partyId} does not exist");
         }

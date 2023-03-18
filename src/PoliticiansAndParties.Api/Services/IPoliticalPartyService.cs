@@ -27,7 +27,7 @@ public interface IPoliticalPartyService
     /// </summary>
     /// <param name="politicalParty">Updated political party.</param>
     /// <returns>Discriminated union <see cref="ResultNotFoundOrFailure{T}"/>.</returns>
-    Task<ResultNotFoundOrFailure<PoliticalParty>> UpdateAsync(PoliticalParty politicalParty);
+    Task<ResultNotFoundOrFailure<PoliticalParty>> Update(PoliticalParty politicalParty);
 
     /// <summary>
     ///     Deletes a political party.
