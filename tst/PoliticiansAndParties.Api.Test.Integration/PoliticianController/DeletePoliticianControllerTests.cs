@@ -11,31 +11,17 @@ public class DeletePoliticianControllerTests : IClassFixture<PoliticiansAndParti
     public async Task DeleteAsync_DeletesPolitician_WhenPoliticianExists()
     {
         // Arrange
-        var parentParty = DataGenerator.GeneratePoliticalParty(1);
-        var createPartyResponse =
-            await _client.PostAsJsonAsync("api/political-parties/create", parentParty);
-        var createdParty = await createPartyResponse.Content.ReadFromJsonAsync<PoliticalPartyDto>();
-
-        var generatedPolitician = DataGenerator.GeneratePolitician();
-        var createPoliticianResponse =
-            await _client.PostAsJsonAsync(
-                $"api/political-parties/{createdParty!.Id}/politician",
-                generatedPolitician);
-        var createdPolitician =
-            await createPoliticianResponse.Content.ReadFromJsonAsync<PoliticianDto>();
+        var createdPolitician = await Helpers.CreatePoliticianWithParty(_client);
 
         // Act
-        var getPoliticianReponse =
-            await _client.GetAsync($"api/political-parties/politician/{createdPolitician!.Id}");
-        var deletePoliticianResponse =
-            await _client.DeleteAsync($"api/political-parties/politician/{createdPolitician!.Id}");
-        var getPoliticianAfterDeleteReponse =
-            await _client.GetAsync($"api/political-parties/politician/{createdPolitician!.Id}");
+        var getPoliticianResponse = await _client.GetAsync($"api/political-parties/politician/{createdPolitician.Id}");
+        var deletePoliticianResponse = await _client.DeleteAsync($"api/political-parties/politician/{createdPolitician.Id}");
+        var getPoliticianAfterDeleteResponse = await _client.GetAsync($"api/political-parties/politician/{createdPolitician.Id}");
 
         // Assert
-        getPoliticianReponse.StatusCode.Should().Be(HttpStatusCode.OK);
-        deletePoliticianResponse.StatusCode.Should().Be(HttpStatusCode.OK);
-        getPoliticianAfterDeleteReponse.StatusCode.Should().Be(HttpStatusCode.NotFound);
+        _ = getPoliticianResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+        _ = deletePoliticianResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+        _ = getPoliticianAfterDeleteResponse.StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
 
     [Fact]
@@ -45,9 +31,7 @@ public class DeletePoliticianControllerTests : IClassFixture<PoliticiansAndParti
         var nonExistingPoliticianId = Guid.NewGuid();
 
         // Act
-        var deletePoliticianResponse =
-            await _client.DeleteAsync(
-                $"api/political-parties/politician/{nonExistingPoliticianId}");
+        var deletePoliticianResponse = await _client.DeleteAsync($"api/political-parties/politician/{nonExistingPoliticianId}");
 
         // Assert
         _ = deletePoliticianResponse.StatusCode.Should().Be(HttpStatusCode.NotFound);

@@ -12,30 +12,22 @@ public class GetPoliticalPartyControllerTests : IClassFixture<PoliticiansAndPart
     public async Task GetPoliticalParty_ReturnsPartyWithPoliticians_WhenPartyExists()
     {
         // Arrange
-        var generatedParty = DataGenerator.GeneratePoliticalParty();
-        var createPartyResponse =
-            await _client.PostAsJsonAsync("api/political-parties/create", generatedParty);
-        var createdParty = await createPartyResponse.Content.ReadFromJsonAsync<PoliticalPartyDto>();
+        var createdParty = await Helpers.CreatePoliticalParty(_client);
 
         // Act
-        var response = await _client.GetAsync("api/political-parties/" + createdParty!.Id);
+        var response = await _client.GetAsync($"api/political-parties/{createdParty.Id}");
 
         // Assert
-        var result = await response.Content.ReadFromJsonAsync<PoliticalPartyDto>();
-        result.Should().BeEquivalentTo(
-            createdParty,
-            options => options
-                .Using<DateTime>(ctx =>
-                    ctx.Subject.Should().BeCloseTo(ctx.Expectation, TimeSpan.FromMilliseconds(100)))
-                .WhenTypeIs<DateTime>());
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        var result = await response.Content.ReadFromJsonAsync<PoliticalPartyResponse>();
+        _ = result.Should().BeEquivalentTo(createdParty, Helpers.GetDateTimeConfig);
+        _ = response.StatusCode.Should().Be(HttpStatusCode.OK);
     }
 
     [Fact]
-    public async Task GetPoliticalParty_ReturnsNotFound_WHenPoliticalPartyDoesNotExist()
+    public async Task GetPoliticalParty_ReturnsNotFound_WhenPoliticalPartyDoesNotExist()
     {
         // Act
-        var response = await _client.GetAsync("api/political-parties/" + Guid.NewGuid());
+        var response = await _client.GetAsync($"api/political-parties/{Guid.NewGuid()}");
 
         // Assert
         _ = response.StatusCode.Should().Be(HttpStatusCode.NotFound);

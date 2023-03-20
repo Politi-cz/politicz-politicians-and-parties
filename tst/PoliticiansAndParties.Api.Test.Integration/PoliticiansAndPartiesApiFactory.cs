@@ -21,15 +21,14 @@ public class PoliticiansAndPartiesApiFactory : WebApplicationFactory<IApiMarker>
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
-        // TODO: Figure out what to do with logging, (rewatch the course)
-        _ = builder.ConfigureLogging(logging => { _ = logging.ClearProviders(); });
+        _ = builder.ConfigureLogging(logging => _ = logging.ClearProviders());
 
+        // TODO Use sql connection string builder or something like that
         string? masterConnectionString = _dbContainer.ConnectionString;
         masterConnectionString += "TrustServerCertificate=True;";
         string defaultConnectionString =
             masterConnectionString.Replace("master", "politicz-politicians-and-parties");
 
-        // TODO: Try to add appsettings.json conf file for tests
         _ = builder.ConfigureTestServices(services =>
         {
             _ = services.RemoveAll(typeof(IDbConnectionFactory));

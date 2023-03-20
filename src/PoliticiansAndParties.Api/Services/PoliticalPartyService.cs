@@ -67,7 +67,7 @@ public class PoliticalPartyService : IPoliticalPartyService
     {
         _logger.LogDebug("Updating political party with id {Id}", politicalParty.FrontEndId);
 
-        bool partyExists = await _politicalPartyRepository.ExistsByName(politicalParty.Name);
+        bool partyExists = await _politicalPartyRepository.ExistsByName(politicalParty.Name, politicalParty.FrontEndId);
 
         if (partyExists)
         {

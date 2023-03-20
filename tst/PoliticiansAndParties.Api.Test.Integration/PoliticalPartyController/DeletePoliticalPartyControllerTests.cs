@@ -11,23 +11,17 @@ public class DeletePoliticalPartyControllerTests : IClassFixture<PoliticiansAndP
     public async Task DeleteAsync_DeletesParty_WhenExists()
     {
         // Arrange
-        var generatedParty = DataGenerator.GeneratePoliticalParty();
-        var createPartyResponse =
-            await _client.PostAsJsonAsync("api/political-parties/create", generatedParty);
-        var createdParty = await createPartyResponse.Content.ReadFromJsonAsync<PoliticalPartyDto>();
+        var createdParty = await Helpers.CreatePoliticalParty(_client);
 
         // Act
-        var getPartyBeforeDelete =
-            await _client.GetAsync($"api/political-parties/{createdParty!.Id}");
-        var deletePartyResponse =
-            await _client.DeleteAsync($"api/political-parties/{createdParty!.Id}");
-        var getPartyAfterDelete =
-            await _client.GetAsync($"api/political-parties/{createdParty!.Id}");
+        var getPartyBeforeDelete = await _client.GetAsync($"api/political-parties/{createdParty.Id}");
+        var deletePartyResponse = await _client.DeleteAsync($"api/political-parties/{createdParty.Id}");
+        var getPartyAfterDelete = await _client.GetAsync($"api/political-parties/{createdParty.Id}");
 
         // Assert
-        getPartyBeforeDelete.StatusCode.Should().Be(HttpStatusCode.OK);
-        deletePartyResponse.StatusCode.Should().Be(HttpStatusCode.OK);
-        getPartyAfterDelete.StatusCode.Should().Be(HttpStatusCode.NotFound);
+        _ = getPartyBeforeDelete.StatusCode.Should().Be(HttpStatusCode.OK);
+        _ = deletePartyResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+        _ = getPartyAfterDelete.StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
 
     [Fact]
@@ -37,8 +31,7 @@ public class DeletePoliticalPartyControllerTests : IClassFixture<PoliticiansAndP
         var nonExistingPartyId = Guid.NewGuid();
 
         // Act
-        var deletePartyResponse =
-            await _client.DeleteAsync($"api/political-parties/{nonExistingPartyId}");
+        var deletePartyResponse = await _client.DeleteAsync($"api/political-parties/{nonExistingPartyId}");
 
         // Assert
         _ = deletePartyResponse.StatusCode.Should().Be(HttpStatusCode.NotFound);

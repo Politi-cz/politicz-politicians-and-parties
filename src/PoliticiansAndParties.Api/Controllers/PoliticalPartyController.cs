@@ -15,12 +15,11 @@ public class PoliticalPartyController : ControllerBase
         _validator = validator;
     }
 
-    // TODO: Create filter for all ProducesResponseType errors
     [HttpPost("create")]
     [ProducesResponseType(201, Type = typeof(PoliticalPartyResponse))]
     public async Task<IActionResult> CreatePoliticalParty([FromBody] PoliticalPartyRequest politicalPartyRequest)
     {
-        var validationResult = await _validator.ValidateAsync(politicalPartyRequest);
+        var validationResult = await _validator.ValidateAsync(politicalPartyRequest, o => o.IncludeAllRuleSets());
 
         if (!validationResult.IsValid)
         {
@@ -59,8 +58,7 @@ public class PoliticalPartyController : ControllerBase
     public async Task<IActionResult> UpdatePoliticalParty(
         [FromRoute] Guid partyId, [FromBody] PoliticalPartyRequest politicalPartyRequest)
     {
-        // TODO: probably will fail because politicians list is empty (Add conditional validation or some rule)
-        var validationResult = await _validator.ValidateAsync(politicalPartyRequest);
+        var validationResult = await _validator.ValidateAsync(politicalPartyRequest, o => o.IncludeRuleSets("UpdateFields"));
 
         if (!validationResult.IsValid)
         {
@@ -72,9 +70,9 @@ public class PoliticalPartyController : ControllerBase
         var result = await _politicalPartyService.Update(partyUpdate);
 
         return result.Match<IActionResult>(
-            Ok,
+            party => Ok(party.ToPoliticalPartyResponse()),
             _ => CreateNotFoundResponse(partyId),
-            failure => BadRequest(failure.Message));
+            failure => BadRequest(new ErrorDetail(failure.Message)));
     }
 
     [HttpDelete("{partyId:guid}")]

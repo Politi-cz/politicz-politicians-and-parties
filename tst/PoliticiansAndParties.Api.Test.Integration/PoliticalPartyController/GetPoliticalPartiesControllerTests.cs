@@ -4,8 +4,7 @@ public class GetPoliticalPartiesControllerTests : IClassFixture<PoliticiansAndPa
 {
     private readonly HttpClient _client;
 
-    public GetPoliticalPartiesControllerTests(
-        PoliticiansAndPartiesApiFactory politiciansAndPartiesApiFactory) =>
+    public GetPoliticalPartiesControllerTests(PoliticiansAndPartiesApiFactory politiciansAndPartiesApiFactory) =>
         _client = politiciansAndPartiesApiFactory.CreateClient();
 
     [Fact]
@@ -15,8 +14,7 @@ public class GetPoliticalPartiesControllerTests : IClassFixture<PoliticiansAndPa
         var response = await _client.GetAsync("api/political-parties");
 
         // Assert
-        var result =
-            await response.Content.ReadFromJsonAsync<IEnumerable<PoliticalPartySideNavDto>>();
+        var result = await response.Content.ReadFromJsonAsync<IEnumerable<PartySideNavResponse>>();
         _ = response.StatusCode.Should().Be(HttpStatusCode.OK);
         _ = result.Should().BeEmpty();
     }
@@ -25,26 +23,22 @@ public class GetPoliticalPartiesControllerTests : IClassFixture<PoliticiansAndPa
     public async Task GetPoliticalParties_ReturnsPoliticalParties_WhenPartiesExist()
     {
         // Arrange
-        var politicalParties = DataGenerator.GeneratePoliticalParties();
-        var expectedParties = new List<PoliticalPartySideNavDto>();
+        var politicalParties = TestData.PartyGenerator.GenerateBetween(5, 10);
+        var expectedParties = new List<PartySideNavResponse>();
 
         foreach (var party in politicalParties)
         {
-            var createPartyResponse =
-                await _client.PostAsJsonAsync("api/political-parties/create", party);
+            var createPartyResponse = await _client.PostAsJsonAsync("api/political-parties/create", party);
+            var createdParty = await createPartyResponse.Content.ReadFromJsonAsync<PartySideNavResponse>();
 
-            var createdParty =
-                await createPartyResponse.Content.ReadFromJsonAsync<PoliticalPartyDto>();
-
-            expectedParties.Add(createdParty!.ToPoliticalParty().ToPoliticalPartySideNavDto());
+            expectedParties.Add(createdParty!);
         }
 
         // Act
         var response = await _client.GetAsync("api/political-parties");
 
         // Assert
-        var result =
-            await response.Content.ReadFromJsonAsync<IEnumerable<PoliticalPartySideNavDto>>();
+        var result = await response.Content.ReadFromJsonAsync<IEnumerable<PartySideNavResponse>>();
         _ = response.StatusCode.Should().Be(HttpStatusCode.OK);
         _ = result.Should().BeEquivalentTo(expectedParties);
 
@@ -52,7 +46,7 @@ public class GetPoliticalPartiesControllerTests : IClassFixture<PoliticiansAndPa
         // Cleanup
         foreach (var party in expectedParties)
         {
-            await _client.DeleteAsync($"api/political-parties/{party.Id}");
+            _ = await _client.DeleteAsync($"api/political-parties/{party.Id}");
         }
     }
 }

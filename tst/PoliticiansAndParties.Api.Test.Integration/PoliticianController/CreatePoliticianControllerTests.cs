@@ -11,44 +11,30 @@ public class CreatePoliticianControllerTests : IClassFixture<PoliticiansAndParti
     public async Task CreatePolitician_CreatesPolitician_WhenDataAreValid()
     {
         // Arrange
-        var parentParty = DataGenerator.GeneratePoliticalParty(1);
-        var createPartyResponse =
-            await _client.PostAsJsonAsync("api/political-parties/create", parentParty);
-        var createdParty = await createPartyResponse.Content.ReadFromJsonAsync<PoliticalPartyDto>();
-
-        var generatedPolitician = DataGenerator.GeneratePolitician();
+        var createdParty = await Helpers.CreatePoliticalParty(_client);
+        var generatedPolitician = TestData.PoliticianGenerator.Generate();
 
         // Act
         var createPoliticianResponse =
             await _client.PostAsJsonAsync(
-                $"api/political-parties/{createdParty!.Id}/politician",
+                $"api/political-parties/{createdParty.Id}/politician",
                 generatedPolitician);
-        var createdPolitician =
-            await createPoliticianResponse.Content.ReadFromJsonAsync<PoliticianDto>();
-        var getPoliticianResponse =
-            await _client.GetAsync($"api/political-parties/politician/{createdPolitician!.Id}");
-        var returnedPolitician =
-            await getPoliticianResponse.Content.ReadFromJsonAsync<PoliticianDto>();
+        var createdPolitician = await createPoliticianResponse.Content.ReadFromJsonAsync<PoliticianResponse>();
+        var getPoliticianResponse = await _client.GetAsync($"api/political-parties/politician/{createdPolitician!.Id}");
+        var returnedPolitician = await getPoliticianResponse.Content.ReadFromJsonAsync<PoliticianResponse>();
 
         // Assert
-        createPoliticianResponse.StatusCode.Should().Be(HttpStatusCode.Created);
-        getPoliticianResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+        _ = createPoliticianResponse.StatusCode.Should().Be(HttpStatusCode.Created);
+        _ = getPoliticianResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
-        returnedPolitician.Should().BeEquivalentTo(
-            createdPolitician,
-            options => options
-                .Using<DateTime>(ctx =>
-                    ctx.Subject.Should().BeCloseTo(ctx.Expectation, TimeSpan.FromMilliseconds(100)))
-                .WhenTypeIs<DateTime>());
+        _ = returnedPolitician.Should().BeEquivalentTo(createdPolitician, Helpers.GetDateTimeConfig);
     }
 
     [Fact]
     public async Task CreatePolitician_ReturnsErrorDetails_WhenDataAreInvalid()
     {
         // Arrange
-        var generatedPolitician = DataGenerator.GeneratePolitician();
-        generatedPolitician.FacebookUrl = "invalidUrl";
-
+        var generatedPolitician = TestData.PoliticianGenerator.Generate() with { FacebookUrl = "invalidUrl" };
         var expectedError = new ErrorDetail(
             "Validation error",
             new Dictionary<string, string[]>
@@ -64,18 +50,17 @@ public class CreatePoliticianControllerTests : IClassFixture<PoliticiansAndParti
         var errorDetails = await createPoliticianResponse.Content.ReadFromJsonAsync<ErrorDetail>();
 
         // Assert
-        createPoliticianResponse.StatusCode.Should().Be(HttpStatusCode.BadRequest);
-        errorDetails.Should().BeEquivalentTo(expectedError);
+        _ = createPoliticianResponse.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        _ = errorDetails.Should().BeEquivalentTo(expectedError);
     }
 
     [Fact]
     public async Task CreatePolitician_ReturnsErrorDetails_WhenAssignedPoliticalPartyDoesNotExist()
     {
         // Arrange
-        var generatedPolitician = DataGenerator.GeneratePolitician();
+        var generatedPolitician = TestData.PoliticianGenerator.Generate();
         var nonExistingPartyId = Guid.NewGuid();
-        var expectedError =
-            new ErrorDetail($"Political party with id {nonExistingPartyId} does not exist");
+        var expectedError = new ErrorDetail($"Political party with id {nonExistingPartyId} does not exist");
 
         // Act
         var createPoliticianResponse =
@@ -85,7 +70,7 @@ public class CreatePoliticianControllerTests : IClassFixture<PoliticiansAndParti
         var errorDetails = await createPoliticianResponse.Content.ReadFromJsonAsync<ErrorDetail>();
 
         // Assert
-        createPoliticianResponse.StatusCode.Should().Be(HttpStatusCode.BadRequest);
-        errorDetails.Should().BeEquivalentTo(expectedError);
+        _ = createPoliticianResponse.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        _ = errorDetails.Should().BeEquivalentTo(expectedError);
     }
 }

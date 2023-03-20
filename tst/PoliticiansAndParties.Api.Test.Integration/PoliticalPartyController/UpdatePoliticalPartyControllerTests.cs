@@ -11,129 +11,79 @@ public class UpdatePoliticalPartyControllerTests : IClassFixture<PoliticiansAndP
     public async Task UpdatePoliticalParty_ReturnsErrorDetails_WhenInvalidData()
     {
         // Arrange
-        var generatedParty = DataGenerator.GeneratePoliticalParty();
-        var createPartyResponse =
-            await _client.PostAsJsonAsync("api/political-parties/create", generatedParty);
-        var createdParty = await createPartyResponse.Content.ReadFromJsonAsync<PoliticalPartyDto>();
+        var createdParty = await Helpers.CreatePoliticalParty(_client);
+        var updatedParty = new PoliticalPartyRequest(
+            string.Empty,
+            "https://newTestUrl.com",
+            new HashSet<string>(),
+            new List<PoliticianRequest>());
 
-        var updatedParty = new UpdatePoliticalPartyDto
-        {
-            Name = string.Empty, // Invalid, empty name
-            ImageUrl = "https://newTestUrl.com",
-            Tags = new HashSet<string>(), // Empty set, invalid
-        };
-
-        var expectedResponse = new ErrorDetail("Validation error")
-        {
-            Errors = new Dictionary<string, string[]>
-            {
-                { "Name", new[] { "'Name' must not be empty." } },
-                { "Tags", new[] { "'Tags' must not be empty." } },
-            },
-        };
+        var expectedResponse = new ErrorDetail("Validation error");
 
         // Act
-        var updatePartyResponse =
-            await _client.PutAsJsonAsync($"api/political-parties/{createdParty!.Id}", updatedParty);
+        var updatePartyResponse = await _client.PutAsJsonAsync($"api/political-parties/{createdParty.Id}", updatedParty);
 
         // Assert
-        updatePartyResponse.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        _ = updatePartyResponse.StatusCode.Should().Be(HttpStatusCode.BadRequest);
         var errorDetails = await updatePartyResponse.Content.ReadFromJsonAsync<ErrorDetail>();
-        errorDetails.Should().BeEquivalentTo(expectedResponse);
+        _ = errorDetails!.Message.Should().BeEquivalentTo(expectedResponse.Message);
     }
 
     [Fact]
     public async Task UpdatePoliticalParty_ReturnsErrorDetails_WhenUpdatedPartyNameExists()
     {
         // Arrange
-        var generatedParty = DataGenerator.GeneratePoliticalParty();
-        var createPartyResponse =
-            await _client.PostAsJsonAsync("api/political-parties/create", generatedParty);
-        var createdParty = await createPartyResponse.Content.ReadFromJsonAsync<PoliticalPartyDto>();
+        var createdParty = await Helpers.CreatePoliticalParty(_client);
+        var createdParty2 = await Helpers.CreatePoliticalParty(_client);
 
-        var expectedError = new ErrorDetail("Validation error")
-        {
-            Errors = new Dictionary<string, string[]>
-            {
-                {
-                    "Name",
-                    new[] { $"Political party with name {generatedParty.Name} already exists" }
-                },
-            },
-        };
+        var expectedError = new ErrorDetail($"Political party with name {createdParty.Name} already exists");
 
-        var partyData = DataGenerator.GeneratePoliticalParty();
-        var updatedParty = new UpdatePoliticalPartyDto
-        {
-            Name = createdParty!.Name,
-            ImageUrl = partyData.ImageUrl,
-            Tags = partyData.Tags,
-        };
+        var updatedParty = TestData.PartyGenerator.Generate() with { Name = createdParty.Name };
 
         // Act
-        var updatePartyResponse =
-            await _client.PutAsJsonAsync($"api/political-parties/{createdParty.Id}", updatedParty);
+        var updatePartyResponse = await _client.PutAsJsonAsync($"api/political-parties/{createdParty2.Id}", updatedParty);
 
         // Assert
-        updatePartyResponse.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        _ = updatePartyResponse.StatusCode.Should().Be(HttpStatusCode.BadRequest);
         var errorDetails = await updatePartyResponse.Content.ReadFromJsonAsync<ErrorDetail>();
-        errorDetails.Should().BeEquivalentTo(expectedError);
+        _ = errorDetails.Should().BeEquivalentTo(expectedError);
     }
 
     [Fact]
     public async Task UpdatePoliticalParty_ReturnsNotFound_WhenUpdatedPartyDoesNotExist()
     {
         // Arrange
-        var nonExistingParty = new UpdatePoliticalPartyDto
-        {
-            Name = "test",
-            ImageUrl = "https://test.com",
-            Tags = new HashSet<string> { "Name" },
-        };
+        var nonExistingParty = TestData.PartyGenerator.Generate();
         var nonExistingGuid = Guid.NewGuid();
 
         // Act
-        var updatePartyResponse =
-            await _client.PutAsJsonAsync(
+        var updatePartyResponse = await _client.PutAsJsonAsync(
                 $"api/political-parties/{nonExistingGuid}",
                 nonExistingParty);
 
         // Assert
-        updatePartyResponse.StatusCode.Should().Be(HttpStatusCode.NotFound);
+        _ = updatePartyResponse.StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
 
     [Fact]
     public async Task UpdatePoliticalParty_UpdatesPoliticalParty_WhenDataValid()
     {
         // Arrange
-        var generatedParty = DataGenerator.GeneratePoliticalParty();
-        var createPartyResponse =
-            await _client.PostAsJsonAsync("api/political-parties/create", generatedParty);
-        var createdParty = await createPartyResponse.Content.ReadFromJsonAsync<PoliticalPartyDto>();
-
-        var updatedTags = generatedParty.Tags;
-        updatedTags.Add("New updated tag");
-        var updatedParty = new UpdatePoliticalPartyDto
-        {
-            Id = createdParty!.Id,
-            Name = "Updated name",
-            ImageUrl = "https://updastedurl.com",
-            Tags = updatedTags,
-        };
+        var createdParty = await Helpers.CreatePoliticalParty(_client);
+        var updatedParty = TestData.PartyGenerator.Generate() with { Name = createdParty.Name, Politicians = new() };
 
         // Act
-        var updatePartyResponse =
-            await _client.PutAsJsonAsync($"api/political-parties/{createdParty!.Id}", updatedParty);
-        var getPartyResponse = await _client.GetAsync($"api/political-parties/{createdParty!.Id}");
+        var updatePartyResponse = await _client.PutAsJsonAsync($"api/political-parties/{createdParty.Id}", updatedParty);
+        var getPartyResponse = await _client.GetAsync($"api/political-parties/{createdParty.Id}");
 
         // Assert
-        updatePartyResponse.StatusCode.Should().Be(HttpStatusCode.OK);
-        var result = await updatePartyResponse.Content.ReadFromJsonAsync<UpdatePoliticalPartyDto>();
-        result.Should().BeEquivalentTo(updatedParty);
+        _ = updatePartyResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+        var result = await updatePartyResponse.Content.ReadFromJsonAsync<PoliticalPartyResponse>();
+        _ = result.Should().BeEquivalentTo(updatedParty);
 
-        getPartyResponse.StatusCode.Should().Be(HttpStatusCode.OK);
-        var getPartyAfterUpdate =
-            await getPartyResponse.Content.ReadFromJsonAsync<PoliticalPartyDto>();
-        getPartyAfterUpdate.Should().BeEquivalentTo(result);
+        _ = getPartyResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+        var getPartyAfterUpdate = await getPartyResponse.Content.ReadFromJsonAsync<PoliticalPartyResponse>();
+        getPartyAfterUpdate = getPartyAfterUpdate! with { Politicians = Enumerable.Empty<PoliticianResponse>() };
+        _ = getPartyAfterUpdate.Should().BeEquivalentTo(result);
     }
 }

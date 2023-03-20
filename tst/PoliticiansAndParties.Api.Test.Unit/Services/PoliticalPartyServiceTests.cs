@@ -134,7 +134,7 @@ public class PoliticalPartyServiceTests
         // Arrange
         var updatePoliticalParty = TestData.GetPoliticalParty;
 
-        _ = _politicianPartyRepository.ExistsByName(updatePoliticalParty.Name).Returns(true);
+        _ = _politicianPartyRepository.ExistsByName(updatePoliticalParty.Name, updatePoliticalParty.FrontEndId).Returns(true);
         _ = _politicianPartyRepository.Update(Arg.Any<PoliticalParty>()).Returns(updatePoliticalParty);
         var expected = new ResultNotFoundOrFailure<PoliticalParty>(
             new Failure($"Political party with name {updatePoliticalParty.Name} already exists"));

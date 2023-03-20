@@ -9,9 +9,9 @@ public class PoliticianRepository : IPoliticianRepository
     public async Task<Politician> CreateOne(Politician politician)
     {
         const string sql =
-            @"INSERT INTO Politicians (FrontEndId, BirthDate, FullName, InstagramUrl, TwitterUrl, FacebookUrl, PoliticalPartyId)
+            @"INSERT INTO Politicians (FrontEndId, BirthDate, FullName, ImageUrl, InstagramUrl, TwitterUrl, FacebookUrl, PoliticalPartyId)
                         OUTPUT INSERTED.*
-                        VALUES (@FrontEndId, @BirthDate, @FullName, @InstagramUrl, @TwitterUrl, @FacebookUrl, @PoliticalPartyId)";
+                        VALUES (@FrontEndId, @BirthDate, @FullName, @ImageUrl, @InstagramUrl, @TwitterUrl, @FacebookUrl, @PoliticalPartyId)";
 
         using var connection = await _connectionFactory.CreateConnection();
 
@@ -22,8 +22,8 @@ public class PoliticianRepository : IPoliticianRepository
     public async Task<bool> CreateAll(IEnumerable<Politician> politicians, IDbTransaction transaction)
     {
         const string sql =
-            @"INSERT INTO Politicians (FrontEndId, BirthDate, FullName, InstagramUrl, TwitterUrl, FacebookUrl, PoliticalPartyId)
-                        VALUES (@FrontEndId, @BirthDate, @FullName, @InstagramUrl, @TwitterUrl, @FacebookUrl, @PoliticalPartyId)";
+            @"INSERT INTO Politicians (FrontEndId, BirthDate, FullName, ImageUrl, InstagramUrl, TwitterUrl, FacebookUrl, PoliticalPartyId)
+                        VALUES (@FrontEndId, @BirthDate, @FullName, @ImageUrl, @InstagramUrl, @TwitterUrl, @FacebookUrl, @PoliticalPartyId)";
 
         int result = await transaction.Connection.ExecuteAsync(sql, politicians, transaction);
 
@@ -43,7 +43,7 @@ public class PoliticianRepository : IPoliticianRepository
     public async Task<ResultOrNotFound<Politician>> Update(Politician politician)
     {
         const string sql = @"UPDATE Politicians
-                        SET BirthDate = @BirthDate, FullName = @FullName, InstagramUrl = @InstagramUrl, TwitterUrl = @TwitterUrl, FacebookUrl = @FacebookUrl
+                        SET BirthDate = @BirthDate, FullName = @FullName, ImageUrl = @ImageUrl, InstagramUrl = @InstagramUrl, TwitterUrl = @TwitterUrl, FacebookUrl = @FacebookUrl
                         OUTPUT INSERTED.*
                         WHERE FrontEndId = @FrontEndId";
 

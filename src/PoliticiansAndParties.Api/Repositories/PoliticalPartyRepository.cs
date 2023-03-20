@@ -48,7 +48,7 @@ public class PoliticalPartyRepository : IPoliticalPartyRepository
         using var connection = await _connectionFactory.CreateConnection();
 
         const string sql =
-            @"SELECT pp.Id, pp.FrontEndId, [Name], [ImageUrl], p.Id, p.FrontEndId, BirthDate, FullName, InstagramUrl, TwitterUrl, FacebookUrl, PoliticalPartyId
+            @"SELECT pp.Id, pp.FrontEndId, [Name], pp.ImageUrl, p.Id, p.FrontEndId, BirthDate, FullName,p.ImageUrl, InstagramUrl, TwitterUrl, FacebookUrl, PoliticalPartyId
                         FROM PoliticalParties pp INNER JOIN Politicians p ON pp.Id = p.PoliticalPartyId
                         WHERE pp.FrontEndId = @FrontEndId ";
 
@@ -104,6 +104,16 @@ public class PoliticalPartyRepository : IPoliticalPartyRepository
         const string sql = "SELECT COUNT(1) FROM PoliticalParties WHERE Name = @Name";
 
         int result = await connection.ExecuteScalarAsync<int>(sql, new { Name = partyName });
+
+        return result > 0;
+    }
+
+    public async Task<bool> ExistsByName(string partyName, Guid frontEndId)
+    {
+        const string sql = "SELECT COUNT(1) FROM PoliticalParties WHERE Name = @Name AND FrontEndId != @FrontEndId";
+
+        using var connection = await _connectionFactory.CreateConnection();
+        int result = await connection.ExecuteScalarAsync<int>(sql, new { Name = partyName, FrontEndId = frontEndId });
 
         return result > 0;
     }
@@ -190,7 +200,7 @@ public class PoliticalPartyRepository : IPoliticalPartyRepository
         try
         {
             politicalParty.Id = await transaction.Connection.QuerySingleAsync<int>(
-                "INSERT INTO PoliticalParties ([FrontEndId], [Name], [ImageUrl]) OUTPUT INSERTED.Id VALUES(@FrontEndId, @Name, @ImageUrl)",
+                "INSERT INTO PoliticalParties ([FrontEndId], [Name], [ImageUrl]) OUTPUT INSERTED.* VALUES(@FrontEndId, @Name, @ImageUrl)",
                 politicalParty,
                 transaction);
 

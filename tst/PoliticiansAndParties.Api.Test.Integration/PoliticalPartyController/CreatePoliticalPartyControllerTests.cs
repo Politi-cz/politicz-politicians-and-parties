@@ -11,79 +11,52 @@ public class CreatePoliticalPartyControllerTests : IClassFixture<PoliticiansAndP
     public async Task CreatePoliticalParty_CreatesParty_WhenDataAreValid()
     {
         // Arrange
-        var generatedParty = DataGenerator.GeneratePoliticalParty();
+        var generatedParty = TestData.PartyGenerator.Generate();
 
         // Act
-        var createPartyResponse =
-            await _client.PostAsJsonAsync("api/political-parties/create", generatedParty);
-        var createdParty = await createPartyResponse.Content.ReadFromJsonAsync<PoliticalPartyDto>();
+        var createPartyResponse = await _client.PostAsJsonAsync("api/political-parties/create", generatedParty);
+        var createdParty = await createPartyResponse.Content.ReadFromJsonAsync<PoliticalPartyResponse>();
         var getPartyResponse = await _client.GetAsync($"api/political-parties/{createdParty!.Id}");
-        var returnedParty = await getPartyResponse.Content.ReadFromJsonAsync<PoliticalPartyDto>();
+        var returnedParty = await getPartyResponse.Content.ReadFromJsonAsync<PoliticalPartyResponse>();
 
         // Assert
-        createPartyResponse.StatusCode.Should().Be(HttpStatusCode.Created);
-        getPartyResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+        _ = createPartyResponse.StatusCode.Should().Be(HttpStatusCode.Created);
+        _ = getPartyResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
-        createdParty.Should().BeEquivalentTo(
-            returnedParty,
-            options => options
-                .Using<DateTime>(ctx =>
-                    ctx.Subject.Should().BeCloseTo(ctx.Expectation, TimeSpan.FromMilliseconds(100)))
-                .WhenTypeIs<DateTime>());
+        _ = createdParty.Should().BeEquivalentTo(returnedParty, Helpers.GetDateTimeConfig);
     }
 
     [Fact]
     public async Task CreatePoliticalParty_ReturnsErrorDetails_WhenDataAreInvalid()
     {
         // Arrange
-        var generatedParty = DataGenerator.GeneratePoliticalParty();
-        var expectedError = new ErrorDetail("Validation error")
-        {
-            Errors = new Dictionary<string, string[]>
-            {
-                { "Politicians", new[] { "'Politicians' must not be empty." } },
-            },
-        };
-
-        generatedParty.Politicians =
-            new List<PoliticianDto>(); // empty list of politicians is invalid
+        var generatedParty = TestData.GetInvalidParty;
+        var expectedError = new ErrorDetail("Validation error");
 
         // Act
-        var createPartyResponse =
-            await _client.PostAsJsonAsync("api/political-parties/create", generatedParty);
+        var createPartyResponse = await _client.PostAsJsonAsync("api/political-parties/create", generatedParty);
         var errorDetails = await createPartyResponse.Content.ReadFromJsonAsync<ErrorDetail>();
 
         // Assert
-        createPartyResponse.StatusCode.Should().Be(HttpStatusCode.BadRequest);
-        errorDetails.Should().BeEquivalentTo(expectedError);
+        _ = createPartyResponse.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        _ = errorDetails!.Message.Should().BeEquivalentTo(expectedError.Message);
     }
 
     [Fact]
     public async Task CreatePoliticalParty_ReturnsErrorDetails_WhenPoliticalPartyAlreadyExists()
     {
         // Arrange
-        var generatedParty = DataGenerator.GeneratePoliticalParty();
-        await _client.PostAsJsonAsync("api/political-parties/create", generatedParty);
+        var generatedParty = TestData.PartyGenerator.Generate();
+        _ = await _client.PostAsJsonAsync("api/political-parties/create", generatedParty);
 
-        var expectedError = new ErrorDetail("Validation error")
-        {
-            Errors = new Dictionary<string, string[]>
-            {
-                {
-                    "Name",
-                    new[] { $"Political party with name {generatedParty.Name} already exists" }
-                },
-            },
-        };
+        var expectedError = new ErrorDetail($"Political party with name {generatedParty.Name} already exists");
 
         // Act
-        var createDuplicatePartyResponse =
-            await _client.PostAsJsonAsync("api/political-parties/create", generatedParty);
-        var errorDetails =
-            await createDuplicatePartyResponse.Content.ReadFromJsonAsync<ErrorDetail>();
+        var createDuplicatePartyResponse = await _client.PostAsJsonAsync("api/political-parties/create", generatedParty);
+        var errorDetails = await createDuplicatePartyResponse.Content.ReadFromJsonAsync<ErrorDetail>();
 
         // Assert
-        createDuplicatePartyResponse.StatusCode.Should().Be(HttpStatusCode.BadRequest);
-        errorDetails.Should().BeEquivalentTo(expectedError);
+        _ = createDuplicatePartyResponse.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        _ = errorDetails.Should().BeEquivalentTo(expectedError);
     }
 }

@@ -37,6 +37,14 @@ public interface IPoliticalPartyRepository
     Task<bool> ExistsByName(string partyName);
 
     /// <summary>
+    /// Checks if a <see cref="PoliticalParty"/> exists by name but does not match by id.
+    /// </summary>
+    /// <param name="partyName">Name of party.</param>
+    /// <param name="frontEndId">Id not to match.</param>
+    /// <returns>True/false if a party exists.</returns>
+    Task<bool> ExistsByName(string partyName, Guid frontEndId);
+
+    /// <summary>
     /// Updates a <see cref="PoliticalParty"/>.
     /// </summary>
     /// <param name="politicalParty">Updated <see cref="PoliticalParty"/>.</param>
