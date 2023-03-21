@@ -1,8 +1,9 @@
 FROM mcr.microsoft.com/dotnet/sdk:7.0 AS build
 WORKDIR /src
-COPY politicz-politicians-and-parties/PoliticiansAndParties.Api.csproj .
+COPY src/PoliticiansAndParties.Api/PoliticiansAndParties.Api.csproj .
+COPY Directory.Build.props .
 RUN dotnet restore
-COPY politicz-politicians-and-parties .
+COPY src/PoliticiansAndParties.Api .
 RUN dotnet publish "PoliticiansAndParties.Api.csproj" -c Release -o /publish /p:UseAppHost=false
 RUN dotnet dev-certs https
 
