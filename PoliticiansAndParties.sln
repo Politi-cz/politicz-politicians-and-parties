@@ -6,9 +6,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{79AF7303
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PoliticiansAndParties.Api", "src\PoliticiansAndParties.Api\PoliticiansAndParties.Api.csproj", "{92D5816D-9D97-40EC-8832-3ED0970C1B15}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PoliticiansAndParties.Api.Test.Integration", "tst\PoliticiansAndParties.Api.Test.Integration\PoliticiansAndParties.Api.Test.Integration.csproj", "{F883843B-5C59-4B31-9D9D-96F2F9D73015}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PoliticiansAndParties.Api.Test.Integration", "tests\PoliticiansAndParties.Api.Test.Integration\PoliticiansAndParties.Api.Test.Integration.csproj", "{F883843B-5C59-4B31-9D9D-96F2F9D73015}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PoliticiansAndParties.Api.Test.Unit", "tst\PoliticiansAndParties.Api.Test.Unit\PoliticiansAndParties.Api.Test.Unit.csproj", "{DCC1CA1D-3D43-4C66-A035-4EA733FE9906}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PoliticiansAndParties.Api.Test.Unit", "tests\PoliticiansAndParties.Api.Test.Unit\PoliticiansAndParties.Api.Test.Unit.csproj", "{DCC1CA1D-3D43-4C66-A035-4EA733FE9906}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
