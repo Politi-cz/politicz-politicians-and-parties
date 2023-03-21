@@ -1,19 +1,4 @@
-using FluentMigrator.Runner;
-using FluentValidation;
-using politicz_politicians_and_parties.Contracts.Requests;
-using politicz_politicians_and_parties.Database;
-using politicz_politicians_and_parties.Dtos;
-using politicz_politicians_and_parties.Logging;
-using politicz_politicians_and_parties.Middleware;
-using politicz_politicians_and_parties.Repositories;
-using politicz_politicians_and_parties.Services;
-using politicz_politicians_and_parties.Validators;
-using Serilog;
-using Serilog.Events;
-using System.Reflection;
-
-
-// TODO: Change it to logger configuration in appsetings.json
+﻿// TODO: Change it to logger configuration in upsettings.json
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()
     .MinimumLevel.Debug()
@@ -25,8 +10,11 @@ builder.Configuration.AddEnvironmentVariables("PoliticalPartiesApi_");
 builder.Host.UseSerilog();
 
 // Add services to the container.
+// TODO: Add secret manager for a local development
 builder.Services.AddSingleton<IDbConnectionFactory>(new SqlServerConnectionFactory(
-    new ConnectionStrings(builder.Configuration.GetConnectionString("MasterConnection"), builder.Configuration.GetConnectionString("DefaultConnection"))));
+    new ConnectionStrings(
+        builder.Configuration.GetConnectionString("MasterConnection")!,
+        builder.Configuration.GetConnectionString("DefaultConnection")!)));
 builder.Services.AddSingleton<DatabaseInitializer>();
 builder.Services.AddScoped<IPoliticianRepository, PoliticianRepository>();
 builder.Services.AddScoped<IPoliticianService, PoliticianService>();
@@ -34,11 +22,9 @@ builder.Services.AddScoped<IPoliticalPartyRepository, PoliticalPartyRepository>(
 builder.Services.AddScoped<IPoliticalPartyService, PoliticalPartyService>();
 builder.Services.AddSingleton(typeof(ILoggerAdapter<>), typeof(LoggerAdapter<>));
 
-// TODO Add all validations through an extension method RegisterValidators or something like that. 
-builder.Services.AddScoped<IValidator<PoliticianDto>, PoliticianDtoValidator>();
-builder.Services.AddScoped<IValidator<PoliticalPartyDto>, PoliticalPartyDtoValidator>();
-builder.Services.AddScoped<IValidator<UpdatePoliticalPartyDto>, UpdatePoliticalPartyDtoValidator>();
+// TODO Add all validations through an extension method RegisterValidators or something like that.
 builder.Services.AddScoped<IValidator<PoliticianRequest>, PoliticianRequestValidator>();
+builder.Services.AddScoped<IValidator<PoliticalPartyRequest>, PoliticalPartyRequestValidator>();
 
 builder.Services.AddLogging(c => c.AddFluentMigratorConsole())
     .AddFluentMigratorCore()
@@ -47,7 +33,17 @@ builder.Services.AddLogging(c => c.AddFluentMigratorConsole())
         .ScanIn(Assembly.GetExecutingAssembly()).For.All());
 
 builder.Services.AddCors();
-builder.Services.AddControllers();
+builder.Services.AddControllers(options =>
+{
+    options.Filters.Add(new ProducesAttribute("application/json"));
+    options.Filters.Add(
+        new ProducesResponseTypeAttribute(typeof(ErrorDetail), (int)HttpStatusCode.BadRequest));
+    options.Filters.Add(
+        new ProducesResponseTypeAttribute(typeof(ErrorDetail), (int)HttpStatusCode.NotFound));
+    options.Filters.Add(
+        new ProducesResponseTypeAttribute(typeof(ErrorDetail), (int)HttpStatusCode.InternalServerError));
+});
+
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -58,8 +54,8 @@ app.UseSerilogRequestLogging();
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
+    _ = app.UseSwagger();
+    _ = app.UseSwaggerUI();
 }
 
 // app.UseHttpsRedirection();
@@ -70,12 +66,12 @@ app.UseMiddleware<ExceptionHandlingMiddleware>();
 app.MapControllers();
 
 var databaseInitializer = app.Services.GetRequiredService<DatabaseInitializer>();
-await databaseInitializer.InitializeAsync(builder.Configuration.GetValue<string>("Database"));
+await databaseInitializer.Initialize(builder.Configuration.GetValue<string>("Database")!);
 
 using var scope = app.Services.CreateScope();
 var runner = scope.ServiceProvider.GetRequiredService<IMigrationRunner>();
 
-runner!.ListMigrations();
+runner.ListMigrations();
 runner.MigrateUp();
 
 app.Run();
