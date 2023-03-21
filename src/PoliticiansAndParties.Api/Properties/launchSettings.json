@@ -1,6 +1,6 @@
 {
   "profiles": {
-    "politicz_politicians_and_parties": {
+    "PoliticiansAndParties": {
       "commandName": "Project",
       "launchBrowser": true,
       "launchUrl": "swagger",
