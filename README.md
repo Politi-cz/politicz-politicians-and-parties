@@ -1,5 +1,5 @@
 # Political parties and politicians
-
+Microservice provides basic CRUD operations for manipulation with Politicians and Political Parties
 ## Make sure
 - Ports 5000, 5001 and 1433 are not occupied
 - Docker desktop is installed and running
