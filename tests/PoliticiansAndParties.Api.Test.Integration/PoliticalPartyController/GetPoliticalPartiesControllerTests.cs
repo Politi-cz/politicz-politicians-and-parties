@@ -1,15 +1,23 @@
 ﻿namespace PoliticiansAndParties.Api.Test.Integration.PoliticalPartyController;
 
-public class GetPoliticalPartiesControllerTests : IClassFixture<PoliticiansAndPartiesApiFactory>
+[Collection("Shared test collection")]
+public class GetPoliticalPartiesControllerTests
 {
     private readonly HttpClient _client;
+    private readonly Func<Task> _resetDatabase;
 
-    public GetPoliticalPartiesControllerTests(PoliticiansAndPartiesApiFactory politiciansAndPartiesApiFactory) =>
-        _client = politiciansAndPartiesApiFactory.CreateClient();
+    public GetPoliticalPartiesControllerTests(PoliticiansAndPartiesApiFactory apiFactory)
+    {
+        _client = apiFactory.HttpClient;
+        _resetDatabase = apiFactory.ResetDatabase;
+    }
 
     [Fact]
     public async Task GetPoliticalParties_ReturnsEmptyList_WhenNoPoliticalPartyExist()
     {
+        // Arrange
+        await _resetDatabase();
+
         // Act
         var response = await _client.GetAsync("api/political-parties");
 
@@ -41,12 +49,9 @@ public class GetPoliticalPartiesControllerTests : IClassFixture<PoliticiansAndPa
         var result = await response.Content.ReadFromJsonAsync<IEnumerable<PartySideNavResponse>>();
         _ = response.StatusCode.Should().Be(HttpStatusCode.OK);
         _ = result.Should().BeEquivalentTo(expectedParties);
-
-        // TODO: Should be handle by Spawner for restoring DB to previous state
-        // Cleanup
-        foreach (var party in expectedParties)
-        {
-            _ = await _client.DeleteAsync($"api/political-parties/{party.Id}");
-        }
     }
+
+    public Task InitializeAsync() => Task.CompletedTask;
+
+    public async Task DisposeAsync() => await _resetDatabase();
 }

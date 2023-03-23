@@ -1,11 +1,16 @@
 ﻿namespace PoliticiansAndParties.Api.Test.Integration.PoliticianController;
 
-public class DeletePoliticianControllerTests : IClassFixture<PoliticiansAndPartiesApiFactory>
+[Collection("Shared test collection")]
+public class DeletePoliticianControllerTests
 {
     private readonly HttpClient _client;
+    private readonly Func<Task> _resetDatabase;
 
-    public DeletePoliticianControllerTests(PoliticiansAndPartiesApiFactory apiFactory) =>
-        _client = apiFactory.CreateClient();
+    public DeletePoliticianControllerTests(PoliticiansAndPartiesApiFactory apiFactory)
+    {
+        _client = apiFactory.HttpClient;
+        _resetDatabase = apiFactory.ResetDatabase;
+    }
 
     [Fact]
     public async Task DeleteAsync_DeletesPolitician_WhenPoliticianExists()
@@ -36,4 +41,8 @@ public class DeletePoliticianControllerTests : IClassFixture<PoliticiansAndParti
         // Assert
         _ = deletePoliticianResponse.StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
+
+    public Task InitializeAsync() => Task.CompletedTask;
+
+    public Task DisposeAsync() => _resetDatabase();
 }

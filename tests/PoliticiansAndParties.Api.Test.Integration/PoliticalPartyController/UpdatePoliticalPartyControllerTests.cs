@@ -1,11 +1,16 @@
 ﻿namespace PoliticiansAndParties.Api.Test.Integration.PoliticalPartyController;
 
-public class UpdatePoliticalPartyControllerTests : IClassFixture<PoliticiansAndPartiesApiFactory>
+[Collection("Shared test collection")]
+public class UpdatePoliticalPartyControllerTests
 {
     private readonly HttpClient _client;
+    private readonly Func<Task> _resetDatabase;
 
-    public UpdatePoliticalPartyControllerTests(PoliticiansAndPartiesApiFactory factory) =>
-        _client = factory.CreateClient();
+    public UpdatePoliticalPartyControllerTests(PoliticiansAndPartiesApiFactory apiFactory)
+    {
+        _client = apiFactory.HttpClient;
+        _resetDatabase = apiFactory.ResetDatabase;
+    }
 
     [Fact]
     public async Task UpdatePoliticalParty_ReturnsErrorDetails_WhenInvalidData()
@@ -86,4 +91,8 @@ public class UpdatePoliticalPartyControllerTests : IClassFixture<PoliticiansAndP
         getPartyAfterUpdate = getPartyAfterUpdate! with { Politicians = Enumerable.Empty<PoliticianResponse>() };
         _ = getPartyAfterUpdate.Should().BeEquivalentTo(result);
     }
+
+    public Task InitializeAsync() => Task.CompletedTask;
+
+    public Task DisposeAsync() => _resetDatabase();
 }

@@ -1,21 +1,38 @@
-﻿namespace PoliticiansAndParties.Api.Test.Integration;
+﻿using Microsoft.Data.SqlClient;
+using Respawn;
+using System.Data.Common;
 
-// TODO: In the future instead of creating a docker container for each test class create collection fixture
-// for each controller. So for example PoliticalPartyController will have one collection fixture running only 1 docker container
-// for all test classes related to political party controller. This aproach needs to implement Respawner to reset DB state
-// after each test. Inspire from Nick Chapsas Respawner video
+namespace PoliticiansAndParties.Api.Test.Integration;
+
 public class PoliticiansAndPartiesApiFactory : WebApplicationFactory<IApiMarker>, IAsyncLifetime
 {
-    private readonly TestcontainerDatabase _dbContainer;
+    private readonly TestcontainerDatabase _dbContainer = new TestcontainersBuilder<MsSqlTestcontainer>()
+        .WithDatabase(new MsSqlTestcontainerConfiguration { Password = "Password12345" })
+        .WithImage("mcr.microsoft.com/mssql/server:2022-latest")
+        .WithCleanUp(true)
+        .Build();
 
-    public PoliticiansAndPartiesApiFactory() =>
-        _dbContainer = new TestcontainersBuilder<MsSqlTestcontainer>()
-            .WithDatabase(new MsSqlTestcontainerConfiguration { Password = "Password12345" })
-            .WithImage("mcr.microsoft.com/mssql/server:2022-latest")
-            .WithCleanUp(true)
-            .Build();
+    private DbConnection _dbConnection = default!;
+    private Respawner _respawner = default!;
+    private string _masterConnectionString = default!;
+    private string _defaultConnectionString = default!;
 
-    public async Task InitializeAsync() => await _dbContainer.StartAsync();
+    public HttpClient HttpClient { get; private set; } = default!;
+
+    public async Task ResetDatabase() => await _respawner.ResetAsync(_dbConnection);
+
+    public async Task InitializeAsync()
+    {
+        await _dbContainer.StartAsync();
+
+        // TODO Use sql connection string builder or something like that
+        _masterConnectionString = _dbContainer.ConnectionString + "TrustServerCertificate=True;";
+        _defaultConnectionString = _masterConnectionString.Replace("master", "politicz-politicians-and-parties");
+
+        _dbConnection = new SqlConnection(_defaultConnectionString);
+        HttpClient = CreateClient();
+        await InitializeRespawner();
+    }
 
     async Task IAsyncLifetime.DisposeAsync() => await _dbContainer.DisposeAsync();
 
@@ -23,26 +40,32 @@ public class PoliticiansAndPartiesApiFactory : WebApplicationFactory<IApiMarker>
     {
         _ = builder.ConfigureLogging(logging => _ = logging.ClearProviders());
 
-        // TODO Use sql connection string builder or something like that
-        string? masterConnectionString = _dbContainer.ConnectionString;
-        masterConnectionString += "TrustServerCertificate=True;";
-        string defaultConnectionString =
-            masterConnectionString.Replace("master", "politicz-politicians-and-parties");
-
         _ = builder.ConfigureTestServices(services =>
         {
             _ = services.RemoveAll(typeof(IDbConnectionFactory));
             _ = services.AddSingleton<IDbConnectionFactory>(_ =>
                 new SqlServerConnectionFactory(new ConnectionStrings(
-                    masterConnectionString,
-                    defaultConnectionString)));
+                    _masterConnectionString,
+                    _defaultConnectionString)));
 
             _ = services.RemoveAll(typeof(IMigrationProcessor));
             _ = services.AddLogging(c => c.AddFluentMigratorConsole())
                 .AddFluentMigratorCore()
                 .ConfigureRunner(c => c.AddSqlServer()
-                    .WithGlobalConnectionString(defaultConnectionString)
+                    .WithGlobalConnectionString(_defaultConnectionString)
                     .ScanIn(Assembly.GetExecutingAssembly()).For.Migrations());
         });
+    }
+
+    private async Task InitializeRespawner()
+    {
+        await _dbConnection.OpenAsync();
+        _respawner = await Respawner.CreateAsync(
+            _dbConnection,
+            new RespawnerOptions
+            {
+                DbAdapter = DbAdapter.SqlServer,
+                SchemasToInclude = new[] { "dbo" },
+            });
     }
 }

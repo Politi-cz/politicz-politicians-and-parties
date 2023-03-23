@@ -1,11 +1,16 @@
 ﻿namespace PoliticiansAndParties.Api.Test.Integration.PoliticianController;
 
-public class GetPoliticianControllerTests : IClassFixture<PoliticiansAndPartiesApiFactory>
+[Collection("Shared test collection")]
+public class GetPoliticianControllerTests
 {
     private readonly HttpClient _client;
+    private readonly Func<Task> _resetDatabase;
 
-    public GetPoliticianControllerTests(PoliticiansAndPartiesApiFactory apiFactory) =>
-        _client = apiFactory.CreateClient();
+    public GetPoliticianControllerTests(PoliticiansAndPartiesApiFactory apiFactory)
+    {
+        _client = apiFactory.HttpClient;
+        _resetDatabase = apiFactory.ResetDatabase;
+    }
 
     [Fact]
     public async Task Get_ReturnsPolitician_WhenPoliticianExists()
@@ -31,4 +36,8 @@ public class GetPoliticianControllerTests : IClassFixture<PoliticiansAndPartiesA
         // Assert
         _ = response.StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
+
+    public Task InitializeAsync() => Task.CompletedTask;
+
+    public Task DisposeAsync() => _resetDatabase();
 }

@@ -2,9 +2,9 @@
 
 public class PoliticalParty
 {
-    public int Id { get; set; } = default!;
+    public int Id { get; set; }
 
-    public Guid FrontEndId { get; set; } = default!;
+    public Guid FrontEndId { get; set; }
 
     public string Name { get; set; } = string.Empty;
 
