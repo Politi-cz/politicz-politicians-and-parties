@@ -1,7 +1,7 @@
 ﻿namespace PoliticiansAndParties.Api.Test.Integration.PoliticianController;
 
 [Collection("Shared test collection")]
-public class GetPoliticianControllerTests
+public class GetPoliticianControllerTests : IAsyncLifetime
 {
     private readonly HttpClient _client;
     private readonly Func<Task> _resetDatabase;

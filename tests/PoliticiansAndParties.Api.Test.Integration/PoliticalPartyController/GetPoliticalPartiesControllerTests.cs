@@ -1,7 +1,7 @@
 ﻿namespace PoliticiansAndParties.Api.Test.Integration.PoliticalPartyController;
 
 [Collection("Shared test collection")]
-public class GetPoliticalPartiesControllerTests
+public class GetPoliticalPartiesControllerTests : IAsyncLifetime
 {
     private readonly HttpClient _client;
     private readonly Func<Task> _resetDatabase;
@@ -15,9 +15,6 @@ public class GetPoliticalPartiesControllerTests
     [Fact]
     public async Task GetPoliticalParties_ReturnsEmptyList_WhenNoPoliticalPartyExist()
     {
-        // Arrange
-        await _resetDatabase();
-
         // Act
         var response = await _client.GetAsync("api/political-parties");
 

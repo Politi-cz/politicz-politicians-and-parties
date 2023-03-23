@@ -1,7 +1,7 @@
 ﻿namespace PoliticiansAndParties.Api.Test.Integration.PoliticalPartyController;
 
 [Collection("Shared test collection")]
-public class DeletePoliticalPartyControllerTests
+public class DeletePoliticalPartyControllerTests : IAsyncLifetime
 {
     private readonly HttpClient _client;
 
