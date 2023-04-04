@@ -1,4 +1,5 @@
-﻿// TODO: Change it to logger configuration in upsettings.json
+﻿// TODO: Change it to logger configuration in appsettings.json
+
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()
     .MinimumLevel.Debug()
@@ -7,7 +8,14 @@ Log.Logger = new LoggerConfiguration()
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Configuration.AddEnvironmentVariables("PoliticalPartiesApi_");
+var config = builder.Configuration;
 builder.Host.UseSerilog();
+
+// Configure authentication and authorization
+string authority = $"https://{builder.Configuration["Auth0:Domain"]}/";
+builder.Services
+    .AddAuth0Authentication(config["Auth0:Audience"]!, authority)
+    .AddAuth0Authorization(authority);
 
 // Add services to the container.
 // TODO: Add secret manager for a local development
@@ -60,6 +68,7 @@ if (app.Environment.IsDevelopment())
 
 // app.UseHttpsRedirection();
 app.UseCors(options => options.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod());
+app.UseAuthentication();
 app.UseAuthorization();
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 

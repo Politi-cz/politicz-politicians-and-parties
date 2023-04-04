@@ -8,6 +8,7 @@ global using FluentAssertions;
 global using FluentAssertions.Equivalency;
 global using FluentMigrator;
 global using FluentMigrator.Runner;
+global using Microsoft.AspNetCore.Authentication;
 global using Microsoft.AspNetCore.Hosting;
 global using Microsoft.AspNetCore.Mvc.Testing;
 global using Microsoft.AspNetCore.TestHost;
