@@ -13,9 +13,7 @@ builder.Host.UseSerilog();
 
 // Configure authentication and authorization
 string authority = $"https://{builder.Configuration["Auth0:Domain"]}/";
-builder.Services
-    .AddAuth0Authentication(config["Auth0:Audience"]!, authority)
-    .AddAuth0Authorization(authority);
+builder.Services.AddAuth0Security(config["Auth0:Audience"]!, authority);
 
 // Add services to the container.
 // TODO: Add secret manager for a local development
@@ -68,8 +66,6 @@ if (app.Environment.IsDevelopment())
 
 // app.UseHttpsRedirection();
 app.UseCors(options => options.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod());
-app.UseAuthentication();
-app.UseAuthorization();
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 app.MapControllers();

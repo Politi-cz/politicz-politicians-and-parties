@@ -1,6 +1,4 @@
-﻿using Microsoft.Data.SqlClient;
-using Respawn;
-using System.Data.Common;
+﻿using PoliticiansAndParties.Api.Security.Handlers;
 
 namespace PoliticiansAndParties.Api.Test.Integration;
 
@@ -36,12 +34,41 @@ public class PoliticiansAndPartiesApiFactory : WebApplicationFactory<IApiMarker>
 
     async Task IAsyncLifetime.DisposeAsync() => await _dbContainer.DisposeAsync();
 
+    protected override void ConfigureClient(HttpClient client)
+    {
+        base.ConfigureClient(client);
+        client.DefaultRequestHeaders.Authorization =
+            new AuthenticationHeaderValue(scheme: TestAuthenticationHandler.AuthenticationScheme);
+    }
+
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         _ = builder.ConfigureLogging(logging => _ = logging.ClearProviders());
 
         _ = builder.ConfigureTestServices(services =>
         {
+            _ = services.Configure<TestAuthenticationHandlerOptions>(o =>
+                o.AllowedScopes = new[] { SecurityConstants.ModifyScopeName });
+
+            _ = services.AddAuthentication(o =>
+                {
+                    o.DefaultAuthenticateScheme = TestAuthenticationHandler.AuthenticationScheme;
+                    o.DefaultScheme = TestAuthenticationHandler.AuthenticationScheme;
+                    o.DefaultChallengeScheme = TestAuthenticationHandler.AuthenticationScheme;
+                })
+                .AddScheme<TestAuthenticationHandlerOptions, TestAuthenticationHandler>(
+                    TestAuthenticationHandler.AuthenticationScheme, _ => { });
+
+            // Overwriting authorization policy, its issuer to LOCAL AUTHORITY instead of auth0 domain
+            // So I can set the required issuer here or in test auth handler, when creating claims
+            _ = services
+                .AddAuthorization(options => options.AddPolicy(
+                    SecurityConstants.ModifyPolicy,
+                    policy => policy.Requirements.Add(
+                        new HasScopeRequirement(
+                            SecurityConstants.ModifyScopeName,
+                            ClaimsIdentity.DefaultIssuer))));
+
             _ = services.RemoveAll(typeof(IDbConnectionFactory));
             _ = services.AddSingleton<IDbConnectionFactory>(_ =>
                 new SqlServerConnectionFactory(new ConnectionStrings(

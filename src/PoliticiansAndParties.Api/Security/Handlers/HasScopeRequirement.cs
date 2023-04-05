@@ -1,4 +1,4 @@
-﻿namespace PoliticiansAndParties.Api.Authorization.Handlers;
+﻿namespace PoliticiansAndParties.Api.Security.Handlers;
 
 public class HasScopeRequirement : IAuthorizationRequirement
 {

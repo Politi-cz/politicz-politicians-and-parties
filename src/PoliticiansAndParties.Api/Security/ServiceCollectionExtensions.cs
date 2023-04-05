@@ -1,8 +1,10 @@
-﻿namespace PoliticiansAndParties.Api.Authorization;
+﻿using PoliticiansAndParties.Api.Security.Handlers;
+
+namespace PoliticiansAndParties.Api.Security;
 
 public static class ServiceCollectionExtensions
 {
-    public static IServiceCollection AddAuth0Authentication(this IServiceCollection serviceCollection, string audience, string authority)
+    public static IServiceCollection AddAuth0Security(this IServiceCollection serviceCollection, string audience, string authority)
     {
         _ = serviceCollection.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             .AddJwtBearer(options =>
@@ -15,14 +17,11 @@ public static class ServiceCollectionExtensions
                 };
             });
 
-        return serviceCollection;
-    }
-
-    public static IServiceCollection AddAuth0Authorization(this IServiceCollection serviceCollection, string authority)
-        => serviceCollection
+        return serviceCollection
             .AddAuthorization(options => options.AddPolicy(
-              AuthConstants.ModifyPolicy,
-              policy => policy.Requirements.Add(
-                  new HasScopeRequirement(AuthConstants.ModifyScopeName, authority))))
+                SecurityConstants.ModifyPolicy,
+                policy => policy.Requirements.Add(
+                        new HasScopeRequirement(SecurityConstants.ModifyScopeName, authority))))
             .AddSingleton<IAuthorizationHandler, HasScopeHandler>();
+    }
 }
