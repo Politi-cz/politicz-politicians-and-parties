@@ -21,7 +21,6 @@ global using PoliticiansAndParties.Api.Contracts.Requests;
 global using PoliticiansAndParties.Api.Contracts.Responses;
 global using PoliticiansAndParties.Api.Database;
 global using PoliticiansAndParties.Api.Models;
-global using PoliticiansAndParties.Api.Security;
 global using PoliticiansAndParties.Api.Test.Integration.Handlers;
 global using Respawn;
 global using System.Data.Common;

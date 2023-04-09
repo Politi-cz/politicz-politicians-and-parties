@@ -1,6 +1,4 @@
-﻿using PoliticiansAndParties.Api.Security.Handlers;
-
-namespace PoliticiansAndParties.Api.Test.Integration;
+﻿namespace PoliticiansAndParties.Api.Test.Integration;
 
 public class PoliticiansAndPartiesApiFactory : WebApplicationFactory<IApiMarker>, IAsyncLifetime
 {
@@ -29,17 +27,12 @@ public class PoliticiansAndPartiesApiFactory : WebApplicationFactory<IApiMarker>
 
         _dbConnection = new SqlConnection(_defaultConnectionString);
         HttpClient = CreateClient();
+        HttpClient.DefaultRequestHeaders.Authorization =
+            new AuthenticationHeaderValue(scheme: TestAuthenticationHandler.AuthenticationScheme);
         await InitializeRespawner();
     }
 
     async Task IAsyncLifetime.DisposeAsync() => await _dbContainer.DisposeAsync();
-
-    protected override void ConfigureClient(HttpClient client)
-    {
-        base.ConfigureClient(client);
-        client.DefaultRequestHeaders.Authorization =
-            new AuthenticationHeaderValue(scheme: TestAuthenticationHandler.AuthenticationScheme);
-    }
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
@@ -48,7 +41,7 @@ public class PoliticiansAndPartiesApiFactory : WebApplicationFactory<IApiMarker>
         _ = builder.ConfigureTestServices(services =>
         {
             _ = services.Configure<TestAuthenticationHandlerOptions>(o =>
-                o.AllowedScopes = new[] { SecurityConstants.ModifyScopeName });
+                o.Permissions = new[] { "modify:parties-politicians" });
 
             _ = services.AddAuthentication(o =>
                 {
@@ -58,16 +51,6 @@ public class PoliticiansAndPartiesApiFactory : WebApplicationFactory<IApiMarker>
                 })
                 .AddScheme<TestAuthenticationHandlerOptions, TestAuthenticationHandler>(
                     TestAuthenticationHandler.AuthenticationScheme, _ => { });
-
-            // Overwriting authorization policy, its issuer to LOCAL AUTHORITY instead of auth0 domain
-            // So I can set the required issuer here or in test auth handler, when creating claims
-            _ = services
-                .AddAuthorization(options => options.AddPolicy(
-                    SecurityConstants.ModifyPolicy,
-                    policy => policy.Requirements.Add(
-                        new HasScopeRequirement(
-                            SecurityConstants.ModifyScopeName,
-                            ClaimsIdentity.DefaultIssuer))));
 
             _ = services.RemoveAll(typeof(IDbConnectionFactory));
             _ = services.AddSingleton<IDbConnectionFactory>(_ =>

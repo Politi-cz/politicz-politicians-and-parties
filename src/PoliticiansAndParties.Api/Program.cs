@@ -1,5 +1,4 @@
 ﻿// TODO: Change it to logger configuration in appsettings.json
-
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()
     .MinimumLevel.Debug()
@@ -8,12 +7,10 @@ Log.Logger = new LoggerConfiguration()
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Configuration.AddEnvironmentVariables("PoliticalPartiesApi_");
-var config = builder.Configuration;
 builder.Host.UseSerilog();
 
 // Configure authentication and authorization
-string authority = $"https://{builder.Configuration["Auth0:Domain"]}/";
-builder.Services.AddAuth0Security(config["Auth0:Audience"]!, authority);
+builder.Services.AddAuth0Security(builder.Configuration.GetSection(Auth0Options.Auth0).Get<Auth0Options>()!);
 
 // Add services to the container.
 // TODO: Add secret manager for a local development
@@ -52,7 +49,13 @@ builder.Services.AddControllers(options =>
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(s => s.SwaggerDoc("v1", new OpenApiInfo
+{
+    Title = "Politicians and political parties",
+    Version = "v1",
+    Description = "API providing CRUD operations for politicians and political parties",
+    Contact = new OpenApiContact { Url = new Uri("https://github.com/PetrKoller") },
+}));
 
 var app = builder.Build();
 app.UseSerilogRequestLogging();

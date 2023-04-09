@@ -9,6 +9,7 @@ global using Microsoft.AspNetCore.Authorization;
 global using Microsoft.AspNetCore.Mvc;
 global using Microsoft.Data.SqlClient;
 global using Microsoft.IdentityModel.Tokens;
+global using Microsoft.OpenApi.Models;
 global using OneOf;
 global using OneOf.Types;
 global using PoliticiansAndParties.Api.Contracts.Requests;

@@ -16,7 +16,7 @@ public class PoliticalPartyController : ControllerBase
     }
 
     [HttpPost("create")]
-    [Authorize(SecurityConstants.ModifyPolicy)]
+    [Authorize("modify:parties-politicians")]
     [ProducesResponseType(201, Type = typeof(PoliticalPartyResponse))]
     public async Task<IActionResult> CreatePoliticalParty([FromBody] PoliticalPartyRequest politicalPartyRequest)
     {
@@ -55,7 +55,7 @@ public class PoliticalPartyController : ControllerBase
     }
 
     [HttpPut("{partyId:guid}")]
-    [Authorize(SecurityConstants.ModifyPolicy)]
+    [Authorize("modify:parties-politicians")]
     [ProducesResponseType(200, Type = typeof(PoliticalPartyRequest))]
     public async Task<IActionResult> UpdatePoliticalParty(
         [FromRoute] Guid partyId, [FromBody] PoliticalPartyRequest politicalPartyRequest)
@@ -78,7 +78,7 @@ public class PoliticalPartyController : ControllerBase
     }
 
     [HttpDelete("{partyId:guid}")]
-    [Authorize(SecurityConstants.ModifyPolicy)]
+    [Authorize("modify:parties-politicians")]
     [ProducesResponseType(200)]
     public async Task<IActionResult> DeletePoliticalParty([FromRoute] Guid partyId)
     {
