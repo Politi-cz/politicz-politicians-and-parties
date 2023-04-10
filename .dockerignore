@@ -1,6 +1,6 @@
 ﻿.git
 .github
-tst
+tests
 .editorconfig
 .gitignore
 docker-compose.yml

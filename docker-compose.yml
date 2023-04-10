@@ -11,8 +11,12 @@ services:
     environment:
       - ASPNETCORE_URLS=https://+:443;http://+:80
       - ASPNETCORE_Environment=Development
-      - PoliticalPartiesApi_ConnectionStrings__DefaultConnection=Server=db,1433;Database=politicz-politicians-and-parties;User Id=sa;Password=Password12345;TrustServerCertificate=True;
-      - PoliticalPartiesApi_ConnectionStrings__MasterConnection=Server=db,1433;Database=master;User Id=sa;Password=Password12345;TrustServerCertificate=True;
+      - PoliticalPartiesApi_ConnectionStrings__DefaultConnection=${PoliticalPartiesApi_DefaultConnection}
+      - PoliticalPartiesApi_ConnectionStrings__MasterConnection=${PoliticalPartiesApi_MasterConnection}
+      - PoliticalPartiesApi_Database=${PoliticalPartiesApi_Database}
+      - PoliticalPartiesApi_Auth0__Domain=${PoliticalPartiesApi_Auth0_Domain}
+      - PoliticalPartiesApi_Auth0__Audience=${PoliticalPartiesApi_Auth0_Audience}
+      - PoliticalPartiesApi_Auth0__Permissions__0=${PoliticalPartiesApi_Auth0_Permissions_0}
     depends_on:
       - db
 
