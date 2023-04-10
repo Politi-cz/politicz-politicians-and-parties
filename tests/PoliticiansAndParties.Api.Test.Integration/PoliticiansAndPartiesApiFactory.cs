@@ -64,6 +64,11 @@ public class PoliticiansAndPartiesApiFactory : WebApplicationFactory<IApiMarker>
                 .ConfigureRunner(c => c.AddSqlServer()
                     .WithGlobalConnectionString(_defaultConnectionString)
                     .ScanIn(Assembly.GetExecutingAssembly()).For.Migrations());
+
+            // TODO find a way, maybe reading and registering permissions from configuration is not the best idea, hardcoded in AddSecurityExtension might be best
+            _ = services.AddAuthorization(con =>
+                con.AddPolicy("modify:parties-politicians", p
+                    => p.RequireClaim("permissions", "modify:parties-politicians")));
         });
     }
 

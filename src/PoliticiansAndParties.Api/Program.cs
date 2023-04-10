@@ -74,7 +74,10 @@ app.UseMiddleware<ExceptionHandlingMiddleware>();
 app.MapControllers();
 
 var databaseInitializer = app.Services.GetRequiredService<DatabaseInitializer>();
-await databaseInitializer.Initialize(builder.Configuration.GetValue<string>("Database")!);
+
+// TODO fix for testing, now hardcoded, need to find a way in PoliticiansAndPartiesFactory to get database initialized and initialize with own database name
+// now struggling to create scope and get required service in test configuration
+await databaseInitializer.Initialize("politicz-politicians-and-parties");
 
 using var scope = app.Services.CreateScope();
 var runner = scope.ServiceProvider.GetRequiredService<IMigrationRunner>();
