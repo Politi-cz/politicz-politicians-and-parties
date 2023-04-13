@@ -1,4 +1,7 @@
 ﻿// TODO: Change it to logger configuration in appsettings.json
+
+using Microsoft.Extensions.Options;
+
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()
     .MinimumLevel.Debug()
@@ -10,14 +13,12 @@ builder.Configuration.AddEnvironmentVariables("PoliticalPartiesApi_");
 builder.Host.UseSerilog();
 
 // Configure authentication and authorization
-builder.Services.AddAuth0Security(builder.Configuration.GetSection(Auth0Options.Auth0).Get<Auth0Options>()!);
+builder.Services.Configure<PoliticiansPartiesOptions>(builder.Configuration);
+
+builder.Services.AddAuth0Security(builder.Configuration);
 
 // Add services to the container.
-// TODO: Add secret manager for a local development
-builder.Services.AddSingleton<IDbConnectionFactory>(new SqlServerConnectionFactory(
-    new ConnectionStrings(
-        builder.Configuration.GetConnectionString("MasterConnection")!,
-        builder.Configuration.GetConnectionString("DefaultConnection")!)));
+builder.Services.AddSingleton<IDbConnectionFactory, SqlServerConnectionFactory>();
 builder.Services.AddSingleton<DatabaseInitializer>();
 builder.Services.AddScoped<IPoliticianRepository, PoliticianRepository>();
 builder.Services.AddScoped<IPoliticianService, PoliticianService>();
@@ -32,7 +33,11 @@ builder.Services.AddScoped<IValidator<PoliticalPartyRequest>, PoliticalPartyRequ
 builder.Services.AddLogging(c => c.AddFluentMigratorConsole())
     .AddFluentMigratorCore()
     .ConfigureRunner(c => c.AddSqlServer()
-        .WithGlobalConnectionString(builder.Configuration.GetConnectionString("DefaultConnection"))
+        .WithGlobalConnectionString(sp =>
+        {
+            var dbOptions = sp.GetRequiredService<IOptions<PoliticiansPartiesOptions>>().Value.Database;
+            return dbOptions.DefaultConnection;
+        })
         .ScanIn(Assembly.GetExecutingAssembly()).For.All());
 
 builder.Services.AddCors();
@@ -73,13 +78,13 @@ app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 app.MapControllers();
 
-var databaseInitializer = app.Services.GetRequiredService<DatabaseInitializer>();
-
-// TODO fix for testing, now hardcoded, need to find a way in PoliticiansAndPartiesFactory to get database initialized and initialize with own database name
-// now struggling to create scope and get required service in test configuration
-await databaseInitializer.Initialize("politicz-politicians-and-parties");
-
 using var scope = app.Services.CreateScope();
+
+var databaseInitializer = scope.ServiceProvider.GetRequiredService<DatabaseInitializer>();
+var dbOptions = scope.ServiceProvider.GetRequiredService<IOptions<PoliticiansPartiesOptions>>()
+    .Value.Database;
+await databaseInitializer.Initialize(dbOptions.Name);
+
 var runner = scope.ServiceProvider.GetRequiredService<IMigrationRunner>();
 
 runner.ListMigrations();

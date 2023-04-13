@@ -11,6 +11,11 @@ public class TestAuthenticationHandler : AuthenticationHandler<TestAuthenticatio
 
     protected override Task<AuthenticateResult> HandleAuthenticateAsync()
     {
+        if (!Context.Request.Headers.Authorization.ToString().StartsWith(AuthenticationScheme))
+        {
+            return Task.FromResult(AuthenticateResult.NoResult());
+        }
+
         var claims = new List<Claim>
         {
             Context.Request.Headers.TryGetValue(TestPermission, out var testPermission)

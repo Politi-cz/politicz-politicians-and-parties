@@ -1,15 +1,16 @@
-﻿namespace PoliticiansAndParties.Api.Database;
+﻿using Microsoft.Extensions.Options;
+
+namespace PoliticiansAndParties.Api.Database;
 
 public class SqlServerConnectionFactory : IDbConnectionFactory
 {
-    // TODO: Instead of struct implement IOptions pattern
-    private readonly ConnectionStrings _connectionStrings;
+    private readonly DatabaseOptions _databaseOptions;
 
-    public SqlServerConnectionFactory(ConnectionStrings connectionStrings) => _connectionStrings = connectionStrings;
+    public SqlServerConnectionFactory(IOptions<PoliticiansPartiesOptions> options) => _databaseOptions = options.Value.Database;
 
     public async Task<IDbConnection> CreateConnection()
     {
-        var connection = new SqlConnection(_connectionStrings.SqlConnection);
+        var connection = new SqlConnection(_databaseOptions.DefaultConnection);
         await connection.OpenAsync();
 
         return connection;
@@ -17,7 +18,7 @@ public class SqlServerConnectionFactory : IDbConnectionFactory
 
     public async Task<IDbConnection> CreateMasterConnection()
     {
-        var connection = new SqlConnection(_connectionStrings.MasterConnection);
+        var connection = new SqlConnection(_databaseOptions.MasterConnection);
         await connection.OpenAsync();
 
         return connection;

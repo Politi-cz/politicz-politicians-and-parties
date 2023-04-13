@@ -19,7 +19,6 @@ global using Microsoft.Extensions.Logging;
 global using Microsoft.Extensions.Options;
 global using PoliticiansAndParties.Api.Contracts.Requests;
 global using PoliticiansAndParties.Api.Contracts.Responses;
-global using PoliticiansAndParties.Api.Database;
 global using PoliticiansAndParties.Api.Models;
 global using PoliticiansAndParties.Api.Test.Integration.Handlers;
 global using Respawn;

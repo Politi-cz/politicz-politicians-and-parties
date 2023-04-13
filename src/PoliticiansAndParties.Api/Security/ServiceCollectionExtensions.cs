@@ -2,13 +2,15 @@
 
 public static class ServiceCollectionExtensions
 {
-    public static IServiceCollection AddAuth0Security(this IServiceCollection serviceCollection, Auth0Options auth0Options)
+    public static IServiceCollection AddAuth0Security(this IServiceCollection serviceCollection, IConfiguration configuration)
     {
+        var auth0Options = configuration.GetSection("Auth0").Get<Auth0Options>();
+
         string authority = $"https://{auth0Options.Domain}/";
 
         _ = serviceCollection.AddSwaggerGen(c =>
         {
-            c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+            c.AddSecurityDefinition(JwtBearerDefaults.AuthenticationScheme, new OpenApiSecurityScheme
             {
                 In = ParameterLocation.Header,
                 Description = "Please insert JWT with Bearer into field",
@@ -43,12 +45,10 @@ public static class ServiceCollectionExtensions
             });
 
         return serviceCollection
-            .AddAuthorization(options =>
+            .AddAuthorization(options => options.AddPolicy("modify:parties-politicians", policy =>
             {
-                foreach (string permission in auth0Options.Permissions)
-                {
-                    options.AddPolicy(permission, policy => policy.RequireClaim("permissions", permission));
-                }
-            });
+                _ = policy.AddAuthenticationSchemes(JwtBearerDefaults.AuthenticationScheme);
+                _ = policy.RequireClaim("permissions", "modify:parties-politicians");
+            }));
     }
 }

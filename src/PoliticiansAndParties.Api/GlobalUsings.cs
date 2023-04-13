@@ -20,6 +20,7 @@ global using PoliticiansAndParties.Api.Logging;
 global using PoliticiansAndParties.Api.Mapping;
 global using PoliticiansAndParties.Api.Middleware;
 global using PoliticiansAndParties.Api.Models;
+global using PoliticiansAndParties.Api.Options;
 global using PoliticiansAndParties.Api.Repositories;
 global using PoliticiansAndParties.Api.Results;
 global using PoliticiansAndParties.Api.Security;
