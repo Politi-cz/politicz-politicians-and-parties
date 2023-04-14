@@ -11,12 +11,11 @@ services:
     environment:
       - ASPNETCORE_URLS=https://+:443;http://+:80
       - ASPNETCORE_Environment=Development
-      - PoliticalPartiesApi_ConnectionStrings__DefaultConnection=${PoliticalPartiesApi_DefaultConnection}
-      - PoliticalPartiesApi_ConnectionStrings__MasterConnection=${PoliticalPartiesApi_MasterConnection}
-      - PoliticalPartiesApi_Database=${PoliticalPartiesApi_Database}
+      - PoliticalPartiesApi_Database__DefaultConnection=${PoliticalPartiesApi_DefaultConnection}
+      - PoliticalPartiesApi_Database__MasterConnection=${PoliticalPartiesApi_MasterConnection}
+      - PoliticalPartiesApi_Database__Name=${PoliticalPartiesApi_DatabaseName}
       - PoliticalPartiesApi_Auth0__Domain=${PoliticalPartiesApi_Auth0_Domain}
       - PoliticalPartiesApi_Auth0__Audience=${PoliticalPartiesApi_Auth0_Audience}
-      - PoliticalPartiesApi_Auth0__Permissions__0=${PoliticalPartiesApi_Auth0_Permissions_0}
     depends_on:
       - db
 

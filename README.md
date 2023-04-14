@@ -7,12 +7,11 @@ Microservice provides basic CRUD operations for manipulation with Politicians an
 ## Environment variables
 These environment variables must be set in order to run the application
 
-- PoliticalPartiesApi_ConnectionStrings__DefaultConnection
-- PoliticalPartiesApi_ConnectionStrings__MasterConnection
-- PoliticalPartiesApi_Database
+- PoliticalPartiesApi_Database__DefaultConnection
+- PoliticalPartiesApi_Database__MasterConnection
+- PoliticalPartiesApi_Database__Name
 - PoliticalPartiesApi_Auth0__Domain
 - PoliticalPartiesApi_Auth0__Audience
-- PoliticalPartiesApi_Auth0__Permissions__0
 
 To achieve that you could create .env file and then pass it to `docker compose` which sets these variables
 
@@ -20,10 +19,9 @@ structure of `.env` file should be following
 ```
 PoliticalPartiesApi_DefaultConnection=defaultString
 PoliticalPartiesApi_MasterConnection=masterString
-PoliticalPartiesApi_Database=dbexamplename
+PoliticalPartiesApi_DatabaseName=dbexamplename
 PoliticalPartiesApi_Auth0_Domain=authDomain
 PoliticalPartiesApi_Auth0_Audience=audience
-PoliticalPartiesApi_Auth0_Permissions_0=example:permission
 ```
 ## Running
 - Open terminal
