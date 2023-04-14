@@ -4,12 +4,27 @@
 public class CreatePoliticalPartyControllerTests : IAsyncLifetime
 {
     private readonly HttpClient _client;
+    private readonly HttpClient _unauthorizedClient;
     private readonly Func<Task> _resetDatabase;
 
     public CreatePoliticalPartyControllerTests(PoliticiansAndPartiesApiFactory apiFactory)
     {
         _client = apiFactory.HttpClient;
+        _unauthorizedClient = apiFactory.UnauthorizedClient;
         _resetDatabase = apiFactory.ResetDatabase;
+    }
+
+    [Fact]
+    public async Task CreatePoliticalParty_ReturnsUnauthorized_WhenUnauthorizedRequest()
+    {
+        // Arrange
+        var generatedParty = TestData.PartyGenerator.Generate();
+
+        // Act
+        var createPartyResponse = await _unauthorizedClient.PostAsJsonAsync("api/political-parties/create", generatedParty);
+
+        // Assert
+        _ = createPartyResponse.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
     }
 
     [Fact]

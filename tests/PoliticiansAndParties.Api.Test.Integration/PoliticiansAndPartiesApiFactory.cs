@@ -1,6 +1,5 @@
-﻿using Microsoft.Data.SqlClient;
-using Respawn;
-using System.Data.Common;
+﻿using PoliticiansAndParties.Api.Database;
+using PoliticiansAndParties.Api.Options;
 
 namespace PoliticiansAndParties.Api.Test.Integration;
 
@@ -19,18 +18,27 @@ public class PoliticiansAndPartiesApiFactory : WebApplicationFactory<IApiMarker>
 
     public HttpClient HttpClient { get; private set; } = default!;
 
+    public HttpClient UnauthorizedClient { get; private set; } = default!;
+
     public async Task ResetDatabase() => await _respawner.ResetAsync(_dbConnection);
 
     public async Task InitializeAsync()
     {
         await _dbContainer.StartAsync();
 
-        // TODO Use sql connection string builder or something like that
-        _masterConnectionString = _dbContainer.ConnectionString + "TrustServerCertificate=True;";
-        _defaultConnectionString = _masterConnectionString.Replace("master", "politicz-politicians-and-parties");
+        var connBuilder = new SqlConnectionStringBuilder(_dbContainer.ConnectionString)
+        {
+            TrustServerCertificate = true,
+        };
+        _masterConnectionString = connBuilder.ConnectionString;
+        connBuilder.InitialCatalog = "politicz-politicians-and-parties";
+        _defaultConnectionString = connBuilder.ConnectionString;
 
         _dbConnection = new SqlConnection(_defaultConnectionString);
+        UnauthorizedClient = CreateClient();
         HttpClient = CreateClient();
+        HttpClient.DefaultRequestHeaders.Authorization =
+            new AuthenticationHeaderValue(scheme: TestAuthenticationHandler.AuthenticationScheme);
         await InitializeRespawner();
     }
 
@@ -42,18 +50,46 @@ public class PoliticiansAndPartiesApiFactory : WebApplicationFactory<IApiMarker>
 
         _ = builder.ConfigureTestServices(services =>
         {
+            _ = services.Configure<TestAuthenticationHandlerOptions>(o =>
+                o.Permissions = new[] { "modify:parties-politicians" });
+
+            _ = services.Configure<PoliticiansPartiesOptions>(o => o.Database = new DatabaseOptions
+            {
+                DefaultConnection = _defaultConnectionString,
+                MasterConnection = _masterConnectionString,
+                Name = "politicz-politicians-and-parties",
+            });
+
+            _ = services.AddAuthentication(o =>
+                {
+                    o.DefaultAuthenticateScheme = TestAuthenticationHandler.AuthenticationScheme;
+                    o.DefaultScheme = TestAuthenticationHandler.AuthenticationScheme;
+                    o.DefaultChallengeScheme = TestAuthenticationHandler.AuthenticationScheme;
+                })
+                .AddScheme<TestAuthenticationHandlerOptions, TestAuthenticationHandler>(
+                    TestAuthenticationHandler.AuthenticationScheme, _ => { });
+
             _ = services.RemoveAll(typeof(IDbConnectionFactory));
-            _ = services.AddSingleton<IDbConnectionFactory>(_ =>
-                new SqlServerConnectionFactory(new ConnectionStrings(
-                    _masterConnectionString,
-                    _defaultConnectionString)));
+            _ = services.AddSingleton<IDbConnectionFactory, SqlServerConnectionFactory>();
 
             _ = services.RemoveAll(typeof(IMigrationProcessor));
             _ = services.AddLogging(c => c.AddFluentMigratorConsole())
                 .AddFluentMigratorCore()
                 .ConfigureRunner(c => c.AddSqlServer()
-                    .WithGlobalConnectionString(_defaultConnectionString)
+                    .WithGlobalConnectionString(sp =>
+                    {
+                        var dbOptions = sp.GetRequiredService<IOptions<PoliticiansPartiesOptions>>().Value.Database;
+                        return dbOptions.DefaultConnection;
+                    })
                     .ScanIn(Assembly.GetExecutingAssembly()).For.Migrations());
+
+            _ = services.AddAuthorization(con =>
+                con.AddPolicy("modify:parties-politicians", p
+                    =>
+                {
+                    _ = p.AddAuthenticationSchemes(TestAuthenticationHandler.AuthenticationScheme);
+                    _ = p.RequireClaim("permissions", "modify:parties-politicians");
+                }));
         });
     }
 

@@ -1,4 +1,6 @@
-﻿// TODO: Change it to logger configuration in upsettings.json
+﻿using PoliticiansAndParties.Api;
+
+// TODO: Change it to logger configuration in appsettings.json
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()
     .MinimumLevel.Debug()
@@ -9,30 +11,25 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Configuration.AddEnvironmentVariables("PoliticalPartiesApi_");
 builder.Host.UseSerilog();
 
-// Add services to the container.
-// TODO: Add secret manager for a local development
-builder.Services.AddSingleton<IDbConnectionFactory>(new SqlServerConnectionFactory(
-    new ConnectionStrings(
-        builder.Configuration.GetConnectionString("MasterConnection")!,
-        builder.Configuration.GetConnectionString("DefaultConnection")!)));
-builder.Services.AddSingleton<DatabaseInitializer>();
-builder.Services.AddScoped<IPoliticianRepository, PoliticianRepository>();
-builder.Services.AddScoped<IPoliticianService, PoliticianService>();
-builder.Services.AddScoped<IPoliticalPartyRepository, PoliticalPartyRepository>();
-builder.Services.AddScoped<IPoliticalPartyService, PoliticalPartyService>();
-builder.Services.AddSingleton(typeof(ILoggerAdapter<>), typeof(LoggerAdapter<>));
+// Configure authentication and authorization
+builder.Services.Configure<PoliticiansPartiesOptions>(builder.Configuration)
+    .AddSingleton(typeof(ILoggerAdapter<>), typeof(LoggerAdapter<>))
+    .AddAuth0Security(builder.Configuration)
+    .AddDatabase()
+    .AddMigrator()
+    .AddRepositories()
+    .AddServices()
+    .AddValidatorsFromAssemblyContaining<PoliticalPartyRequestValidator>()
+    .AddCors()
+    .AddEndpointsApiExplorer()
+    .AddSwaggerGen(s => s.SwaggerDoc("v1", new OpenApiInfo
+    {
+        Title = "Politicians and political parties",
+        Version = "v1",
+        Description = "API providing CRUD operations for politicians and political parties",
+        Contact = new OpenApiContact { Url = new Uri("https://github.com/PetrKoller") },
+    }));
 
-// TODO Add all validations through an extension method RegisterValidators or something like that.
-builder.Services.AddScoped<IValidator<PoliticianRequest>, PoliticianRequestValidator>();
-builder.Services.AddScoped<IValidator<PoliticalPartyRequest>, PoliticalPartyRequestValidator>();
-
-builder.Services.AddLogging(c => c.AddFluentMigratorConsole())
-    .AddFluentMigratorCore()
-    .ConfigureRunner(c => c.AddSqlServer()
-        .WithGlobalConnectionString(builder.Configuration.GetConnectionString("DefaultConnection"))
-        .ScanIn(Assembly.GetExecutingAssembly()).For.All());
-
-builder.Services.AddCors();
 builder.Services.AddControllers(options =>
 {
     options.Filters.Add(new ProducesAttribute("application/json"));
@@ -43,10 +40,6 @@ builder.Services.AddControllers(options =>
     options.Filters.Add(
         new ProducesResponseTypeAttribute(typeof(ErrorDetail), (int)HttpStatusCode.InternalServerError));
 });
-
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 app.UseSerilogRequestLogging();
@@ -59,19 +52,9 @@ if (app.Environment.IsDevelopment())
 }
 
 // app.UseHttpsRedirection();
-app.UseCors(options => options.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod());
-app.UseAuthorization();
-app.UseMiddleware<ExceptionHandlingMiddleware>();
-
+app.UseCors(options => options.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod())
+    .UseMiddleware<ExceptionHandlingMiddleware>();
 app.MapControllers();
+await app.MigrateDatabase();
 
-var databaseInitializer = app.Services.GetRequiredService<DatabaseInitializer>();
-await databaseInitializer.Initialize(builder.Configuration.GetValue<string>("Database")!);
-
-using var scope = app.Services.CreateScope();
-var runner = scope.ServiceProvider.GetRequiredService<IMigrationRunner>();
-
-runner.ListMigrations();
-runner.MigrateUp();
-
-app.Run();
+await app.RunAsync();
