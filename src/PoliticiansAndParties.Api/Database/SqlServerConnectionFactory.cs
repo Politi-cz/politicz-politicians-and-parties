@@ -1,6 +1,4 @@
-﻿using Microsoft.Extensions.Options;
-
-namespace PoliticiansAndParties.Api.Database;
+﻿namespace PoliticiansAndParties.Api.Database;
 
 public class SqlServerConnectionFactory : IDbConnectionFactory
 {

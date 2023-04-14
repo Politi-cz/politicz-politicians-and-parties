@@ -1,7 +1,6 @@
-﻿// TODO: Change it to logger configuration in appsettings.json
+﻿using PoliticiansAndParties.Api;
 
-using Microsoft.Extensions.Options;
-
+// TODO: Change it to logger configuration in appsettings.json
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()
     .MinimumLevel.Debug()
@@ -13,34 +12,24 @@ builder.Configuration.AddEnvironmentVariables("PoliticalPartiesApi_");
 builder.Host.UseSerilog();
 
 // Configure authentication and authorization
-builder.Services.Configure<PoliticiansPartiesOptions>(builder.Configuration);
+builder.Services.Configure<PoliticiansPartiesOptions>(builder.Configuration)
+    .AddSingleton(typeof(ILoggerAdapter<>), typeof(LoggerAdapter<>))
+    .AddAuth0Security(builder.Configuration)
+    .AddDatabase()
+    .AddMigrator()
+    .AddRepositories()
+    .AddServices()
+    .AddValidatorsFromAssemblyContaining<PoliticalPartyRequestValidator>()
+    .AddCors()
+    .AddEndpointsApiExplorer()
+    .AddSwaggerGen(s => s.SwaggerDoc("v1", new OpenApiInfo
+    {
+        Title = "Politicians and political parties",
+        Version = "v1",
+        Description = "API providing CRUD operations for politicians and political parties",
+        Contact = new OpenApiContact { Url = new Uri("https://github.com/PetrKoller") },
+    }));
 
-builder.Services.AddAuth0Security(builder.Configuration);
-
-// Add services to the container.
-builder.Services.AddSingleton<IDbConnectionFactory, SqlServerConnectionFactory>();
-builder.Services.AddSingleton<DatabaseInitializer>();
-builder.Services.AddScoped<IPoliticianRepository, PoliticianRepository>();
-builder.Services.AddScoped<IPoliticianService, PoliticianService>();
-builder.Services.AddScoped<IPoliticalPartyRepository, PoliticalPartyRepository>();
-builder.Services.AddScoped<IPoliticalPartyService, PoliticalPartyService>();
-builder.Services.AddSingleton(typeof(ILoggerAdapter<>), typeof(LoggerAdapter<>));
-
-// TODO Add all validations through an extension method RegisterValidators or something like that.
-builder.Services.AddScoped<IValidator<PoliticianRequest>, PoliticianRequestValidator>();
-builder.Services.AddScoped<IValidator<PoliticalPartyRequest>, PoliticalPartyRequestValidator>();
-
-builder.Services.AddLogging(c => c.AddFluentMigratorConsole())
-    .AddFluentMigratorCore()
-    .ConfigureRunner(c => c.AddSqlServer()
-        .WithGlobalConnectionString(sp =>
-        {
-            var dbOptions = sp.GetRequiredService<IOptions<PoliticiansPartiesOptions>>().Value.Database;
-            return dbOptions.DefaultConnection;
-        })
-        .ScanIn(Assembly.GetExecutingAssembly()).For.All());
-
-builder.Services.AddCors();
 builder.Services.AddControllers(options =>
 {
     options.Filters.Add(new ProducesAttribute("application/json"));
@@ -51,16 +40,6 @@ builder.Services.AddControllers(options =>
     options.Filters.Add(
         new ProducesResponseTypeAttribute(typeof(ErrorDetail), (int)HttpStatusCode.InternalServerError));
 });
-
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen(s => s.SwaggerDoc("v1", new OpenApiInfo
-{
-    Title = "Politicians and political parties",
-    Version = "v1",
-    Description = "API providing CRUD operations for politicians and political parties",
-    Contact = new OpenApiContact { Url = new Uri("https://github.com/PetrKoller") },
-}));
 
 var app = builder.Build();
 app.UseSerilogRequestLogging();
@@ -73,21 +52,9 @@ if (app.Environment.IsDevelopment())
 }
 
 // app.UseHttpsRedirection();
-app.UseCors(options => options.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod());
-app.UseMiddleware<ExceptionHandlingMiddleware>();
-
+app.UseCors(options => options.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod())
+    .UseMiddleware<ExceptionHandlingMiddleware>();
 app.MapControllers();
+await app.MigrateDatabase();
 
-using var scope = app.Services.CreateScope();
-
-var databaseInitializer = scope.ServiceProvider.GetRequiredService<DatabaseInitializer>();
-var dbOptions = scope.ServiceProvider.GetRequiredService<IOptions<PoliticiansPartiesOptions>>()
-    .Value.Database;
-await databaseInitializer.Initialize(dbOptions.Name);
-
-var runner = scope.ServiceProvider.GetRequiredService<IMigrationRunner>();
-
-runner.ListMigrations();
-runner.MigrateUp();
-
-app.Run();
+await app.RunAsync();

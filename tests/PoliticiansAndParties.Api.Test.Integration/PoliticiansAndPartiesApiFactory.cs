@@ -46,7 +46,7 @@ public class PoliticiansAndPartiesApiFactory : WebApplicationFactory<IApiMarker>
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
-        _ = builder.ConfigureLogging(logging => { });
+        _ = builder.ConfigureLogging(logging => _ = logging.ClearProviders());
 
         _ = builder.ConfigureTestServices(services =>
         {
