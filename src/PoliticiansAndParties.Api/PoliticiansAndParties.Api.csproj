@@ -1,5 +1,6 @@
-﻿<Project Sdk="Microsoft.NET.Sdk.Web"><PropertyGroup>  <UserSecretsId>e1c7ab00-5961-4eb3-a921-d410edf368bc</UserSecretsId>
-  </PropertyGroup>
+﻿<Project Sdk="Microsoft.NET.Sdk.Web"><PropertyGroup>
+  <UserSecretsId>1af2ce49-d8a9-486b-8fae-5b941ffc962f</UserSecretsId>
+</PropertyGroup>
     <ItemGroup>
         <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="7.0.4" />
         <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="7.0.3" />
