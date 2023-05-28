@@ -1,37 +1,44 @@
-# Political parties and politicians
-Microservice provides basic CRUD operations for manipulation with Politicians and Political Parties
-## Make sure
-- Ports 5000, 5001 and 1433 are not occupied
-- Docker desktop is installed and running
+# Politicz.PoliticiansAndParties
+
+Politicz.PoliticiansAndParties is a reference project that demonstrates the usage of Dapper, Fluent Validations, and Docker in an ASP.NET Core back-end application. The project aims to provide a source of politicians and political parties.
+
+## Features
+
+- CRUD operations for politicians and political parties
+
+## Technologies Used
+
+- ASP.NET Core 7.0
+- Dapper
+- Fluent Validation
+- Microsoft SQL Server
+- Docker
 
 ## Environment variables
-These environment variables must be set in order to run the application
+    - PoliticalPartiesApi_Database__DefaultConnection
+    - PoliticalPartiesApi_Database__MasterConnection
+    - PoliticalPartiesApi_Database__Name
+    - PoliticalPartiesApi_Auth0__Domain
+    - PoliticalPartiesApi_Auth0__Audience
 
-- PoliticalPartiesApi_Database__DefaultConnection
-- PoliticalPartiesApi_Database__MasterConnection
-- PoliticalPartiesApi_Database__Name
-- PoliticalPartiesApi_Auth0__Domain
-- PoliticalPartiesApi_Auth0__Audience
+## Getting Started
 
-To achieve that you could create .env file and then pass it to `docker compose` which sets these variables
+To get started with Politicz.PoliticiansAndParties, follow these steps:
 
-structure of `.env` file should be following
-```
-PoliticalPartiesApi_DefaultConnection=defaultString
-PoliticalPartiesApi_MasterConnection=masterString
-PoliticalPartiesApi_DatabaseName=dbexamplename
-PoliticalPartiesApi_Auth0_Domain=authDomain
-PoliticalPartiesApi_Auth0_Audience=audience
-```
-## Running
-- Open terminal
-- Cd into folder with docker-compose.yml
-- Execute command `docker compose --env-file path-to-.env-file up`
+1. Clone the repository: `git clone https://github.com/Politi-cz/politicz-politicians-and-parties.git`
+2. Build the Docker image: `docker build -t politiczpoliticiansparties .`
+3. Run the Docker container with all necessary environment variables: `docker run -p 8080:80 politiczpoliticiansparties`
 
-## Usage
-- For HTTPS use [https://localhost:5001](https://localhost:5001)
-- For HTTP use [http://localhost:5000](http://localhost:5000)
+## Contributing
 
-## Swagger
-Available endpoints should be in swagger on url [http://localhost:5000/swagger](http://localhost:5000/swagger) (For HTTPS use port 5001)
+Contributions to Politicz.PoliticiansAndParties are welcome and encouraged! To contribute, follow these steps:
 
+1. Fork the repository
+2. Create a new branch for your changes: `git checkout -b my-feature-branch`
+3. Make your changes and commit them: `git commit -am 'Add some feature'`
+4. Push your changes to your fork: `git push origin my-feature-branch`
+5. Submit a pull request to the main repository
+
+## Contact
+
+If you have any questions or suggestions, please feel free to contact us. We'd love to hear from you!
